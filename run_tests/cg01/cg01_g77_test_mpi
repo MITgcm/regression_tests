@@ -37,15 +37,16 @@ chmod a+x $RUNIT
 COMMAND="$HERE/$RUNIT"
 
 # cat << EOF > $HERE"/.cvspass"
-# /1 :pserver:cvsanon@mitgcm.org:2401/usr/local/gcmpack Ah<Zy=0=
+# /1 :pserver:cvsanon@mitgcm.org:2401/u/gcmpack Ah<Zy=0=
 # EOF
-TDIR="/SCRATCH/s03/edhill/tmp_"$VENDOR
+TDIR="/SCRATCH/s01/edhill/tmp_"$VENDOR
 if test -e $TDIR ; then
     rm -rf $TDIR
 fi
 mkdir $TDIR
 cd $TDIR
-cvs -d :pserver:cvsanon@mitgcm.org:/usr/local/gcmpack co MITgcm
+cvs -d :pserver:cvsanon@mitgcm.org:/u/gcmpack co MITgcm
+#  cvs co MITgcm
 cd MITgcm/verification
 OPTFILE="../tools/build_options/linux_ia32_"$VENDOR"+mpi_cg01"
 ./testreport -mpi -of $OPTFILE -command $COMMAND -a 'edhill@mitgcm.org'
