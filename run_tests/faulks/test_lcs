@@ -1,0 +1,92 @@
+#! /usr/bin/env bash
+
+# $Header: $
+
+#  Ed Hill
+
+#  Test script for MITgcm that should work on most of the lcs.mit.edu
+#  Linux machines.
+
+usage()
+{
+    cat << EOF
+
+Usage:  $0 [OPTIONS]
+
+where possible OPTIONS are:
+  (-help|-h)               print usage
+  (-of | -optfile)FILE     specify an OPTFILE
+                             (default=$OPTFILE)
+  (-[no]ieee)              IEEE math flag
+                             (default=-ieee)
+
+EOF
+    exit 1
+}
+
+
+# defaults
+OPTFILE="../tools/build_options/linux_ia32_g77"
+IEEE="-ieee"
+
+#  Parse options
+ac_prev=
+for ac_option ; do
+
+    # If the previous option needs an argument, assign it.
+    if test -n "$ac_prev"; then
+        eval "$ac_prev=\$ac_option"
+        ac_prev=
+        continue
+    fi
+
+    ac_optarg=`expr "x$ac_option" : 'x[^=]*=\(.*\)'`
+    
+    case $ac_option in
+        
+        -help | --help | -h | --h)
+            usage ;;
+        
+        -of | --of | -optfile | --optfile)
+            ac_prev=OPTFILE ;;
+        --of=* | -of=* | --optfile=* | -optfile=*)
+            OPTFILE=$ac_optarg ;;
+
+	-ieee)
+	    IEEE="-ieee" ;;
+	-noieee)
+	    IEEE= ;;
+        
+        *)
+            echo "Error: don't understand argument \"$ac_option\""
+            usage
+            ;;
+        
+     esac
+     
+done
+
+echo -n "Creating a temp directory ..."
+cd ~/u3_edhill/testing
+mach=`hostname`
+file=${OPTFILE##*/}
+tdir=$mach"_"$file
+test -e $tdir  &&  rm -rf $tdir
+mkdir $tdir
+echo "  done"
+
+echo -n "Downloading the MITgcm code over CVS ..."
+cd $tdir
+cvs co MITgcm > /dev/null 2>&1
+echo "  done"
+
+echo "Running testreport using:"
+cd MITgcm/verification
+comm="./testreport $IEEE -a edhill@mitgcm.org"
+if test "x$OPTFILE" != x ; then
+    comm="$comm -of=$OPTFILE"
+fi
+echo "  \"$comm\""
+echo "======================"
+echo
+$comm 
