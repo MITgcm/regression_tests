@@ -1,6 +1,6 @@
 #! /usr/bin/env bash
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/faulks/test_lcs,v 1.6 2004/07/10 01:30:36 edhill Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/faulks/test_lcs,v 1.7 2004/07/12 14:24:30 edhill Exp $
 
 #  Ed Hill
 
@@ -50,9 +50,9 @@ for ac_option ; do
         -help | --help | -h | --h)
             usage ;;
         
-        -dir | --d)
+        -dir | --dir | -d | --d)
             ac_prev=TESTDIR ;;
-        --dir=* | -d=*)
+        -dir=* | --dir=* | -d=* | --d=*)
             TESTDIR=$ac_optarg ;;
 
         -of | --of | -optfile | --optfile)
@@ -90,14 +90,14 @@ echo "  done"
 
 echo "Running testreport using:"
 cd MITgcm/verification
-comm="./testreport $IEEE -a edhill@mitgcm.org" | tail -100
+comm="./testreport $IEEE -a edhill@mitgcm.org"
 if test "x$OPTFILE" != x ; then
     comm="$comm -of=$OPTFILE"
 fi
 echo "  \"$comm\""
 echo "======================"
 echo
-$comm
+$comm | tail -100
 
 echo
 echo "======================"
@@ -114,5 +114,5 @@ fi
 echo "  \"$comm\""
 echo "======================"
 echo
-$comm
+$comm | tail -100
  
