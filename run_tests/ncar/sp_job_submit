@@ -1,0 +1,21 @@
+#! /usr/bin/env bash
+
+#  $Id$
+
+#  Download and run the MITgcm model verification suite on
+#  bluesky.ucar.edu with load leveler but without using MPI.
+
+echo ":pserver:cvsanon@mitgcm.org:/u/gcmpack Ah<Zy=0=" > ~/.cvspass
+
+cd /ptmp/edhill
+
+DIR=tmp
+test -e $DIR  &&  rm -rf $DIR
+mkdir $DIR
+cd $DIR
+
+cvs -d :pserver:cvsanon@mitgcm.org:/u/gcmpack co MITgcm
+
+/ssg/loadl/bin/llsubmit ~/bin/sp_ll_testreport
+
+
