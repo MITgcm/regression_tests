@@ -1,6 +1,6 @@
 #! /usr/bin/env bash
 
-# $Header: $
+# $Header: /u/u3/gcmpack/MITgcm_contrib/test_scripts/halem/test_halem_auden,v 1.1 2003/12/04 20:30:17 edhill Exp $
 
 #  Ed Hill
 
@@ -13,7 +13,7 @@ cd /u/u3/edhill/testing/
 test -e halem  &&  rm -rf halem
 mkdir halem
 cd halem
-cvs co MITgcm_verif_basic
+cvs co MITgcm_verif_basic > /dev/null 2>&1
 tar -czf MITgcm.tar.gz ./MITgcm
 echo "  done"
 
@@ -22,5 +22,5 @@ scp MITgcm.tar.gz halem.gsfc.nasa.gov:/u1/edhill/
 echo "  done"
 
 echo "Executing the test_halem script on halem ..."
-ssh halem.gsfc.nasa.gov /u1/edhill/bin/test_halem
+ssh halem.gsfc.nasa.gov '/usr/ulocal/bin/bash /u1/edhill/bin/test_halem'
 echo "  done"

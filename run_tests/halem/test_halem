@@ -25,6 +25,7 @@ EOF
     exit 1
 }
 
+. /u1/edhill/bin/bash_env
 
 # defaults
 OPTFILE="../tools/build_options/osf1_alpha_f77"
@@ -100,5 +101,6 @@ echo "======================"
 echo
 $comm 
 
+cd /u1/edhill/
 rm -rf /u1/edhill/MITgcm.tar
-
+rm -rf /scr/edhill/$tdir
