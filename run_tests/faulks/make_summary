@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# $Header: /u/u3/gcmpack/MITgcm_contrib/test_scripts/faulks/make_summary,v 1.1 2003/11/28 20:28:43 edhill Exp $
+# $Header: /u/u3/gcmpack/MITgcm_contrib/test_scripts/faulks/make_summary,v 1.2 2003/12/05 15:14:49 edhill Exp $
 
 #  Ed Hill
 
@@ -224,7 +224,13 @@ for mname in $MACHINES ; do
 	if test "x$OPTFILE" = x ; then
 	    OPTFILE=none
 	fi
-	DAY=`echo $i | sed -e 's|_|\n|g' | awk '(length($1)==8 && substr($1,0,3)=="200")'`
+	tokens=`echo $i | sed -e 's|_| |g'`
+	echo "" > ./ms_tmp
+	for i in $tokens ; do
+	    echo $i >> ./ms_tmp
+	done
+	DAY=`cat ./ms_tmp | awk '(length($1)==8 && substr($1,0,3)=="200")'`
+	rm -f ./ms_tmp
 	echo "$OPTFILE $DAY $i" >> ./mlist
 
     done
