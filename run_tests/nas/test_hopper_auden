@@ -1,0 +1,28 @@
+#! /usr/bin/env bash
+
+# $Header:  $
+
+mname=hopper
+
+echo -n "Creating the MITgcm tar-ball ..."
+cd /u/u3/edhill/testing/
+test -e $mname  &&  rm -rf $mname
+mkdir $mname
+cd $mname
+cvs co MITgcm_verif_basic > /dev/null 2>&1
+tar -czf MITgcm.tar.gz ./MITgcm
+echo "  done"
+
+echo -n "Copying it to $mname ..."
+scp MITgcm.tar.gz turing.nas.nasa.gov:/cluster/hopper/scratch1/edhill/
+echo "  done"
+
+echo "Executing the test script on $mname ..."
+ssh  '/usr/nas/bin/bash /u1/edhill/bin/test_$mname'
+echo "  done"
+
+echo -n "Collecting and mailing the results ..."
+scp turing.nas.nasa.gov:/cluster/hopper/scratch1/edhill/MITgcm/verification/tr_hopper_0.tar.gz .
+mpack -s MITgcm-test -m 1500000 tr_hopper_0.tar.gz edhill@mitgcm.org
+
+
