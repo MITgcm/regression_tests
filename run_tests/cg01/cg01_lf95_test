@@ -1,0 +1,31 @@
+#!/bin/bash
+#
+# o -N Job Name
+#PBS -N eh3_lf95
+#
+# o -l ask for 1 nodes, each with the attribute "p4".
+#PBS -l nodes=1:p4
+#
+# o Where to write output
+#PBS -e /SCRATCH/s00/edhill/lahey_testing/err_lf95
+#PBS -o /SCRATCH/s00/edhill/lahey_testing/out_lf95
+#
+# o Export all my environment variables to the job
+#PBS -V
+#
+
+export PATH="$PATH:/usr/local/pkg/lahey/current/bin"
+
+base_dir="/SCRATCH/s00/edhill/lahey_testing"
+cd $base_dir
+test -e MITgcm  &&  rm -rf MITgcm
+cat $PBS_NODEFILE > $base_dir"/mf"
+cvs -d :pserver:cvsanon@mitgcm.org:/usr/local/gcmpack co MITgcm
+cd MITgcm/verification
+
+OPTFILE="-of ../tools/build_options/linux_ia32_lf95"
+COMM="-command /home/edhill/bin/cg01_lf95_data_fix"
+./testreport $OPTFILE $COMM -a 'edhill@mitgcm.org' > /dev/null 2>&1
+
+
+
