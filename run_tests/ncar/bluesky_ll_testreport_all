@@ -11,7 +11,7 @@
 #@network.MPI=csss,shared,us
 #@queue
 
-cd /ptmp/edhill/tmp_bf/MITgcm/verification
+cd /ptmp/edhill/tmp/MITgcm/verification
 
 cat <<EOF > tr_run_command
 #! /usr/bin/env bash

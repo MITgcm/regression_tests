@@ -9,13 +9,13 @@ echo ":pserver:cvsanon@mitgcm.org:/u/gcmpack Ah<Zy=0=" > ~/.cvspass
 
 cd /ptmp/edhill
 
-DIR=tmp_bf
+DIR=tmp
 test -e $DIR  &&  rm -rf $DIR
 mkdir $DIR
 cd $DIR
 
 cvs -d :pserver:cvsanon@mitgcm.org:/u/gcmpack co MITgcm_verif_basic
 
-/ssg/loadl/bin/llsubmit ~/bin/sp_ll_testreport
+/ssg/loadl/bin/llsubmit ~/bin/bluesky_ll_testreport_all
 
 
