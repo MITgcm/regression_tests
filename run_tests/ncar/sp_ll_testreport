@@ -12,6 +12,6 @@
 #@queue
 
 cd /ptmp/edhill/tmp/MITgcm/verification
-./testreport -make gmake -of=../tools/build_options/sp4 
+./testreport -make gmake -of=../tools/build_options/sp4 -a edhill@mitgcm.org
 
 
