@@ -1,0 +1,104 @@
+#! /usr/bin/env bash
+
+# $Header: /u/u3/gcmpack/MITgcm_contrib/test_scripts/faulks/test_lcs,v 1.1 2003/11/28 17:37:57 edhill Exp $
+
+#  Ed Hill
+
+#  Testing script designed to be run on halem.  Note that halem
+#  doesn't seem to have a working cron system for ordinary users -- I
+#  got multiple errors.
+
+usage()
+{
+    cat << EOF
+
+Usage:  $0 [OPTIONS]
+
+where possible OPTIONS are:
+  (-help|-h)               print usage
+  (-of | -optfile)FILE     specify an OPTFILE
+                             (default=$OPTFILE)
+  (-[no]ieee)              IEEE math flag
+                             (default=-ieee)
+
+EOF
+    exit 1
+}
+
+
+# defaults
+OPTFILE="../tools/build_options/osf1_alpha_f77"
+IEEE="-ieee"
+
+#  Parse options
+ac_prev=
+for ac_option ; do
+
+    # If the previous option needs an argument, assign it.
+    if test -n "$ac_prev"; then
+        eval "$ac_prev=\$ac_option"
+        ac_prev=
+        continue
+    fi
+
+    ac_optarg=`expr "x$ac_option" : 'x[^=]*=\(.*\)'`
+    
+    case $ac_option in
+        
+        -help | --help | -h | --h)
+            usage ;;
+        
+        -of | --of | -optfile | --optfile)
+            ac_prev=OPTFILE ;;
+        --of=* | -of=* | --optfile=* | -optfile=*)
+            OPTFILE=$ac_optarg ;;
+
+	-ieee)
+	    IEEE="-ieee" ;;
+	-noieee)
+	    IEEE= ;;
+        
+        *)
+            echo "Error: don't understand argument \"$ac_option\""
+            usage
+            ;;
+        
+     esac
+     
+done
+
+echo -n "Creating a temp directory ..."
+cd /scr/edhill
+mach=`hostname`
+file=${OPTFILE##*/}
+tdir=$mach"_"$file
+test -e $tdir  &&  rm -rf $tdir
+mkdir $tdir
+cd $tdir
+echo "  done"
+
+echo -n "Getting the previously-uploaded tarball ..."
+tball=/u1/edhill/MITgcm.tar.gz
+if test -r $tball ; then
+    gunzip $tball
+    tar -xf ${tball/.gz/}
+else
+    echo
+    echo "ERROR: can't read \"$tball\""
+    exit 1
+fi
+echo "  done"
+
+echo "Running testreport using:"
+cd MITgcm/verification
+comm="./testreport $IEEE -a edhill@mitgcm.org"
+if test "x$OPTFILE" != x ; then
+    comm="$comm -of=$OPTFILE"
+fi
+echo "  \"$comm\""
+echo "======================"
+echo
+$comm 
+
+rm -rf /u1/edhill/MITgcm.tar
+

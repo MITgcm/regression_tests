@@ -1,0 +1,26 @@
+#! /usr/bin/env bash
+
+# $Header: $
+
+#  Ed Hill
+
+#  Testing script designed to be run on halem.  Note that halem
+#  doesn't seem to have a working cron system for ordinary users -- I
+#  got multiple errors.
+
+echo -n "Creating the MITgcm tar-ball ..."
+cd /u/u3/edhill/testing/
+test -e halem  &&  rm -rf halem
+mkdir halem
+cd halem
+cvs co MITgcm_verif_basic
+tar -czf MITgcm.tar.gz ./MITgcm
+echo "  done"
+
+echo -n "Copying it to halem ..."
+scp MITgcm.tar.gz halem.gsfc.nasa.gov:/u1/edhill/
+echo "  done"
+
+echo "Executing the test_halem script on halem ..."
+ssh halem.gsfc.nasa.gov /u1/edhill/bin/test_halem
+echo "  done"
