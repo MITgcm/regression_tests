@@ -1,10 +1,10 @@
 #! /usr/bin/env bash
 
-# $Header:  $
+# $Header: /u/u3/gcmpack/MITgcm_contrib/test_scripts/nas/test_hopper_auden,v 1.1 2003/12/07 04:59:34 edhill Exp $
 
 mname=hopper
 
-echo -n "Creating the MITgcm tar-ball ..."
+echo "Creating the MITgcm tar-ball ..."
 cd /u/u3/edhill/testing/
 test -e $mname  &&  rm -rf $mname
 mkdir $mname
@@ -13,16 +13,20 @@ cvs co MITgcm_verif_basic > /dev/null 2>&1
 tar -czf MITgcm.tar.gz ./MITgcm
 echo "  done"
 
-echo -n "Copying it to $mname ..."
+echo "Copying it to $mname ..."
 scp MITgcm.tar.gz turing.nas.nasa.gov:/cluster/hopper/scratch1/edhill/
 echo "  done"
 
 echo "Executing the test script on $mname ..."
-ssh  '/usr/nas/bin/bash /u1/edhill/bin/test_$mname'
+ssh turing.nas.nasa.gov /u/edhill/bin/qsub_hopper
 echo "  done"
 
-echo -n "Collecting and mailing the results ..."
-scp turing.nas.nasa.gov:/cluster/hopper/scratch1/edhill/MITgcm/verification/tr_hopper_0.tar.gz .
-mpack -s MITgcm-test -m 1500000 tr_hopper_0.tar.gz edhill@mitgcm.org
+# The following is not needed on hopper -- mpack works just fine!
+#
+# echo "Collecting and mailing the results ..."
+# sleep 15000
+# scp turing.nas.nasa.gov:/cluster/hopper/scratch1/edhill/MITgcm/verification/tr_hopper_0.tar.gz .
+# mpack -s MITgcm-test -m 1500000 tr_hopper_0.tar.gz edhill@mitgcm.org
+# echo "  done"
 
 
