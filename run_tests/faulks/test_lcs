@@ -1,6 +1,6 @@
 #! /usr/bin/env bash
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/faulks/test_lcs,v 1.2 2003/12/10 20:09:21 edhill Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/faulks/test_lcs,v 1.3 2004/04/02 14:21:35 edhill Exp $
 
 #  Ed Hill
 
@@ -67,7 +67,7 @@ for ac_option ; do
 done
 
 echo -n "Creating a temp directory ..."
-cd ~/u3_edhill/testing
+cd ~/d31/testing
 mach=`hostname`
 file=${OPTFILE##*/}
 tdir=$mach"_"$file
