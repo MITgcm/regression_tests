@@ -1,6 +1,6 @@
 #! /usr/bin/env bash
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/faulks/test_lcs,v 1.4 2004/05/14 17:55:47 edhill Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/faulks/test_lcs,v 1.5 2004/05/30 18:09:39 edhill Exp $
 
 #  Ed Hill
 
@@ -67,7 +67,7 @@ for ac_option ; do
 done
 
 echo -n "Creating a temp directory ..."
-cd ~/d31/testing
+cd /u/edhill/test_temp
 mach=`hostname`
 file=${OPTFILE##*/}
 tdir=$mach"_"$file
@@ -83,7 +83,7 @@ echo "  done"
 
 echo "Running testreport using:"
 cd MITgcm/verification
-comm="./testreport $IEEE -a edhill@mitgcm.org"
+comm="./testreport $IEEE -a edhill@mitgcm.org" | tail -100
 if test "x$OPTFILE" != x ; then
     comm="$comm -of=$OPTFILE"
 fi
@@ -92,8 +92,14 @@ echo "======================"
 echo
 $comm
 
+echo
+echo "======================"
+echo "Cleaning test directories:"
+./testreport -clean > /dev/null 2>&1
+echo "======================"
+echo
+
 echo "Running testreport using:"
-cd MITgcm/verification
 comm="./testreport -adm $IEEE -a edhill@mitgcm.org"
 if test "x$OPTFILE" != x ; then
     comm="$comm -of=$OPTFILE"
