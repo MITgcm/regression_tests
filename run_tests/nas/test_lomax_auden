@@ -1,0 +1,25 @@
+#! /usr/bin/env bash
+
+# $Header:  $
+
+mname=lomax
+
+echo "Creating the MITgcm tar-ball ..."
+cd /u/u3/edhill/testing/
+test -e $mname  &&  rm -rf $mname
+mkdir $mname
+cd $mname
+cvs co MITgcm_verif_basic > /dev/null 2>&1
+tar -czf MITgcm.tar.gz ./MITgcm
+echo "  done"
+
+echo "Copying it to $mname ..."
+scp MITgcm.tar.gz turing.nas.nasa.gov:/cluster/lomax/nobackup1/edhill/
+echo "  done"
+
+echo "Executing the test script on $mname ..."
+ssh turing.nas.nasa.gov /u/edhill/bin/qsub_lomax
+echo "  done"
+
+
+
