@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# $Header: /u/u3/gcmpack/development/edhill/make_summary,v 1.8 2003/11/28 17:44:02 edhill Exp $
+# $Header: /u/u3/gcmpack/MITgcm_contrib/test_scripts/faulks/make_summary,v 1.1 2003/11/28 20:28:43 edhill Exp $
 
 #  Ed Hill
 
@@ -216,10 +216,21 @@ for mname in $MACHINES ; do
 	    eval $comm
 	    OPTFILE=${OPTFILE##*/}
 	fi
+	if test "x$OPTFILE" = x ; then
+	    comm=`grep '^# OPTFILE=' $dir/*/Makefile | head -1 | sed -e 's|^# ||'`
+	    eval $comm
+	    OPTFILE=${OPTFILE##*/}
+	fi
+	if test "x$OPTFILE" = x ; then
+	    OPTFILE=none
+	fi
 	DAY=`echo $i | sed -e 's|_|\n|g' | awk '(length($1)==8 && substr($1,0,3)=="200")'`
 	echo "$OPTFILE $DAY $i" >> ./mlist
 
     done
+
+    # helpful for debugging
+    # cat ./mlist
 
     #  Do we have any data?  If so, create the latest pointer.
     num=`wc -l ./mlist | awk '{print $1}'`
