@@ -1,6 +1,6 @@
 #! /usr/bin/env bash
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/faulks/test_lcs,v 1.5 2004/05/30 18:09:39 edhill Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/faulks/test_lcs,v 1.6 2004/07/10 01:30:36 edhill Exp $
 
 #  Ed Hill
 
@@ -15,10 +15,12 @@ Usage:  $0 [OPTIONS]
 
 where possible OPTIONS are:
   (-help|-h)               print usage
-  (-of | -optfile)FILE     specify an OPTFILE
-                             (default=$OPTFILE)
+  (-dir | -d) TDIR         specify testing directory
+                             (def="$TDIR")
+  (-of | -optfile) FILE    specify an OPTFILE
+                             (def="$OPTFILE")
   (-[no]ieee)              IEEE math flag
-                             (default=-ieee)
+                             (def="$IEEE")
 
 EOF
     exit 1
@@ -27,6 +29,7 @@ EOF
 
 # defaults
 OPTFILE="../tools/build_options/linux_ia32_g77"
+TESTDIR="/scratch/edhill/test_"`hostname`
 IEEE="-ieee"
 
 #  Parse options
@@ -47,6 +50,11 @@ for ac_option ; do
         -help | --help | -h | --h)
             usage ;;
         
+        -dir | --d)
+            ac_prev=TESTDIR ;;
+        --dir=* | -d=*)
+            TESTDIR=$ac_optarg ;;
+
         -of | --of | -optfile | --optfile)
             ac_prev=OPTFILE ;;
         --of=* | -of=* | --optfile=* | -optfile=*)
@@ -67,15 +75,14 @@ for ac_option ; do
 done
 
 echo -n "Creating a temp directory ..."
-cd /u/edhill/test_temp
 mach=`hostname`
 file=${OPTFILE##*/}
-tdir=$mach"_"$file
+tdir=$TESTDIR"_"$file
 test -e $tdir  &&  rm -rf $tdir
 mkdir $tdir
 echo "  done"
 
-echo -n "Downloading the MITgcm code over CVS ..."
+echo -n "Downloading the MITgcm code from CVS pserver..."
 cd $tdir
 export CVSROOT='/u/gcmpack'
 cvs co MITgcm > /dev/null 2>&1
