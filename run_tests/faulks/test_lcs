@@ -1,6 +1,6 @@
 #! /usr/bin/env bash
 
-# $Header: /u/u3/gcmpack/MITgcm_contrib/test_scripts/faulks/test_lcs,v 1.1 2003/11/28 17:37:57 edhill Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/faulks/test_lcs,v 1.2 2003/12/10 20:09:21 edhill Exp $
 
 #  Ed Hill
 
@@ -90,4 +90,16 @@ fi
 echo "  \"$comm\""
 echo "======================"
 echo
-$comm 
+$comm
+
+echo "Running testreport using:"
+cd MITgcm/verification
+comm="./testreport -adm $IEEE -a edhill@mitgcm.org"
+if test "x$OPTFILE" != x ; then
+    comm="$comm -of=$OPTFILE"
+fi
+echo "  \"$comm\""
+echo "======================"
+echo
+$comm
+ 
