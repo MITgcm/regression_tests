@@ -9,6 +9,14 @@ and the scripts have the following pecularities:
 
   - many paths are hard-coded
 
+  - a current copy of MITgcm is checked out using cvs pserver 
+    so you will need the corresponding pserver key in your 
+    ~/.cvspass which can be obtained (and which only needs to 
+    be performed *once*):
+
+      $ cvs -d ':pserver:cvsanon@mitgcm.org:/u/gcmpack' login
+      ===> ( enter the CVS password: "cvsanon" )
+
 
 The files are:
 
