@@ -1,6 +1,6 @@
 #! /usr/bin/env bash
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/faulks/test_lcs,v 1.7 2004/07/12 14:24:30 edhill Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/faulks/test_lcs,v 1.8 2004/07/12 15:03:19 edhill Exp $
 
 #  Ed Hill
 
@@ -28,7 +28,7 @@ EOF
 
 
 # defaults
-OPTFILE="../tools/build_options/linux_ia32_g77"
+OPTFILE=
 TESTDIR="/scratch/edhill/test_"`hostname`
 IEEE="-ieee"
 
