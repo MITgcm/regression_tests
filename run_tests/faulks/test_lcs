@@ -1,6 +1,6 @@
 #! /usr/bin/env bash
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/faulks/test_lcs,v 1.9 2004/07/12 16:14:44 edhill Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/faulks/test_lcs,v 1.10 2005/06/08 15:11:56 edhill Exp $
 
 #  Ed Hill
 
@@ -123,6 +123,7 @@ echo "======================"
 echo
 
 echo "Running testreport using:"
+export PGI=/usr/local/pkg/pgi/pgi-5.2-fc3
 cd MITgcm/verification
 comm="./testreport $IEEE -of ../tools/build_options/linux_ia32_pgf77+authors_fc3 -a edhill@mitgcm.org"
 echo "  \"$comm\""
