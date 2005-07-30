@@ -7,7 +7,9 @@ of the machines and the latest testing output, please see:
 
   http://mitgcm.org/testing.html
 
-
+July 28, 2005: Scripts currently used for testing on
+   faulks, cg01, itrda (ACESgrid) and columbia
+ have been moved to MITgcm/tools/example_scripts/
 
 ======================================================================
 
