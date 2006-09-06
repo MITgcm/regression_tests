@@ -1,0 +1,41 @@
+#!/bin/csh -x
+#$Header: $
+#$Name: $
+# script to run testreport on csysm3.dmawi.de, without access to sendmail
+# which requires a hack
+setenv CVS_RSH ssh
+
+set tmpdir=tmp`date -u +'%Y-%b-%d-%Hh%Mm%Ss'` 
+set tmpbase=/mlosch
+
+#if ( ! -e ${tmpbase} ) then
+#  mkdir ${tmpbase}
+#endif
+cd    ${tmpbase}
+mkdir ${tmpdir}
+cd    ${tmpdir}
+set mitdir = MITgcm
+if ( -e $mitdir ) then
+  rm -rf $mitdir
+endif
+
+cvs -d :pserver:cvsanon@mitgcm.org:/u/gcmpack co -d ${mitdir} MITgcm >& cvs_co.log 
+#cvs -d :ext:@mitgcm.org:/u/gcmpack co -d ${mitdir} MITgcm >& $tmpbase/cvs_co.log
+if ( $status > 0 ) then
+  cat cvs_co.log
+else
+
+  cd ${mitdir}/verification
+  ./testreport -of=../tools/build_options/darwin_ppc_g77 >& /dev/null
+  set outdir = `ls -d tr_csysm3.*`
+  addtotesting $outdir
+  if ( $status > 0 ) then
+    echo "something wrong with testreport"
+    echo "keeping the working directory"
+  else
+  # delete working directory
+#    cd $tmpbase
+#    rm -rf $tmpdir 
+  endif
+endif
+
