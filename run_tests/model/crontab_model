@@ -1,0 +1,5 @@
+# crontab file for model.awi-bremerhaven.de
+#$Header: $
+#$Name: $
+
+0 2 * * 0 SGE_ROOT=/home/model/sgeadmin;export SGE_ROOT;${SGE_ROOT}/bin/solaris64/qsub ${HOME}/scripts/mitgcmtestreport

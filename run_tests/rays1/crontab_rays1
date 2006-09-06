@@ -1,0 +1,7 @@
+# crontab for rays1.awi-bremerhaven.de (launches script for XD1, too,
+# because there is not crond for users on XD1
+#$Header: $
+#$Name: $
+
+0 2 * * 0 ${HOME}/scripts/mitgcmtestreport 
+0 2 * * 0 ${HOME}/scripts/xd1_test > ${HOME}/xd1_test.out 2>&1

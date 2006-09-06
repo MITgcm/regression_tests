@@ -1,0 +1,27 @@
+#$Header: $
+#$Name: $
+#!/usr/bin/bash -x
+
+#  $Id: $
+
+#  Download and run the MITgcm model verification suite on
+#  edvir1.awi-bremerhaven.de with load leveler but without using MPI.
+
+#echo ":pserver:cvsanon@mitgcm.org:/u/gcmpack Ah<Zy=0=" > ~/.cvspass
+DIR=/edvir1/user2/mlosch/tmp
+#DIR=${HOME}/tmp
+if test -e $DIR ; then
+    rm -rf $DIR
+fi
+mkdir $DIR
+cd $DIR
+
+cvs -d :pserver:cvsanon@mitgcm.org:/u/gcmpack co MITgcm_verif_basic > cvs_co.log 2>&1
+RETVAL=$?
+if test "x$RETVAL" != x0 ; then
+  cat cvs_co.log
+fi
+
+llsubmit ${HOME}/scripts/edvir1_testreport
+
+

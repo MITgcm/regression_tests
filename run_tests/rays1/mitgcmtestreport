@@ -1,0 +1,45 @@
+#$Header: $
+#$Name: $
+#!/bin/csh -x
+
+setenv CVS_RSH ssh
+source /applic/com/forte7.login 		# Sun Workshop (incl. Fortran)
+
+set tmpbase=/tphs1/user2/mlosch
+set tmpbase=/tmp/mlosch
+set tmpbase=/tphs1/kurz/mlosch
+#set tmpdir=tmp`date -u +'%Y-%b-%d-%Hh%Mm%Ss'` 
+set tmpdir=tmp_f77
+
+if ( ! -e ${tmpbase} ) then
+  mkdir ${tmpbase}
+endif
+if ( -e ${tmpbase}/${tmpdir} ) then
+  rm -rf ${tmpbase}/${tmpdir}
+endif
+mkdir ${tmpbase}/${tmpdir}
+cd    ${tmpbase}/${tmpdir}
+cvs -d :pserver:cvsanon@mitgcm.org:/u/gcmpack co MITgcm >& cvs_co.log 
+#cvs -d :ext:@mitgcm.org:/u/gcmpack co MITgcm >& $tmpbase/cvs_co.log
+if ( $status > 0 ) then
+  cat ${tmpbase}/${tmpdir}/cvs_co.log
+else
+
+  cd MITgcm/verification
+  ./testreport -a "edhill@mitgcm.org mlosch@awi-bremerhaven.de" -ieee \
+              -of=../tools/build_options/sunos_sun4u_f77 \
+              >& /dev/null
+  ./testreport -clean
+  ./testreport -a "edhill@mitgcm.org" -ieee \
+              -of=../tools/build_options/sunos_sun4u_g77 \
+              >& /dev/null
+  if ( $status > 0 ) then
+    echo "something wrong with testreport"
+    echo "keeping the working directory"
+  else
+  # delete working directory
+    cd $tmpbase
+    rm -rf $tmpdir 
+  endif
+endif
+

@@ -1,0 +1,117 @@
+#!/bin/csh -x
+#$Header: $
+#$Name: $
+
+#source /opt/gridengine/default/common/settings.csh
+#
+# fortran compiler
+#
+setenv PGI /opt/pgi
+setenv PATH ${PGI}/linux86-64/5.2/bin:$PATH
+setenv MANPATH $MANPATH":"/opt/pce/man:${PGI}/linux86-64/5.2/man
+# this does not seem to be necessary
+#setenv LM_LICENSE_FILE $PGI/license.dat
+#
+# mpi environment: 
+#
+# mpich for pgi compiler verions 5.2
+setenv MPICH /usr/mpich/mpich-1.2.6-pgi524
+# mpich for g77: setenv MPICH /usr/mpich/mpich-1.2.6
+setenv PATH ${MPICH}/bin:${PATH}
+setenv MANPATH $MANPATH":"${MPICH}/man
+
+set VENDOR=pgf77
+set RUNIT="runit_"$VENDOR
+set HERE=$cwd
+set EXE='mpiexec ./mitgcmuv'
+set OUTFILE=/home/xd1/mlosch/out_pgf77
+
+#
+# create batch script
+#
+cat << EOF >! $HERE/$RUNIT
+#!/bin/csh -x
+# select the queue you want to run on
+#PBS -S /bin/csh
+#PBS -j oe
+# give the job a name
+#PBS -N mitgcm_pgf77
+# specify cluster runtime environment and request 2 CPUs
+#PBS -q big
+#PBS -l nodes=1:ppn=2
+#
+# o Where to write output
+#PBS -o $OUTFILE
+#
+# o Export all my environment variables to the job
+#PBS -V
+#
+
+cd \${PBS_O_WORKDIR}
+
+$EXE
+echo "NORMAL END" >> \${PBS_O_WORKDIR}/run.log
+cp STDOUT.0000 output.txt
+
+EOF
+chmod a+x $RUNIT
+
+set COMMAND="qsub -W block=true $HERE/$RUNIT"
+set COMMAND="/usr/pbs/bin/qsub -W block=true $HERE/$RUNIT"
+
+if ( -e $OUTFILE) then
+  rm -r $OUTFILE
+endif
+set TDIR=/home/xd1/mlosch/tmp_$VENDOR
+if ( -e $TDIR ) then
+    rm -rf $TDIR
+endif
+mkdir $TDIR
+cd $TDIR
+cvs -d :pserver:cvsanon@mitgcm.org:/u/gcmpack co MITgcm_verif_basic >& cvs_co.log
+if ( $status > 0 ) then
+  cat cvs_co.log
+endif
+
+cd MITgcm/verification
+set CMD=$cwd/command.qsub
+cat >! $CMD <<EOF
+$COMMAND
+EOF
+chmod 744 $CMD
+
+set OPTFILE=../tools/build_options/linux_amd64_pgf77+mpi_xd1
+./testreport -mpi -a "mlosch@awi-bremerhaven.de" -of $OPTFILE -command $CMD >& /dev/null
+
+# workaround for mailing the stuff
+# set name of remote host where to do the mpack command
+#set rmhost=belle.csail.mit.edu
+set rmhost=rays1.awi-bremerhaven.de
+# pack directory into an archive an compress it
+set fname = `ls -dtr tr_xd1*`
+tar czf ${fname}'.tar.gz' ${fname}
+# copy gzipped archive to remote host
+scp ${fname}'.tar.gz' $rmhost':'
+# on the remote host execute the mpack command, that send the email
+#ssh $rmhost '/u/u0/mlosch/bin/mpack -s MITgcm-test '$fname'.tar.gz edhill@mitgcm.org'
+ssh $rmhost '/home/tphs1/mlosch/bin_sol/mpack -s MITgcm-test '$fname'.tar.gz edhill@mitgcm.org'
+# wait a little, just to be sure everything is done
+sleep 2
+# remove archives 
+ssh $rmhost 'rm '$fname'.tar.gz'
+rm $fname'.tar.gz'
+exit
+
+# do it again for copy and pasting
+set rmhost=belle.csail.mit.edu
+set fname = `ls -dtr tr_xd1*`
+tar czf ${fname}'.tar.gz' ${fname}
+scp ${fname}'.tar.gz' $rmhost':'
+ssh $rmhost '/u/u0/mlosch/bin/mpack -s MITgcm-test '$fname'.tar.gz edhill@mitgcm.org'
+sleep 2
+ssh $rmhost 'rm '$fname'.tar.gz'
+rm $fname'.tar.gz'
+
+
+
+

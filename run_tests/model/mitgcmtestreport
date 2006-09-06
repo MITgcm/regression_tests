@@ -1,0 +1,52 @@
+#!/bin/csh -x
+#$Header: $
+#$Name: $
+# select the queue you want to run on
+#$ -q model.q
+# give the job a name
+#$ -N mitgcm_mpf77
+# specify cluster runtime environment and request 20 CPUs (only for batch)
+## -pe cre 20
+#
+# o Where to write output
+#$ -e /home/model/mlosch/err_mpf77
+#$ -o /home/model/mlosch/out_mpf77
+#
+# o Export all my environment variables to the job
+#$ -V
+#
+
+set VENDOR=mpf77
+set RUNIT="runit_"$VENDOR
+set HERE=$cwd
+set EXE='mprun -np 2 ./mitgcmuv'
+
+cat << EOF > $HERE/$RUNIT
+#!/bin/csh
+
+$EXE
+
+cp STDOUT.0000 output.txt
+
+EOF
+chmod a+x $RUNIT
+
+set COMMAND=$HERE/$RUNIT
+
+set TDIR=/model/scratch/mlosch/tmp_$VENDOR
+if ( -e $TDIR ) then
+    rm -rf $TDIR
+endif
+mkdir $TDIR
+cd $TDIR
+cvs -d :pserver:cvsanon@mitgcm.org:/u/gcmpack co MITgcm >& cvs_co.log
+if ( $status > 0 ) then
+  cat cvs_co.log
+endif
+
+cd MITgcm/verification
+set OPTFILE=../tools/build_options/sunos_sun4u_mpf77+mpi_sunfire
+./testreport -postclean -mpi -of $OPTFILE -command $COMMAND -a 'edhill@mitgcm.org' >& /dev/null
+
+
+

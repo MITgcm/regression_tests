@@ -1,0 +1,93 @@
+#!/bin/tcsh -x
+#$Header: $
+#$Name: $
+
+# LoadLeveler batch commands that are used if this script is submitted to
+#   the share batch queue:
+# @ job_type = parallel
+# @ job_name = mitgcm_testreport
+# @ output = testreport.out
+# @ error = testreport.out
+# @ wall_clock_limit = 8:00:0,8:00:0
+# @ resources = ConsumableCpus(1)
+# @ image_size = 50
+# @ class = cpar
+
+## @ notification = never
+# @ notification = complete
+# @ notify_user = mlosch@awi-bremerhaven.de
+
+# @ node = 1
+# @ tasks_per_node = 2
+# @ node_usage = shared
+# @ queue
+
+set VENDOR=mpxlf95
+set RUNIT="runit_"$VENDOR
+set HERE=$cwd
+set EXE='poe ./mitgcmuv -procs 2'
+set DIR=/edvir1/user2/mlosch/tmp
+#set DIR=${HOME}/tmp
+
+cat << EOF > $HERE/$RUNIT
+#!/bin/csh
+
+$EXE
+
+cp STDOUT.0000 output.txt
+
+EOF
+chmod a+x $RUNIT
+
+set COMMAND=$HERE/$RUNIT
+
+
+cd ${DIR}/MITgcm/verification
+bash ./testreport -bash /usr/bin/bash -postclean -mpi -of=../tools/build_options/sp4+mpi_edvir1 -command $COMMAND -a 'edhill@mitgcm.org mlosch@awi-bremerhaven.de' >& /dev/null
+
+
+exit
+
+# workaround for sending emails to mitgcm.org
+set rmhost=rays1.awi-bremerhaven.de
+# pack directory into an archive an compress it
+set fname = `ls -dtr tr_edvir* | grep -v tar.gz`
+tar cf - $fname | gzip >! ${fname}'.tar.gz'
+# copy gzipped archive to remote host
+scp ${fname}'.tar.gz' $rmhost':'
+# on the remote host execute the mpack command, that send the email
+#ssh $rmhost '/u/u0/mlosch/bin/mpack -s MITgcm-test '$fname'.tar.gz edhill@mitgcm.org'
+ssh $rmhost '/home/tphs1/mlosch/bin_sol/mpack -s MITgcm-test '$fname'.tar.gz edhill@mitgcm.org'
+# wait a little, just to be sure everything is done
+sleep 2
+# remove archives
+ssh $rmhost 'rm '$fname'.tar.gz'
+rm -rf $fname'.tar.gz'
+
+exit
+# now repeat everything for 1 CPU, first delete previous test report directory
+rm -rf ${fname}
+
+./testreport -clean >& /dev/null
+bash ./testreport -bash /usr/bin/bash -of=../tools/build_options/sp4_edvir1 >& /dev/null
+
+exit
+# workaround for mailing the stuff
+# set name of remote host where to do the mpack command
+#set rmhost=belle.csail.mit.edu
+set rmhost=rays1.awi-bremerhaven.de
+# pack directory into an archive an compress it
+set fname = `ls -dtr tr_edvir* | grep -v tar.gz`
+tar cf - $fname | gzip >! ${fname}'.tar.gz'
+# copy gzipped archive to remote host
+scp ${fname}'.tar.gz' $rmhost':'
+# on the remote host execute the mpack command, that send the email
+#ssh $rmhost '/u/u0/mlosch/bin/mpack -s MITgcm-test '$fname'.tar.gz edhill@mitgcm.org'
+ssh $rmhost '/home/tphs1/mlosch/bin_sol/mpack -s MITgcm-test '$fname'.tar.gz edhill@mitgcm.org'
+# wait a little, just to be sure everything is done
+sleep 2
+# remove archives
+ssh $rmhost 'rm '$fname'.tar.gz'
+rm -rf $fname'.tar.gz'
+#
+
