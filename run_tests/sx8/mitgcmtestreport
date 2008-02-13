@@ -1,0 +1,79 @@
+#!/bin/csh -x
+
+set VENDOR=sxf90
+set RUNIT="runit_"$VENDOR
+set HERE=$cwd
+set EXE='mpirun -np 2 ./mitgcmuv'
+set OUTFILE=/home/sx8/mlosch/out_${VENDOR}
+set JOBSCRIPT=job_${VENDOR}
+
+if ( -e $OUTFILE) then
+  rm -r $OUTFILE
+endif
+set TDIR=/sx8/scr/mlosch/tmp_$VENDOR
+if ( -e $TDIR ) then
+    rm -rf $TDIR
+endif
+mkdir $TDIR
+cd $TDIR
+cvs -d :pserver:cvsanon@mitgcm.org:/u/gcmpack co MITgcm >& cvs_co.log
+if ( $status > 0 ) then
+  cat cvs_co.log
+endif
+
+cd MITgcm/verification
+
+# create script to run model and to delay processing
+cat << EOF >! $HERE/$RUNIT
+#!/bin/sh
+# submit the job
+qsub -q sx8 ${HERE}/${JOBSCRIPT}
+
+# wait until the job is finished; do this by waiting for output.txt to appear
+while [ ! -e output.txt ]
+do 
+  sleep 10
+done
+
+EOF
+chmod a+x $HERE/$RUNIT
+
+set COMMAND=$HERE/$RUNIT
+
+#
+# create batch script
+#
+cat << EOF >! $HERE/$JOBSCRIPT
+######PBS -q sx8                         # job queue not neccesary  so far 
+#PBS -N mitgcm_${VENDOR}                 # give the job a name
+#PBS -l cpunum_job=2                     # cpus per node
+#PBS -j o                                # join i/o
+#PBS -S /bin/csh
+#PBS -o $OUTFILE                         # o Where to write output
+## o Export all my environment variables to the job
+##PBS -V
+#
+
+cd \${PBS_O_WORKDIR}
+$EXE
+echo "NORMAL END" >> run.log
+cp STDOUT.0000 output.txt
+
+EOF
+
+set OPTFILE=../tools/build_options/SUPER-UX_SX-8_sxf90+mpi_awi
+# make sure that we do not use the cross compiler for testreport
+unsetenv CC
+
+./testreport -mpi -match 10 -a jmc@mitgcm.org \
+             -of $OPTFILE -command $HERE/$RUNIT >& /dev/null
+
+if ( $status > 0 ) then
+  echo "something wrong with testreport"
+  echo "keeping the working directory"
+else
+# everything OK: delete working directory
+  rm -rf $TDIR
+endif
+
+
