@@ -1,5 +1,4 @@
 
-
 The directories here contain shell scripts used to automate testing on
 various systems.  The directory names approximately match the machine
 or cluster "nicknames" for which they are intended.  For a description
@@ -14,6 +13,9 @@ July 28, 2005: Scripts currently used for testing on
 ======================================================================
 
 NOTE: mpack problems
+
+=> was fixed (on Feb 23 & 26, 2008) by using a more recent
+ version (1.6-4) of mpack src code.
 
 The mpack utility is used by testreport to mime-encode and email the
 testing results back to the mitgcm.org server.  There appears to be a
