@@ -1,6 +1,6 @@
 #! /usr/bin/env bash
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/other/testing_loc,v 1.1 2011/04/27 21:26:07 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/other/testing_loc,v 1.2 2011/06/03 17:59:32 jmc Exp $
 # $Name:  $
 
 #echo 'source ~jmc/bin/intel_v11.sh'
@@ -46,8 +46,8 @@ if test $tt = 'mp2' ; then
   export OMP_NUM_THREADS=2
   export KMP_STACKSIZE=400m
 
-  testreport -MPI 2 -mth -of ../../linux_amd64_ifort+mpi_chk \
-   -command='mpirun -v -np TR_NPROC ./mitgcmuv' \
+  testreport -MPI 2 -mth -of ../tools/build_options/linux_amd64_ifort11+mpi_generic \
+   -devel -command='mpirun -v -np TR_NPROC ./mitgcmuv' \
    -a jmc@mitgcm.org -nc > ../../tr_run_$tt.log 2>&1
 
   #unset echo
@@ -62,8 +62,8 @@ fi
 
 if test $tt = 'ur4' ; then
 
-  testreport -MPI 3 -ur4 -of ../../linux_amd64_ifort+mpi_chk \
-   -nc -dd -nr > ../../tr_run_$tt.log 2>&1
+  testreport -MPI 3 -ur4 -of ../tools/build_options/linux_amd64_ifort11+mpi_generic \
+   -devel -nc -dd -nr > ../../tr_run_$tt.log 2>&1
 
   set +x
   echo '' ; echo ' remove */build/*.o */mitgcmuv'
@@ -72,8 +72,8 @@ if test $tt = 'ur4' ; then
   echo ''
   set -x
 
-  testreport -MPI 3 -ur4 -of ../../linux_amd64_ifort+mpi_chk \
-   -match 5 -command='mpirun -v -np TR_NPROC ./mitgcmuv' \
+  testreport -MPI 3 -ur4 -of ../tools/build_options/linux_amd64_ifort11+mpi_generic \
+   -devel -match 5 -command='mpirun -v -np TR_NPROC ./mitgcmuv' \
    -a jmc@mitgcm.org -q >> ../../tr_run_$tt.log 2>&1
 
   sed -n "/ email /,$ p" ../../tr_run_$tt.log
