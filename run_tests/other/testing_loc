@@ -1,6 +1,6 @@
 #! /usr/bin/env bash
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/other/testing_loc,v 1.2 2011/06/03 17:59:32 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/other/testing_loc,v 1.3 2011/07/11 22:58:30 jmc Exp $
 # $Name:  $
 
 #echo 'source ~jmc/bin/intel_v11.sh'
@@ -63,18 +63,11 @@ fi
 if test $tt = 'ur4' ; then
 
   testreport -MPI 3 -ur4 -of ../tools/build_options/linux_amd64_ifort11+mpi_generic \
-   -devel -nc -dd -nr > ../../tr_run_$tt.log 2>&1
-
-  set +x
-  echo '' ; echo ' remove */build/*.o */mitgcmuv'
-  /bin/rm -f */build/*.o
-  /bin/rm -f */build/mitgcmuv
-  echo ''
-  set -x
+   -devel -nc -ef -syntax-only -obj -dd > ../../tr_run_$tt.log 2>&1
 
   testreport -MPI 3 -ur4 -of ../tools/build_options/linux_amd64_ifort11+mpi_generic \
-   -devel -match 5 -command='mpirun -v -np TR_NPROC ./mitgcmuv' \
-   -a jmc@mitgcm.org -q >> ../../tr_run_$tt.log 2>&1
+   -devel -nc -match 5 -command='mpirun -v -np TR_NPROC ./mitgcmuv' \
+   -a jmc@mitgcm.org >> ../../tr_run_$tt.log 2>&1
 
   sed -n "/ email /,$ p" ../../tr_run_$tt.log
 
