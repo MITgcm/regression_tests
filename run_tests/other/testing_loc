@@ -1,6 +1,6 @@
 #! /usr/bin/env bash
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/other/testing_loc,v 1.3 2011/07/11 22:58:30 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/other/testing_loc,v 1.4 2011/08/03 22:52:47 jmc Exp $
 # $Name:  $
 
 #echo 'source ~jmc/bin/intel_v11.sh'
@@ -46,7 +46,7 @@ if test $tt = 'mp2' ; then
   export OMP_NUM_THREADS=2
   export KMP_STACKSIZE=400m
 
-  testreport -MPI 2 -mth -of ../tools/build_options/linux_amd64_ifort11+mpi_generic \
+  testreport -MPI 2 -mth -of ../tools/build_options/linux_amd64_ifort11 \
    -devel -command='mpirun -v -np TR_NPROC ./mitgcmuv' \
    -a jmc@mitgcm.org -nc > ../../tr_run_$tt.log 2>&1
 
@@ -62,10 +62,12 @@ fi
 
 if test $tt = 'ur4' ; then
 
-  testreport -MPI 3 -ur4 -of ../tools/build_options/linux_amd64_ifort11+mpi_generic \
+  if test -e tr_out.txt ; then /bin/rm -f tr_out.sav ; mv tr_out.txt tr_out.sav ; fi
+
+  testreport -MPI 3 -ur4 -of ../tools/build_options/linux_amd64_ifort11 \
    -devel -nc -ef -syntax-only -obj -dd > ../../tr_run_$tt.log 2>&1
 
-  testreport -MPI 3 -ur4 -of ../tools/build_options/linux_amd64_ifort11+mpi_generic \
+  testreport -MPI 3 -ur4 -of ../tools/build_options/linux_amd64_ifort11 \
    -devel -nc -match 5 -command='mpirun -v -np TR_NPROC ./mitgcmuv' \
    -a jmc@mitgcm.org >> ../../tr_run_$tt.log 2>&1
 
