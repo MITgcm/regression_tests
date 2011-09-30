@@ -1,15 +1,19 @@
 #! /usr/bin/env bash
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/other/testing_loc,v 1.4 2011/08/03 22:52:47 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/other/testing_loc,v 1.5 2011/09/06 13:46:06 jmc Exp $
 # $Name:  $
 
 #echo 'source ~jmc/bin/intel_v11.sh'
 #source ~jmc/bin/intel_v11.sh
  echo 'source ~jmc/bin/intel_v12.sh'
  source ~jmc/bin/intel_v12.sh
-tst_list='mp2 ur4'
-#tst_list='ur4'
-#tst_list='mp2'
+
+if test $# = 0
+then
+  tst_list='mp2 ur4 adm'
+else
+  tst_list=$*
+fi
 
 for tt in $tst_list
 do
@@ -17,11 +21,14 @@ do
   echo "=========================================================================="
   set -x
   rm -f tr_clean_$tt.log
+if test $tt != 'adm' ; then
   #- cleanup previous restart:
   ( cd MITgcm_$tt/verification ; ../tools/do_tst_2+2 -clean > ../../tr_clean_$tt.log 2>&1 )
   #- cleanup previous test:
   ( cd MITgcm_$tt/verification ; testreport -clean >> ../../tr_clean_$tt.log 2>&1 )
-
+else
+  ( cd MITgcm_$tt/verification ; testreport -adm -clean > ../../tr_clean_$tt.log 2>&1 )
+fi
   set +x
   echo ""
 
@@ -41,14 +48,33 @@ do
   set -x
   pwd
 
+if test $tt = 'adm' ; then
+  if test -e tr_out.txt ; then /bin/rm -f tr_out.sav ; mv tr_out.txt tr_out.sav ; fi
+
+  testreport -MPI 3 -adm -of ../tools/build_options/linux_amd64_ifort11 \
+   -devel -nc -ef -syntax-only -obj -dd > ../../tr_run_$tt.log 2>&1
+
+  testreport -MPI 3 -adm -of ../tools/build_options/linux_amd64_ifort11 \
+   -devel -command='mpirun -v -np TR_NPROC ./mitgcmuv_ad' \
+   -a jmc@mitgcm.org -nc >> ../../tr_run_$tt.log 2>&1
+
+  #unset echo
+  sed -n "/ email /,$ p" ../../tr_run_$tt.log
+fi
+
 if test $tt = 'mp2' ; then
 
   export OMP_NUM_THREADS=2
   export KMP_STACKSIZE=400m
 
+  if test -e tr_out.txt ; then /bin/rm -f tr_out.sav ; mv tr_out.txt tr_out.sav ; fi
+
+  testreport -MPI 2 -mth -of ../tools/build_options/linux_amd64_ifort11 \
+   -devel -nc -ef -syntax-only -obj -dd > ../../tr_run_$tt.log 2>&1
+
   testreport -MPI 2 -mth -of ../tools/build_options/linux_amd64_ifort11 \
    -devel -command='mpirun -v -np TR_NPROC ./mitgcmuv' \
-   -a jmc@mitgcm.org -nc > ../../tr_run_$tt.log 2>&1
+   -a jmc@mitgcm.org -nc >> ../../tr_run_$tt.log 2>&1
 
   #unset echo
   sed -n "/ email /,$ p" ../../tr_run_$tt.log
