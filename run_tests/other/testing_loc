@@ -1,6 +1,6 @@
 #! /usr/bin/env bash
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/other/testing_loc,v 1.5 2011/09/06 13:46:06 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/other/testing_loc,v 1.6 2011/09/30 20:39:51 jmc Exp $
 # $Name:  $
 
 #echo 'source ~jmc/bin/intel_v11.sh'
@@ -10,7 +10,7 @@
 
 if test $# = 0
 then
-  tst_list='mp2 ur4 adm'
+  tst_list='adm mp2 ur4'
 else
   tst_list=$*
 fi
