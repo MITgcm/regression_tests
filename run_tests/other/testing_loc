@@ -1,6 +1,6 @@
 #! /usr/bin/env bash
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/other/testing_loc,v 1.6 2011/09/30 20:39:51 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/other/testing_loc,v 1.7 2012/01/24 21:05:31 jmc Exp $
 # $Name:  $
 
 #echo 'source ~jmc/bin/intel_v11.sh'
@@ -40,7 +40,7 @@ fi
 
   echo "=========================================================================="
 
-  mv -f tr_run_$tt.log tr_run_$tt.log_bak
+  if test -e tr_run_$tt.log ; then mv -f tr_run_$tt.log tr_run_$tt.log_bak ; fi
   cd MITgcm_$tt/verification
 
   date
@@ -52,11 +52,11 @@ if test $tt = 'adm' ; then
   if test -e tr_out.txt ; then /bin/rm -f tr_out.sav ; mv tr_out.txt tr_out.sav ; fi
 
   testreport -MPI 3 -adm -of ../tools/build_options/linux_amd64_ifort11 \
-   -devel -nc -ef -syntax-only -obj -dd > ../../tr_run_$tt.log 2>&1
+   -devel -nc -repl_mk do_make_syntax.sh -obj -dd > ../../tr_run_$tt.log 2>&1
 
   testreport -MPI 3 -adm -of ../tools/build_options/linux_amd64_ifort11 \
-   -devel -command='mpirun -v -np TR_NPROC ./mitgcmuv_ad' \
-   -a jmc@mitgcm.org -nc >> ../../tr_run_$tt.log 2>&1
+   -devel -q -command='mpirun -v -np TR_NPROC ./mitgcmuv_ad' \
+   -a jmc@mitgcm.org >> ../../tr_run_$tt.log 2>&1
 
   #unset echo
   sed -n "/ email /,$ p" ../../tr_run_$tt.log
@@ -70,11 +70,11 @@ if test $tt = 'mp2' ; then
   if test -e tr_out.txt ; then /bin/rm -f tr_out.sav ; mv tr_out.txt tr_out.sav ; fi
 
   testreport -MPI 2 -mth -of ../tools/build_options/linux_amd64_ifort11 \
-   -devel -nc -ef -syntax-only -obj -dd > ../../tr_run_$tt.log 2>&1
+   -devel -nc -repl_mk do_make_syntax.sh -obj -dd > ../../tr_run_$tt.log 2>&1
 
   testreport -MPI 2 -mth -of ../tools/build_options/linux_amd64_ifort11 \
-   -devel -command='mpirun -v -np TR_NPROC ./mitgcmuv' \
-   -a jmc@mitgcm.org -nc >> ../../tr_run_$tt.log 2>&1
+   -devel -q -command='mpirun -v -np TR_NPROC ./mitgcmuv' \
+   -a jmc@mitgcm.org >> ../../tr_run_$tt.log 2>&1
 
   #unset echo
   sed -n "/ email /,$ p" ../../tr_run_$tt.log
@@ -91,10 +91,10 @@ if test $tt = 'ur4' ; then
   if test -e tr_out.txt ; then /bin/rm -f tr_out.sav ; mv tr_out.txt tr_out.sav ; fi
 
   testreport -MPI 3 -ur4 -of ../tools/build_options/linux_amd64_ifort11 \
-   -devel -nc -ef -syntax-only -obj -dd > ../../tr_run_$tt.log 2>&1
+   -devel -nc -repl_mk do_make_syntax.sh -obj -dd > ../../tr_run_$tt.log 2>&1
 
   testreport -MPI 3 -ur4 -of ../tools/build_options/linux_amd64_ifort11 \
-   -devel -nc -match 5 -command='mpirun -v -np TR_NPROC ./mitgcmuv' \
+   -devel -q -match 5 -command='mpirun -v -np TR_NPROC ./mitgcmuv' \
    -a jmc@mitgcm.org >> ../../tr_run_$tt.log 2>&1
 
   sed -n "/ email /,$ p" ../../tr_run_$tt.log
