@@ -1,33 +1,59 @@
 #! /usr/bin/env bash
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/other/testing_loc,v 1.7 2012/01/24 21:05:31 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/other/testing_loc,v 1.8 2012/03/14 18:24:16 jmc Exp $
 # $Name:  $
 
-#echo 'source ~jmc/bin/intel_v11.sh'
-#source ~jmc/bin/intel_v11.sh
- echo 'source ~jmc/bin/intel_v12.sh'
- source ~jmc/bin/intel_v12.sh
-
-if test $# = 0
-then
-  tst_list='adm mp2 ur4'
+if test $# = 0 ; then
+  echo 'need 1 argument'
+  exit
 else
-  tst_list=$*
+  if test $1 = ifort ; then
+    tst_list='iadm imp2 iur4'
+  elif test $1 = gfort ; then
+    tst_list='gadm gads gmp2 gmpi gfo g77'
+#   tst_list='gadm gads gmp2 gfo g77'
+  else
+    tst_list=$*
+  fi
 fi
 
+#-- for now, cannot mix ifort/gfortran tests:
+gfort=1
+for tt in $tst_list
+do
+  echo $tt | grep '^g' > /dev/null 2>&1 ; retv=$?
+  if   [ $retv -eq 0 -a $gfort -ge 1 ] ; then gfort=2
+  elif [ $retv -ne 0 -a $gfort -le 1 ] ; then gfort=0
+  else echo 'cannot mix ifort/gfortran' ; exit
+  fi
+done
+if [ $gfort -eq 0 ] ; then
+  #echo 'source ~jmc/bin/intel_v11.sh'
+  #source ~jmc/bin/intel_v11.sh
+   echo 'source ~jmc/bin/intel_v12.sh'
+   source ~jmc/bin/intel_v12.sh
+   export GFORTRAN_OPTFILE=f
+fi
+if [ $gfort -eq 2 ] ; then
+   echo 'source ~jmc/bin/openmpi.sh'
+   source ~jmc/bin/openmpi.sh
+   export GFORTRAN_OPTFILE=t
+fi
+
+#--------------------------------------------------------------------
 for tt in $tst_list
 do
 
   echo "=========================================================================="
   set -x
   rm -f tr_clean_$tt.log
-if test $tt != 'adm' ; then
+if test $tt = 'iadm' -o $tt = 'gadm' -o  $tt = 'gads' ; then
+  ( cd MITgcm_$tt/verification ; testreport -adm -clean > ../../tr_clean_$tt.log 2>&1 )
+else
   #- cleanup previous restart:
   ( cd MITgcm_$tt/verification ; ../tools/do_tst_2+2 -clean > ../../tr_clean_$tt.log 2>&1 )
   #- cleanup previous test:
   ( cd MITgcm_$tt/verification ; testreport -clean >> ../../tr_clean_$tt.log 2>&1 )
-else
-  ( cd MITgcm_$tt/verification ; testreport -adm -clean > ../../tr_clean_$tt.log 2>&1 )
 fi
   set +x
   echo ""
@@ -48,7 +74,8 @@ fi
   set -x
   pwd
 
-if test $tt = 'adm' ; then
+case $tt in
+'iadm' )
   if test -e tr_out.txt ; then /bin/rm -f tr_out.sav ; mv tr_out.txt tr_out.sav ; fi
 
   testreport -MPI 3 -adm -of ../tools/build_options/linux_amd64_ifort11 \
@@ -60,14 +87,13 @@ if test $tt = 'adm' ; then
 
   #unset echo
   sed -n "/ email /,$ p" ../../tr_run_$tt.log
-fi
+;;
 
-if test $tt = 'mp2' ; then
+'imp2')
+  if test -e tr_out.txt ; then /bin/rm -f tr_out.sav ; mv tr_out.txt tr_out.sav ; fi
 
   export OMP_NUM_THREADS=2
   export KMP_STACKSIZE=400m
-
-  if test -e tr_out.txt ; then /bin/rm -f tr_out.sav ; mv tr_out.txt tr_out.sav ; fi
 
   testreport -MPI 2 -mth -of ../tools/build_options/linux_amd64_ifort11 \
    -devel -nc -repl_mk do_make_syntax.sh -obj -dd > ../../tr_run_$tt.log 2>&1
@@ -76,18 +102,15 @@ if test $tt = 'mp2' ; then
    -devel -q -command='mpirun -v -np TR_NPROC ./mitgcmuv' \
    -a jmc@mitgcm.org >> ../../tr_run_$tt.log 2>&1
 
-  #unset echo
   sed -n "/ email /,$ p" ../../tr_run_$tt.log
 
   #- test restart:
   echo '' >> ../../tr_run_$tt.log 2>&1
   ../tools/do_tst_2+2 -mpi -exe 'mpirun -v -np TR_NPROC ./mitgcmuv' \
    -a jmc@mitgcm.org >> ../../tr_run_$tt.log 2>&1
+;;
 
-fi
-
-if test $tt = 'ur4' ; then
-
+'iur4')
   if test -e tr_out.txt ; then /bin/rm -f tr_out.sav ; mv tr_out.txt tr_out.sav ; fi
 
   testreport -MPI 3 -ur4 -of ../tools/build_options/linux_amd64_ifort11 \
@@ -103,8 +126,89 @@ if test $tt = 'ur4' ; then
   echo '' >> ../../tr_run_$tt.log 2>&1
   ../tools/do_tst_2+2 -mpi -exe 'mpirun -v -np TR_NPROC ./mitgcmuv' \
    -a jmc@mitgcm.org >> ../../tr_run_$tt.log 2>&1
+;;
 
-fi
+'gadm')
+  if test -e tr_out.txt ; then /bin/rm -f tr_out.sav ; mv tr_out.txt tr_out.sav ; fi
+
+  testreport -MPI 3 -adm -of ../tools/build_options/linux_amd64_gfortran \
+   -devel -nc -command='mpirun -v -np TR_NPROC ./mitgcmuv_ad' \
+   -a jmc@mitgcm.org >> ../../tr_run_$tt.log 2>&1
+
+  sed -n "/ email /,$ p" ../../tr_run_$tt.log
+;;
+
+'gads')
+  if test -e tr_out.txt ; then /bin/rm -f tr_out.sav ; mv tr_out.txt tr_out.sav ; fi
+
+  testreport -adm -of ../tools/build_options/linux_amd64_gfortran \
+   -devel -nc -a jmc@mitgcm.org >> ../../tr_run_$tt.log 2>&1
+
+  sed -n "/ email /,$ p" ../../tr_run_$tt.log
+;;
+
+'gmp2')
+  if test -e tr_out.txt ; then /bin/rm -f tr_out.sav ; mv tr_out.txt tr_out.sav ; fi
+
+  export OMP_NUM_THREADS=2
+  export GOMP_STACKSIZE=400m
+
+  testreport -MPI 2 -mth -of ../tools/build_options/linux_amd64_gfortran \
+   -devel -nc -command='mpirun -v -np TR_NPROC ./mitgcmuv' \
+   -a jmc@mitgcm.org >> ../../tr_run_$tt.log 2>&1
+
+  sed -n "/ email /,$ p" ../../tr_run_$tt.log
+
+  #- test restart:
+  echo '' >> ../../tr_run_$tt.log 2>&1
+  ../tools/do_tst_2+2 -mpi -exe 'mpirun -v -np TR_NPROC ./mitgcmuv' \
+   -a jmc@mitgcm.org >> ../../tr_run_$tt.log 2>&1
+;;
+
+'gmpi')
+  if test -e tr_out.txt ; then /bin/rm -f tr_out.sav ; mv tr_out.txt tr_out.sav ; fi
+
+  testreport -MPI 3 -of ../tools/build_options/linux_amd64_gfortran \
+   -devel -nc -command='mpirun -v -np TR_NPROC ./mitgcmuv' \
+   -a jmc@mitgcm.org >> ../../tr_run_$tt.log 2>&1
+
+  sed -n "/ email /,$ p" ../../tr_run_$tt.log
+
+  #- test restart:
+  echo '' >> ../../tr_run_$tt.log 2>&1
+  ../tools/do_tst_2+2 -mpi -exe 'mpirun -v -np TR_NPROC ./mitgcmuv' \
+   -a jmc@mitgcm.org >> ../../tr_run_$tt.log 2>&1
+;;
+
+'gfo')
+  if test -e tr_out.txt ; then /bin/rm -f tr_out.sav ; mv tr_out.txt tr_out.sav ; fi
+
+  testreport -of ../tools/build_options/linux_amd64_gfortran \
+   -devel -nc -a jmc@mitgcm.org >> ../../tr_run_$tt.log 2>&1
+
+  sed -n "/ email /,$ p" ../../tr_run_$tt.log
+
+  #- test restart:
+  echo '' >> ../../tr_run_$tt.log 2>&1
+  ../tools/do_tst_2+2 -a jmc@mitgcm.org >> ../../tr_run_$tt.log 2>&1
+;;
+
+'g77')
+  if test -e tr_out.txt ; then /bin/rm -f tr_out.sav ; mv tr_out.txt tr_out.sav ; fi
+
+  testreport -of ../tools/build_options/linux_amd64_g77 \
+   -skd 'fizhi-cs-32x32x40 fizhi-cs-aqualev20' \
+   -nc -a jmc@mitgcm.org >> ../../tr_run_$tt.log 2>&1
+
+  sed -n "/ email /,$ p" ../../tr_run_$tt.log
+
+  #- test restart:
+  echo '' >> ../../tr_run_$tt.log 2>&1
+  ../tools/do_tst_2+2 -a jmc@mitgcm.org >> ../../tr_run_$tt.log 2>&1
+;;
+
+*) echo "unrecognized test suffix '$tt' <== skipped" ;;
+esac
 
   set +x
   cd ../..
