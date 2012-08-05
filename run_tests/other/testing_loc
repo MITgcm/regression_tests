@@ -1,6 +1,6 @@
 #! /usr/bin/env bash
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/other/testing_loc,v 1.8 2012/03/14 18:24:16 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/other/testing_loc,v 1.9 2012/07/09 18:41:07 jmc Exp $
 # $Name:  $
 
 if test $# = 0 ; then
@@ -9,6 +9,7 @@ if test $# = 0 ; then
 else
   if test $1 = ifort ; then
     tst_list='iadm imp2 iur4'
+   #tst_list='iadm imp2 iur4 iad4'
   elif test $1 = gfort ; then
     tst_list='gadm gads gmp2 gmpi gfo g77'
 #   tst_list='gadm gads gmp2 gfo g77'
@@ -47,7 +48,7 @@ do
   echo "=========================================================================="
   set -x
   rm -f tr_clean_$tt.log
-if test $tt = 'iadm' -o $tt = 'gadm' -o  $tt = 'gads' ; then
+if test $tt = 'iadm' -o $tt = 'iad4' -o $tt = 'gadm' -o  $tt = 'gads' ; then
   ( cd MITgcm_$tt/verification ; testreport -adm -clean > ../../tr_clean_$tt.log 2>&1 )
 else
   #- cleanup previous restart:
@@ -83,6 +84,20 @@ case $tt in
 
   testreport -MPI 3 -adm -of ../tools/build_options/linux_amd64_ifort11 \
    -devel -q -command='mpirun -v -np TR_NPROC ./mitgcmuv_ad' \
+   -a jmc@mitgcm.org >> ../../tr_run_$tt.log 2>&1
+
+  #unset echo
+  sed -n "/ email /,$ p" ../../tr_run_$tt.log
+;;
+
+'iad4' )
+  if test -e tr_out.txt ; then /bin/rm -f tr_out.sav ; mv tr_out.txt tr_out.sav ; fi
+
+  testreport -MPI 3 -ur4 -adm -of ../tools/build_options/linux_amd64_ifort11 \
+   -devel -nc -repl_mk do_make_syntax.sh -obj -dd > ../../tr_run_$tt.log 2>&1
+
+  testreport -MPI 3 -ur4 -adm -of ../tools/build_options/linux_amd64_ifort11 \
+   -devel -q -match 5 -command='mpirun -v -np TR_NPROC ./mitgcmuv_ad' \
    -a jmc@mitgcm.org >> ../../tr_run_$tt.log 2>&1
 
   #unset echo
