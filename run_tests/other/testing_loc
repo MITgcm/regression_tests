@@ -1,6 +1,6 @@
 #! /usr/bin/env bash
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/other/testing_loc,v 1.9 2012/07/09 18:41:07 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/other/testing_loc,v 1.10 2012/08/05 16:42:05 jmc Exp $
 # $Name:  $
 
 if test $# = 0 ; then
@@ -8,8 +8,8 @@ if test $# = 0 ; then
   exit
 else
   if test $1 = ifort ; then
-    tst_list='iadm imp2 iur4'
-   #tst_list='iadm imp2 iur4 iad4'
+#   tst_list='iadm imp2 iur4'
+    tst_list='iad4 imp2 iur4'
   elif test $1 = gfort ; then
     tst_list='gadm gads gmp2 gmpi gfo g77'
 #   tst_list='gadm gads gmp2 gfo g77'
@@ -17,6 +17,8 @@ else
     tst_list=$*
   fi
 fi
+  echo "run: \""`basename $0` $*"\" on:" `date`
+  echo " tst_list='$tst_list'"
 
 #-- for now, cannot mix ifort/gfortran tests:
 gfort=1
