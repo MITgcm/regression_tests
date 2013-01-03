@@ -1,6 +1,6 @@
 #! /usr/bin/env bash
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/other/testing_loc,v 1.12 2012/08/25 00:46:10 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/other/testing_loc,v 1.13 2012/08/26 18:10:43 jmc Exp $
 # $Name:  $
 
 if test $# = 0 ; then
@@ -57,6 +57,12 @@ else
   ( cd MITgcm_$tt/verification ; testreport -clean >> ../../tr_clean_$tt.log 2>&1 )
 fi
   set +x
+  if [ $gfort -eq 0 ] ; then
+    echo ' remove all Makefile_syntax and do "cvs update -P -d"' >> tr_clean_$tt.log
+    ( cd MITgcm_$tt/verification ; rm -f */build/Makefile_syntax )
+  else
+    echo ' run "cvs update -P -d"'  >> tr_clean_$tt.log
+  fi
   echo ""
 
   echo "=========================================================================="
