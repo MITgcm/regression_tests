@@ -1,6 +1,6 @@
 #! /usr/bin/env bash
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/other/testing_loc,v 1.13 2012/08/26 18:10:43 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/other/testing_loc,v 1.14 2013/01/03 19:51:56 jmc Exp $
 # $Name:  $
 
 if test $# = 0 ; then
@@ -13,6 +13,8 @@ else
   elif test $1 = gfort ; then
 #   tst_list='gadm gads gmp2 gmpi gfo g77'
     tst_list='gadm gads gmp2 gfo g77'
+  elif test $1 = gfor4 ; then
+    tst_list='gad4 gmp4 gfo4'
   else
     tst_list=$*
   fi
@@ -46,17 +48,21 @@ for tt in $tst_list
 do
 
   echo "=========================================================================="
-  set -x
+# set -x
   rm -f tr_clean_$tt.log
-if test $tt = 'iadm' -o $tt = 'iad4' -o $tt = 'gadm' -o  $tt = 'gads' ; then
+  echo $tt | grep '^.ad' > /dev/null 2>&1 ; fwd=$?
+  echo " testing tt= $tt , fwd= $fwd"
+if [ $fwd -eq 0 ] ; then
+  set -x
   ( cd MITgcm_$tt/verification ; testreport -adm -clean > ../../tr_clean_$tt.log 2>&1 )
 else
+  set -x
   #- cleanup previous restart:
   ( cd MITgcm_$tt/verification ; ../tools/do_tst_2+2 -clean > ../../tr_clean_$tt.log 2>&1 )
   #- cleanup previous test:
   ( cd MITgcm_$tt/verification ; testreport -clean >> ../../tr_clean_$tt.log 2>&1 )
-fi
   set +x
+fi
   if [ $gfort -eq 0 ] ; then
     echo ' remove all Makefile_syntax and do "cvs update -P -d"' >> tr_clean_$tt.log
     ( cd MITgcm_$tt/verification ; rm -f */build/Makefile_syntax )
@@ -170,6 +176,15 @@ case $tt in
   sed -n "/ email /,/^======== End of testreport / p" ../../tr_run_$tt.log
 ;;
 
+'gad4')
+  if test -e tr_out.txt ; then /bin/rm -f tr_out.sav ; mv tr_out.txt tr_out.sav ; fi
+
+  testreport -adm -ur4 -match 5 -of ../tools/build_options/linux_amd64_gfortran \
+   -devel -nc -a jmc@mitgcm.org >> ../../tr_run_$tt.log 2>&1
+
+  sed -n "/ email /,/^======== End of testreport / p" ../../tr_run_$tt.log
+;;
+
 'gmp2')
   if test -e tr_out.txt ; then /bin/rm -f tr_out.sav ; mv tr_out.txt tr_out.sav ; fi
 
@@ -203,10 +218,38 @@ case $tt in
    -a jmc@mitgcm.org >> ../../tr_run_$tt.log 2>&1
 ;;
 
+'gmp4')
+  if test -e tr_out.txt ; then /bin/rm -f tr_out.sav ; mv tr_out.txt tr_out.sav ; fi
+
+  testreport -MPI 3 -ur4 -match 5 -of ../tools/build_options/linux_amd64_gfortran \
+   -devel -nc -command='mpirun -v -np TR_NPROC ./mitgcmuv' \
+   -a jmc@mitgcm.org >> ../../tr_run_$tt.log 2>&1
+
+  sed -n "/ email /,/^======== End of testreport / p" ../../tr_run_$tt.log
+
+  #- test restart:
+  echo '' >> ../../tr_run_$tt.log 2>&1
+  ../tools/do_tst_2+2 -mpi -exe 'mpirun -v -np TR_NPROC ./mitgcmuv' \
+   -a jmc@mitgcm.org >> ../../tr_run_$tt.log 2>&1
+;;
+
 'gfo')
   if test -e tr_out.txt ; then /bin/rm -f tr_out.sav ; mv tr_out.txt tr_out.sav ; fi
 
   testreport -of ../tools/build_options/linux_amd64_gfortran \
+   -devel -nc -a jmc@mitgcm.org >> ../../tr_run_$tt.log 2>&1
+
+  sed -n "/ email /,/^======== End of testreport / p" ../../tr_run_$tt.log
+
+  #- test restart:
+  echo '' >> ../../tr_run_$tt.log 2>&1
+  ../tools/do_tst_2+2 -a jmc@mitgcm.org >> ../../tr_run_$tt.log 2>&1
+;;
+
+'gfo4')
+  if test -e tr_out.txt ; then /bin/rm -f tr_out.sav ; mv tr_out.txt tr_out.sav ; fi
+
+  testreport -ur4 -match 5 -of ../tools/build_options/linux_amd64_gfortran \
    -devel -nc -a jmc@mitgcm.org >> ../../tr_run_$tt.log 2>&1
 
   sed -n "/ email /,/^======== End of testreport / p" ../../tr_run_$tt.log
