@@ -1,6 +1,6 @@
 #! /usr/bin/env bash
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/other/testing_loc,v 1.16 2013/02/02 16:49:20 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/other/testing_loc,v 1.17 2013/09/23 15:32:48 jmc Exp $
 # $Name:  $
 
 if test $# = 0 ; then
@@ -33,10 +33,10 @@ do
   fi
 done
 if [ $gfort -eq 0 ] ; then
-  #echo 'source ~jmc/bin/intel_v11.sh'
-  #source ~jmc/bin/intel_v11.sh
-   echo 'source ~jmc/bin/intel_v12.sh'
-   source ~jmc/bin/intel_v12.sh
+  #echo 'source ~jmc/bin/intel_v12.sh'
+  #source ~jmc/bin/intel_v12.sh
+   echo 'source ~jmc/bin/intel_v14.sh'
+   source ~jmc/bin/intel_v14.sh
 fi
 if [ $gfort -eq 2 ] ; then
    echo 'source ~jmc/bin/openmpi.sh'
