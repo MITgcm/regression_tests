@@ -1,6 +1,6 @@
 #! /usr/bin/env bash
 
-# $Header:  $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/svante/test_svante.sh,v 1.1 2014/10/13 23:15:18 jmc Exp $
 
 #  Test script for MITgcm to run on head-node of svante cluster
 
@@ -24,23 +24,22 @@ module list
 cmdCVS='cvs -d :pserver:cvsanon@mitgcm.org:/u/gcmpack -q'
 
 # checkOut=2 : download new code ;
-#   =3 : skip download but, if sepDir, use a new copy
 #   =1 : update code       (if no existing code -> swith to 2)
 #   =0 : use existing code (if no existing code -> swith to 2)
 dInWeek=`date +%a`
-dName=`hostname -s`
+dNam=`hostname -s`
 QSUB="qsub"
 QSTAT="qstat"
-HERE="$HOME/test_${dName}"
+HERE="$HOME/test_${dNam}"
 OUTP="$HERE/output"
-SUB_DIR="$HERE/$dName"
-TESTDIR="/net/fs07/d1/testreport/test_${dName}"
-checkOut=2
+SUB_DIR="$HERE/$dNam"
+TESTDIR="/net/fs07/d1/testreport/test_${dNam}"
+checkOut=1
 option=
 
 #tst_list='gads gadm gfo+rs gmpi gmth gmp2+rs ifc pgi'
 #if test "x$dInWeek" = xSun ; then tst_list="$tst_list tlm oad" ; fi
-tst_list='ifc'
+tst_list='ifc+rs'
 
 #option="-nc" ; checkOut=1
 #option="-q"  ; checkOut=0
@@ -93,34 +92,29 @@ do
   fi
   #- clean-up old output files
   rm -f $OUTP/output_${typ}*.old $OUTP/$tst2submit.std???.old
-  oldS=`ls $OUTP/output_${tt} $OUTP/$tst2submit.std??? 2> /dev/null`
+  oldS=`ls $OUTP/output_${typ} $OUTP/$tst2submit.std??? 2> /dev/null`
   for xx in $oldS ; do mv $xx $xx.old ; done
   if test -d prev ; then
     #-- save previous summary: tr_out.txt* tst_2+2_out.txt
-    oldS=`( cd ${gcmDIR}/verification ; ls tr_out.txt* tst_2+2_out.txt ) 2> /dev/null`
+    oldS=`( cd ${gcmDIR}/verification ; ls t*_out.txt* ) 2> /dev/null`
     for xx in $oldS ; do
-      yy=`echo $xx | sed "s/\.txt/.$typ/"`
-      cp -p ${gcmDIR}/verification/$xx prev/$yy
+     #ss=`/bin/ls -l ${gcmDIR}/verification/$xx | awk '{print $6 $7}'`
+      ss=`/bin/ls -l --time-style=iso ${gcmDIR}/verification/$xx | awk '{print $6}'`
+      yy=`echo $xx | sed -e "s/\.txt.old/.$typ.c/" \
+          -e "s/2_out.txt/2.$typ./" -e "s/\.txt/.$typ.r/"`
+      cp -p ${gcmDIR}/verification/$xx prev/${yy}$ss
     done
   fi
- #if test -d $HERE/prev ; then
-  #  oldS=`ls -t ${gcmDIR}/verification/tr_${dName}_*/summary.txt 2> /dev/null | head -1`
-  #  if test "x$oldS" != x ; then cp -p -f $oldS $HERE/prev/tr_out.$typ ; fi
-  #  # sed '/^[YN] [YN] [YN] [YN]/ s/ \. //g' $oldS > tr_out.$typ
-  # if test $tt != $typ ; then
-  #  oldS=`ls -t ${gcmDIR}/verification/rs_${dName}_*/summary.txt 2> /dev/null | head -1`
-  #  if test "x$oldS" != x ; then cp -p -f $oldS $HERE/prev/rs_out.$typ ; fi
-  # fi
- #fi
-  touch $OUTP/output_$tt
+  touch $OUTP/output_$typ
 
   #- clean and update code
   if [ $newCode -eq 1 ] ; then
     if test -d $gcmDIR/CVS ; then
-#- remove previous output tar files and tar & remove previous output-dir
-      /bin/rm -f $gcmDIR/verification/??_${dNam}-${typ}_????????_?.tar.gz
+      echo "cleaning output from $gcmDIR/verification :"	| tee -a $OUTP/output_$typ
+  #- remove previous output tar files and tar & remove previous output-dir
+      /bin/rm -f $gcmDIR/verification/??_${dNam}*_????????_?.tar.gz
       ( cd $gcmDIR/verification
-        listD=`ls -1 -d ??_${dNam}-${typ}_????????_? 2> /dev/null`
+        listD=`ls -1 -d tr_${dNam}_????????_? ??_${dNam}-${typ}_????????_? 2> /dev/null`
         for dd in $listD
         do
           if test -d $dd ; then
@@ -133,29 +127,29 @@ do
           fi
         done )
       if test $tt != $typ ; then
-        ( cd $gcmDIR/verification ; ../tools/do_tst_2+2 -clean )
+        ( cd $gcmDIR/verification ; ../tools/do_tst_2+2 -clean ) >> $OUTP/output_$typ 2>&1
       fi
-      # ( cd $gcmDIR/verification ; ../testreport -clean )
-      echo "cvs update of dir $gcmDIR :"
-      ( cd $gcmDIR ; $cmdCVS update -P -d ) 2>&1
+        ( cd $gcmDIR/verification ; ./testreport -clean ) >> $OUTP/output_$typ 2>&1
+      echo "cvs update of dir $gcmDIR :"			| tee -a $OUTP/output_$typ
+      ( cd $gcmDIR ; $cmdCVS update -P -d ) >> $OUTP/output_$typ 2>&1
       retVal=$?
       if test "x$retVal" != x0 ; then
         echo "cvs update on '"`hostname`"' fail (return val=$retVal) => exit"
         exit
       fi
     else
-      echo "no dir: $gcmDIR/CVS => try a fresh check-out"
+      echo "no dir: $gcmDIR/CVS => try a fresh check-out"	| tee -a $OUTP/output_$typ
       newCode=2
     fi
   fi
   #- download new code
   if [ $newCode -eq 2 ] ; then
     test -e $gcmDIR && rm -rf $gcmDIR
-    echo -n "Downloading the MITgcm code using: $cmdCVS ..."
+    echo -n "Downloading the MITgcm code using: $cmdCVS ..."	| tee -a $OUTP/output_$typ
     $cmdCVS co -P -d $gcmDIR MITgcm > /dev/null 2>&1
-    echo "  done"
+    echo "  done"						| tee -a $OUTP/output_$typ
     for exp2add in $addExp ; do
-     echo " add dir: $exp2add (from Contrib:verification_other)"
+     echo " add dir: $exp2add (from Contrib:verification_other)"| tee -a $OUTP/output_$typ
      ( cd $gcmDIR/verification ; $cmdCVS co -P -d $exp2add \
                 MITgcm_contrib/verification_other/$exp2add > /dev/null 2>&1 )
     done
@@ -212,57 +206,53 @@ do
     module add mvapich2
   fi
  #if test $typ = 'pgi' ; then
- # #listT='fizhi-cs-32x32x40 fizhi-cs-aqualev20'
- #  export PGI=/srv/software/pgi/pgi-10.9
- #  export PATH="$PATH:$PGI/linux86-64/10.9/bin"
- #  export LM_LICENSE_FILE=$PGI/license.dat
  #fi
 
 #-- run the testreport command:
-  echo -n "Running testreport using"	| tee -a $OUTP/output_$tt
+  echo -n "Running testreport using"	| tee -a $OUTP/output_$typ
   if test "x$OPTFILE" != x ; then
     comm="$comm -of=$OPTFILE"
   fi
   if test $MPI != 0 ; then comm="$comm -MPI $MPI" ; fi
-  echo " -norun option ('-nr'):"	| tee -a $OUTP/output_$tt
+  echo " -norun option ('-nr'):"	| tee -a $OUTP/output_$typ
   comm="$comm -nr"
   if test "x$option" != x ; then comm="$comm $option" ; fi
-  echo "  \"eval $comm\""		| tee -a $OUTP/output_$tt
+  echo "  \"eval $comm\""		| tee -a $OUTP/output_$typ
   echo "======================"
   ( cd $gcmDIR/verification
-    eval $comm >> $OUTP/output_$tt 2>&1
+    eval $comm >> $OUTP/output_$typ 2>&1
   )
-  sed -n "/^An email /,/^======== End of testreport / p" $OUTP/output_$tt
-  echo ""				| tee -a $OUTP/output_$tt
+ #sed -n "/^An email /,/^======== End of testreport / p" $OUTP/output_$typ
+  sed -n "/^No results email was sent/,/^======== End of testreport / p" $OUTP/output_$typ
+  echo ""				| tee -a $OUTP/output_$typ
 
 #-- submit PBS script to run
   if test -e $SUB_DIR/${tst2submit}.pbs ; then
-    echo " submit PBS bach script '$SUB_DIR/${tst2submit}.pbs'"	| tee -a $OUTP/output_$tt
-    $QSUB $SUB_DIR/${tst2submit}.pbs				| tee -a $OUTP/output_$tt
-    echo " job '$tst2submit' in queue:"				| tee -a $OUTP/output_$tt
-    $QSTAT -a | grep $USER | grep $tst2submit			| tee -a $OUTP/output_$tt
+    echo " submit PBS bach script '$SUB_DIR/${tst2submit}.pbs'"	| tee -a $OUTP/output_$typ
+    $QSUB $SUB_DIR/${tst2submit}.pbs				| tee -a $OUTP/output_$typ
+    echo " job '$tst2submit' in queue:"				| tee -a $OUTP/output_$typ
+    $QSTAT -a | grep $USER | grep $tst2submit			| tee -a $OUTP/output_$typ
   else
-    echo " no PBS script '$SUB_DIR/${tst2submit}.pbs' to submit"| tee -a $OUTP/output_$tt
+    echo " no PBS script '$SUB_DIR/${tst2submit}.pbs' to submit"| tee -a $OUTP/output_$typ
     continue
   fi
 
 #-- also test restart (test 2+2=4)
-  if test $tt != $typ
-  then
-    echo "testing restart using:"	| tee -a $OUTP/output_$tt
-    comm="../tools/do_tst_2+2 -o $dName -a jmc@mitgcm.org"
-    if test $MPI = 0 ; then
-      echo "  \"$comm\""		| tee -a $OUTP/output_$tt
-      echo "======================"
-      $comm >> $OUTP/output_$tt 2>&1
-    else
-      echo "  \"$comm -mpi\""		| tee -a $OUTP/output_$tt
-      echo "======================"
-      $comm -mpi >> $OUTP/output_$tt 2>&1
-    fi
-    echo ; cat tst_2+2_out.txt
-    echo
-  fi
+# if test $tt != $typ ; then
+#   echo "testing restart using:"	| tee -a $OUTP/output_$typ
+#   comm="../tools/do_tst_2+2 -o $dNam -a jmc@mitgcm.org"
+#   if test $MPI = 0 ; then
+#     echo "  \"$comm\""		| tee -a $OUTP/output_$typ
+#     echo "======================"
+#     $comm >> $OUTP/output_$typ 2>&1
+#   else
+#     echo "  \"$comm -mpi\""		| tee -a $OUTP/output_$typ
+#     echo "======================"
+#     $comm -mpi >> $OUTP/output_$typ 2>&1
+#   fi
+#   echo ; cat tst_2+2_out.txt
+#   echo
+# fi
 #--reset special setting:
   export OMP_NUM_THREADS=1
 
