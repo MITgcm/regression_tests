@@ -1,6 +1,6 @@
 #! /usr/bin/env bash
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/other/testing_loc,v 1.17 2013/09/23 15:32:48 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/other/testing_loc,v 1.18 2013/10/17 01:45:23 jmc Exp $
 # $Name:  $
 
 if test $# = 0 ; then
@@ -10,6 +10,8 @@ else
   if test $1 = ifort ; then
 #   tst_list='iadm imp2 iur4'
     tst_list='iad4 imp2 iur4'
+    dd1=`date +%d -d "1 day"`
+    if test $dd1 != '01' ; then echo 'not last day of month'; exit ; fi
   elif test $1 = gfort ; then
 #   tst_list='gadm gads gmp2 gmpi gfo g77'
     tst_list='gadm gads gmp2 gfo'
@@ -21,6 +23,18 @@ else
 fi
   echo "run: \""`basename $0` $*"\" on:" `date`
   echo " tst_list='$tst_list'"
+
+#- to get ~/bin in the patch (for staf) when run on cron:
+if [ -d ~/bin ]; then
+  echo 'add ~/bin to $PATH'
+  export PATH=$PATH:~/bin
+fi
+#- to get case insensitive "ls" (and order of tested experiments)
+#export LC_ALL="en_US.UTF-8"
+#- Turn off stack limit for FIZHI & AD-tests
+ulimit -s unlimited
+#- method to acces CVS:
+cmdCVS='cvs -d :pserver:cvsanon@mitgcm.org:/u/gcmpack -q'
 
 #-- for now, cannot mix ifort/gfortran tests:
 gfort=1
@@ -54,27 +68,27 @@ do
   echo " testing tt= $tt , fwd= $fwd"
 if [ $fwd -eq 0 ] ; then
   set -x
-  ( cd MITgcm_$tt/verification ; testreport -adm -clean > ../../tr_clean_$tt.log 2>&1 )
+  ( cd MITgcm_$tt/verification ; ./testreport -adm -clean > ../../tr_clean_$tt.log 2>&1 )
   set +x
 else
   set -x
   #- cleanup previous restart:
   ( cd MITgcm_$tt/verification ; ../tools/do_tst_2+2 -clean > ../../tr_clean_$tt.log 2>&1 )
   #- cleanup previous test:
-  ( cd MITgcm_$tt/verification ; testreport -clean >> ../../tr_clean_$tt.log 2>&1 )
+  ( cd MITgcm_$tt/verification ; ./testreport -clean >> ../../tr_clean_$tt.log 2>&1 )
   set +x
 fi
   if [ $gfort -eq 0 ] ; then
     echo ' remove all Makefile_syntax and do "cvs update -P -d"' >> tr_clean_$tt.log
     ( cd MITgcm_$tt/verification ; rm -f */build/Makefile_syntax )
   else
-    echo ' run "cvs update -P -d"'  >> tr_clean_$tt.log
+    echo " run '$cmdCVS update -P -d'"  >> tr_clean_$tt.log
   fi
   echo ""
 
   echo "=========================================================================="
   set -x
-  ( cd MITgcm_$tt ; cvs update -P -d  >> ../tr_clean_$tt.log 2>&1 )
+  ( cd MITgcm_$tt ; $cmdCVS update -P -d  >> ../tr_clean_$tt.log 2>&1 )
   set +x
   echo ""
 
@@ -87,45 +101,43 @@ fi
   # verbose mode:
   set -x
   pwd
+  test -e tr_out.txt && mv -f tr_out.txt tr_out.sav
 
 case $tt in
 'iadm' )
-  if test -e tr_out.txt ; then /bin/rm -f tr_out.sav ; mv tr_out.txt tr_out.sav ; fi
 
-  testreport -MPI 3 -adm -of ../tools/build_options/linux_amd64_ifort11 \
+  ./testreport -MPI 3 -adm -of ../tools/build_options/linux_amd64_ifort11 \
    -devel -nc -repl_mk do_make_syntax.sh -obj -dd > ../../tr_run_$tt.log 2>&1
   echo '' >> ../../tr_run_$tt.log 2>&1
 
-  testreport -MPI 3 -adm -of ../tools/build_options/linux_amd64_ifort11 \
+  ./testreport -MPI 3 -adm -of ../tools/build_options/linux_amd64_ifort11 \
    -devel -q -a jmc@mitgcm.org >> ../../tr_run_$tt.log 2>&1
 
   sed -n "/ email /,/^======== End of testreport / p" ../../tr_run_$tt.log
 ;;
 
 'iad4' )
-  if test -e tr_out.txt ; then /bin/rm -f tr_out.sav ; mv tr_out.txt tr_out.sav ; fi
 
-  testreport -MPI 3 -ur4 -adm -of ../tools/build_options/linux_amd64_ifort11 \
+  ./testreport -MPI 3 -ur4 -adm -of ../tools/build_options/linux_amd64_ifort11 \
    -devel -nc -repl_mk do_make_syntax.sh -obj -dd > ../../tr_run_$tt.log 2>&1
   echo '' >> ../../tr_run_$tt.log 2>&1
 
-  testreport -MPI 3 -ur4 -adm -of ../tools/build_options/linux_amd64_ifort11 \
+  ./testreport -MPI 3 -ur4 -adm -of ../tools/build_options/linux_amd64_ifort11 \
    -devel -q -match 5 -a jmc@mitgcm.org >> ../../tr_run_$tt.log 2>&1
 
   sed -n "/ email /,/^======== End of testreport / p" ../../tr_run_$tt.log
 ;;
 
 'imp2')
-  if test -e tr_out.txt ; then /bin/rm -f tr_out.sav ; mv tr_out.txt tr_out.sav ; fi
 
   export OMP_NUM_THREADS=2
   export KMP_STACKSIZE=400m
 
-  testreport -MPI 2 -mth -of ../tools/build_options/linux_amd64_ifort11 \
+  ./testreport -MPI 2 -mth -of ../tools/build_options/linux_amd64_ifort11 \
    -devel -nc -repl_mk do_make_syntax.sh -obj -dd > ../../tr_run_$tt.log 2>&1
   echo '' >> ../../tr_run_$tt.log 2>&1
 
-  testreport -MPI 2 -mth -of ../tools/build_options/linux_amd64_ifort11 \
+  ./testreport -MPI 2 -mth -of ../tools/build_options/linux_amd64_ifort11 \
    -devel -q -a jmc@mitgcm.org >> ../../tr_run_$tt.log 2>&1
 
   sed -n "/ email /,/^======== End of testreport / p" ../../tr_run_$tt.log
@@ -136,13 +148,12 @@ case $tt in
 ;;
 
 'iur4')
-  if test -e tr_out.txt ; then /bin/rm -f tr_out.sav ; mv tr_out.txt tr_out.sav ; fi
 
-  testreport -MPI 3 -ur4 -of ../tools/build_options/linux_amd64_ifort11 \
+  ./testreport -MPI 3 -ur4 -of ../tools/build_options/linux_amd64_ifort11 \
    -devel -nc -repl_mk do_make_syntax.sh -obj -dd > ../../tr_run_$tt.log 2>&1
   echo '' >> ../../tr_run_$tt.log 2>&1
 
-  testreport -MPI 3 -ur4 -of ../tools/build_options/linux_amd64_ifort11 \
+  ./testreport -MPI 3 -ur4 -of ../tools/build_options/linux_amd64_ifort11 \
    -devel -q -match 5 -a jmc@mitgcm.org >> ../../tr_run_$tt.log 2>&1
 
   sed -n "/ email /,/^======== End of testreport / p" ../../tr_run_$tt.log
@@ -153,39 +164,35 @@ case $tt in
 ;;
 
 'gadm')
-  if test -e tr_out.txt ; then /bin/rm -f tr_out.sav ; mv tr_out.txt tr_out.sav ; fi
 
-  testreport -MPI 3 -adm -of ../tools/build_options/linux_amd64_gfortran \
+  ./testreport -MPI 3 -adm -of ../tools/build_options/linux_amd64_gfortran \
    -devel -nc -a jmc@mitgcm.org >> ../../tr_run_$tt.log 2>&1
 
   sed -n "/ email /,/^======== End of testreport / p" ../../tr_run_$tt.log
 ;;
 
 'gads')
-  if test -e tr_out.txt ; then /bin/rm -f tr_out.sav ; mv tr_out.txt tr_out.sav ; fi
 
-  testreport -adm -of ../tools/build_options/linux_amd64_gfortran \
+  ./testreport -adm -of ../tools/build_options/linux_amd64_gfortran \
    -devel -nc -a jmc@mitgcm.org >> ../../tr_run_$tt.log 2>&1
 
   sed -n "/ email /,/^======== End of testreport / p" ../../tr_run_$tt.log
 ;;
 
 'gad4')
-  if test -e tr_out.txt ; then /bin/rm -f tr_out.sav ; mv tr_out.txt tr_out.sav ; fi
 
-  testreport -adm -ur4 -of ../tools/build_options/linux_amd64_gfortran \
+  ./testreport -adm -ur4 -of ../tools/build_options/linux_amd64_gfortran \
    -devel -nc -match 5 -a jmc@mitgcm.org >> ../../tr_run_$tt.log 2>&1
 
   sed -n "/ email /,/^======== End of testreport / p" ../../tr_run_$tt.log
 ;;
 
 'gmp2')
-  if test -e tr_out.txt ; then /bin/rm -f tr_out.sav ; mv tr_out.txt tr_out.sav ; fi
 
   export OMP_NUM_THREADS=2
   export GOMP_STACKSIZE=400m
 
-  testreport -MPI 2 -mth -of ../tools/build_options/linux_amd64_gfortran \
+  ./testreport -MPI 2 -mth -of ../tools/build_options/linux_amd64_gfortran \
    -devel -nc -a jmc@mitgcm.org >> ../../tr_run_$tt.log 2>&1
 
   sed -n "/ email /,/^======== End of testreport / p" ../../tr_run_$tt.log
@@ -196,9 +203,8 @@ case $tt in
 ;;
 
 'gmpi')
-  if test -e tr_out.txt ; then /bin/rm -f tr_out.sav ; mv tr_out.txt tr_out.sav ; fi
 
-  testreport -MPI 3 -of ../tools/build_options/linux_amd64_gfortran \
+  ./testreport -MPI 3 -of ../tools/build_options/linux_amd64_gfortran \
    -devel -nc -a jmc@mitgcm.org >> ../../tr_run_$tt.log 2>&1
 
   sed -n "/ email /,/^======== End of testreport / p" ../../tr_run_$tt.log
@@ -209,9 +215,8 @@ case $tt in
 ;;
 
 'gmp4')
-  if test -e tr_out.txt ; then /bin/rm -f tr_out.sav ; mv tr_out.txt tr_out.sav ; fi
 
-  testreport -MPI 3 -ur4 -of ../tools/build_options/linux_amd64_gfortran \
+  ./testreport -MPI 3 -ur4 -of ../tools/build_options/linux_amd64_gfortran \
    -devel -nc -match 5 -a jmc@mitgcm.org >> ../../tr_run_$tt.log 2>&1
 
   sed -n "/ email /,/^======== End of testreport / p" ../../tr_run_$tt.log
@@ -222,9 +227,8 @@ case $tt in
 ;;
 
 'gfo')
-  if test -e tr_out.txt ; then /bin/rm -f tr_out.sav ; mv tr_out.txt tr_out.sav ; fi
 
-  testreport -of ../tools/build_options/linux_amd64_gfortran \
+  ./testreport -of ../tools/build_options/linux_amd64_gfortran \
    -devel -nc -a jmc@mitgcm.org >> ../../tr_run_$tt.log 2>&1
 
   sed -n "/ email /,/^======== End of testreport / p" ../../tr_run_$tt.log
@@ -235,9 +239,8 @@ case $tt in
 ;;
 
 'gfo4')
-  if test -e tr_out.txt ; then /bin/rm -f tr_out.sav ; mv tr_out.txt tr_out.sav ; fi
 
-  testreport -ur4 -of ../tools/build_options/linux_amd64_gfortran \
+  ./testreport -ur4 -of ../tools/build_options/linux_amd64_gfortran \
    -devel -nc -match 5 -a jmc@mitgcm.org >> ../../tr_run_$tt.log 2>&1
 
   sed -n "/ email /,/^======== End of testreport / p" ../../tr_run_$tt.log
@@ -248,9 +251,8 @@ case $tt in
 ;;
 
 'g77')
-  if test -e tr_out.txt ; then /bin/rm -f tr_out.sav ; mv tr_out.txt tr_out.sav ; fi
 
-  testreport -of ../tools/build_options/linux_amd64_g77 \
+  ./testreport -of ../tools/build_options/linux_amd64_g77 \
    -skd 'fizhi-cs-32x32x40 fizhi-cs-aqualev20' \
    -nc -a jmc@mitgcm.org >> ../../tr_run_$tt.log 2>&1
 
