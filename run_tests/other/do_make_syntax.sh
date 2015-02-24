@@ -1,12 +1,13 @@
 #! /usr/bin/env bash
 
-# $Header:  $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/other/do_make_syntax.sh,v 1.1 2012/03/14 18:24:16 jmc Exp $
 # $Name:  $
 
 #- create a copy of current Makefile with additional FFLAGS
 if test Makefile_syntax -ot Makefile ; then
    echo -n '-- using new "Makefile_syntax",'
-   sed 's/^FFLAGS =.*$/& -syntax-only/' Makefile > Makefile_syntax
+   sed -e 's/^MAKEFILE = .*$/MAKEFILE = Makefile_syntax/' \
+       -e 's/^FFLAGS =.*$/& -syntax-only/' Makefile > Makefile_syntax
 else
    echo -n '-- use prev. "Makefile_syntax",'
 fi
