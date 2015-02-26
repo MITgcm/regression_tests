@@ -1,0 +1,106 @@
+#!/bin/bash -x
+
+# load latest compiler:
+module load sxf90/460
+
+VENDOR=sxf90
+RUNIT="runit_"$VENDOR
+HERE=`pwd`
+EXE='mpirun -np TR_NPROC ./mitgcmuv'
+NPROCS=2
+MPI="-MPI $NPROCS"
+OUTFILE=/home/sx8/mlosch/out_${VENDOR}
+MYOUTPUT=/home/sx8/mlosch/testreport_${VENDOR}
+OUTFILE=out_${VENDOR}
+JOBNAME=testsx8
+JOBSCRIPT=job_${VENDOR}
+#selectexperiment='-t exp2'
+selectexperiment=''
+# download code into this directory
+TDIR=/sx8/scr/mlosch/tmp_$VENDOR
+
+OPTFILE=../tools/build_options/SUPER-UX_SX-8_sxf90_awi
+
+RUNTESTREPORT="./testreport $MPI -of=${OPTFILE} $selectexperiment"
+#
+# create batch script
+#
+cat << EOF > $HERE/$JOBSCRIPT
+#PBS -q sx8-r                            # job queue not neccesary  so far 
+#PBS -N $JOBNAME                         # give the job a name
+#PBS -l cpunum_job=$NPROCS               # cpus per node
+#PBS -l cputim_job=2:00:00               # time limit
+#PBS -l memsz_job=32gb                   # max accumulated memory, we need this much because of many netcdf files
+#PBS -j o                                # join i/o
+#PBS -S /bin/sh
+#PBS -o $OUTFILE                         # o Where to write output
+#
+
+cd \${PBS_O_WORKDIR}
+$RUNTESTREPORT -runonly -command "$EXE" >> $MYOUTPUT 2>&1
+
+EOF
+
+# clean up old testreport output
+if [ -e $MYOUTPUT ]; then
+  rm -rf $MYOUTPUT
+fi
+if [ -e $OUTFILE ]; then
+  rm -r $OUTFILE
+fi
+if [ 0 = 0 ]; then
+# create directory and download code
+    if [ -e $TDIR ]; then
+	rm -rf $TDIR
+    fi
+    mkdir $TDIR
+    cd $TDIR
+#   cvs -d :pserver:cvsanon@mitgcm.org:/u/gcmpack co MITgcm_verif_basic >& cvs_co.log
+    cvs -d :pserver:cvsanon@mitgcm.org:/u/gcmpack co MITgcm >& cvs_co.log
+    if [ $status > 0 ]; then
+	cat cvs_co.log
+    fi
+fi
+
+cd $TDIR/MITgcm/verification
+
+# make sure that we do not use the cross compiler for testreport
+unset CC
+# make sure that do use the cross compiler for testreport
+#export CC=sxcc
+
+$RUNTESTREPORT  -j 8 -norun >> $MYOUTPUT 2>&1
+
+if [ $status > 0 ]; then
+  echo "something wrong with testreport"
+  echo "keeping the working directory"
+#else
+#  echo "check restarts"
+#  echo ../tools/do_tst_2+2 -mpi -exe \"$HERE/$RUNIT\" -a NONE
+#  ../tools/do_tst_2+2 -mpi -exe $HERE/$RUNIT -a NONE
+# everything OK: delete working directory
+#  rm -rf $TDIR
+fi
+
+echo "job script looks like this:" > $MYOUTPUT
+cat $HERE/$JOBSCRIPT >> $MYOUTPUT
+echo "end of job script" >> $MYOUTPUT
+echo " " >> $MYOUTPUT
+
+# now submit the job that actually runs all the experiments in one go
+qsub $HERE/$JOBSCRIPT
+# keep looking for the job in the job queues and wait until has disappeared
+jobruns=`qstat -n -u mlosch | grep "$JOBNAME"`
+while [ "${jobruns}"x != x ]
+do 
+  sleep 20
+  jobruns=`qstat -n -u mlosch | grep "$JOBNAME"`
+done
+
+# after running the experiments on the compute node run testreport
+# for a third time to evaluate results on the head node again
+#$RUNTESTREPORT -match 10 -runonly
+$RUNTESTREPORT -match 10 -runonly \
+    -a "jmc@mitgcm.org, Martin.Losch@awi.de" >> $MYOUTPUT 2>&1
+
+echo "end of mitgcmtestreport_split"
