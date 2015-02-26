@@ -1,4 +1,20 @@
 #!/bin/bash -x
+# new script for running testreport on sx8.awi.de
+# - split the testreport into 3 steps:
+# 1/ compiling on head node (tx7.awi.de), with -norun option
+# 2/ running on compute node (using PBS qsub), with -runonly option
+# 3/ evaluating result on head node with -runonly option
+# 
+# Notes: 
+# - step 2 leads to many error messages, because the OS on the compute
+#   nodes does not have the appropriate shell tools, modifying the
+# - runonly option to skip the evalution step would be nice but not
+#   necessary; you'll just have to live with the error messages
+# - step 3 assumes that all experiments have been run successfully, i.e.
+#   that the output files are up-to-date.
+#   if not, testreport will try to run the sx8-code on the tx7 frontend
+#   which will fail inevitably and produce more errors, maybe we can
+#   have a flag that skips everything but the evaluation step to avoid this
 
 # load latest compiler:
 module load sxf90/460
