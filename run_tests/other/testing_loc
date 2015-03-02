@@ -1,6 +1,6 @@
 #! /usr/bin/env bash
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/other/testing_loc,v 1.18 2013/10/17 01:45:23 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/other/testing_loc,v 1.19 2014/11/02 14:13:56 jmc Exp $
 # $Name:  $
 
 if test $# = 0 ; then
@@ -107,7 +107,7 @@ case $tt in
 'iadm' )
 
   ./testreport -MPI 3 -adm -of ../tools/build_options/linux_amd64_ifort11 \
-   -devel -nc -repl_mk do_make_syntax.sh -obj -dd > ../../tr_run_$tt.log 2>&1
+   -devel -nc -ncad -repl_mk do_make_syntax.sh -obj -dd > ../../tr_run_$tt.log 2>&1
   echo '' >> ../../tr_run_$tt.log 2>&1
 
   ./testreport -MPI 3 -adm -of ../tools/build_options/linux_amd64_ifort11 \
@@ -119,7 +119,7 @@ case $tt in
 'iad4' )
 
   ./testreport -MPI 3 -ur4 -adm -of ../tools/build_options/linux_amd64_ifort11 \
-   -devel -nc -repl_mk do_make_syntax.sh -obj -dd > ../../tr_run_$tt.log 2>&1
+   -devel -nc -ncad -repl_mk do_make_syntax.sh -obj -dd > ../../tr_run_$tt.log 2>&1
   echo '' >> ../../tr_run_$tt.log 2>&1
 
   ./testreport -MPI 3 -ur4 -adm -of ../tools/build_options/linux_amd64_ifort11 \
@@ -166,7 +166,7 @@ case $tt in
 'gadm')
 
   ./testreport -MPI 3 -adm -of ../tools/build_options/linux_amd64_gfortran \
-   -devel -nc -a jmc@mitgcm.org >> ../../tr_run_$tt.log 2>&1
+   -devel -ncad -nc -a jmc@mitgcm.org >> ../../tr_run_$tt.log 2>&1
 
   sed -n "/ email /,/^======== End of testreport / p" ../../tr_run_$tt.log
 ;;
@@ -174,7 +174,7 @@ case $tt in
 'gads')
 
   ./testreport -adm -of ../tools/build_options/linux_amd64_gfortran \
-   -devel -nc -a jmc@mitgcm.org >> ../../tr_run_$tt.log 2>&1
+   -devel -ncad -nc -a jmc@mitgcm.org >> ../../tr_run_$tt.log 2>&1
 
   sed -n "/ email /,/^======== End of testreport / p" ../../tr_run_$tt.log
 ;;
@@ -182,7 +182,7 @@ case $tt in
 'gad4')
 
   ./testreport -adm -ur4 -of ../tools/build_options/linux_amd64_gfortran \
-   -devel -nc -match 5 -a jmc@mitgcm.org >> ../../tr_run_$tt.log 2>&1
+   -devel -ncad -nc -match 5 -a jmc@mitgcm.org >> ../../tr_run_$tt.log 2>&1
 
   sed -n "/ email /,/^======== End of testreport / p" ../../tr_run_$tt.log
 ;;
