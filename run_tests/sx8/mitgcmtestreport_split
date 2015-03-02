@@ -15,15 +15,17 @@
 #   if not, testreport will try to run the sx8-code on the tx7 frontend
 #   which will fail inevitably and produce more errors, maybe we can
 #   have a flag that skips everything but the evaluation step to avoid this
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/sx8/mitgcmtestreport_split,v 1.4 2015/02/27 14:14:40 mlosch Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/sx8/mitgcmtestreport_split,v 1.5 2015/03/02 09:13:18 mlosch Exp $
 # $Name:  $
 
 # for some reason the module command is not available in a bash script on
 # this computer so we have to create it here
 module () { eval `/usr/bin/modulecmd bash $*` ; }
+module use --append /sx8/user2/awisoft/modulefiles
 # load latest compiler:
 module load sxf90/460
-
+module load netcdf
+#
 VENDOR=sxf90
 RUNIT="runit_"$VENDOR
 HERE=`pwd`
@@ -78,12 +80,12 @@ if [ 0 = 0 ]; then
     cd $TDIR
 #   cvs -d :pserver:cvsanon@mitgcm.org:/u/gcmpack co MITgcm_verif_basic > cvs_co.log 2>&1
     cvs -d :pserver:cvsanon@mitgcm.org:/u/gcmpack co MITgcm > cvs_co.log 2>&1
-    if [ $status > 0 ]; then
+    if [ "$?" != "0" ]; then
 	cat cvs_co.log
     fi
 else
     cvs -d :pserver:cvsanon@mitgcm.org:/u/gcmpack -q update >> cvs_co.log 2>&1
-    if [ $status > 0 ]; then
+    if [ "$?" != "0" ]; then
 	cat cvs_co.log
     fi
 fi
@@ -97,7 +99,7 @@ unset CC
 
 $RUNTESTREPORT  -j 8 -norun > $MYOUTPUT 2>&1
 
-if [ $status > 0 ]
+if [ "$?" != "0" ]
     then
     echo "something wrong with testreport"
     echo "keeping the working directory"
@@ -130,7 +132,7 @@ qsub $HERE/$JOBSCRIPT
 jobruns=`qstat -n -u mlosch | grep "$JOBNAME"`
 while [ "${jobruns}"x != x ]
 do 
-  sleep 20
+  sleep 200
   jobruns=`qstat -n -u mlosch | grep "$JOBNAME"`
   echo "waiting for job ${jobruns%% *} ($JOBNAME) to complete"
   currentexp=`grep Experiment $MYOUTPUT | tail -1`
