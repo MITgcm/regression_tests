@@ -1,0 +1,116 @@
+#!/bin/tcsh -x
+# run testreport in iblade1.awi.de
+# 
+# This version of the script runs testreport in two steps:
+# 1/ compile all experiments (as if cross compiling)
+# 2/ run all experiments within one script that is submitted to the loadLeveler
+# This should also serve as a template for the SX8 (with real cross-compiling)
+# *************************
+# Another aspect is the use of "TR_NPROC" which allows the script to
+# decide on how many cpus to runs, so that experiments like
+# global_ocean.90x40x15 do not fail all the time.
+# Because there does not appear to be any traffic in iblade anymore
+# I am increasing the number requested processors to 6
+# *************************
+# Unfortunately the "TR_NPROC" trick does not work and until we find a fix
+# I am using 2 processors
+# $Header: $
+# $Name: $
+
+set VENDOR=mpxlf95
+set RUNIT="runtestreport_"$VENDOR
+set HERE=$cwd
+# this does not work so far, because I dont know how to trick the loadLeveler
+# so we use fixed number of processors for now
+#set NPROCS=6
+#set EXE='poe ./mitgcmuv -procs TR_NPROC'
+set NPROCS=2
+set EXE='poe ./mitgcmuv -procs $NPROCS'
+set MPI="-MPI $NPROCS"
+
+set OPTFILE=../tools/build_options/sp6+mpi_iblade
+
+set CVSCMD='cvs -d :pserver:cvsanon@mitgcm.org:/u/gcmpack \
+            co MITgcm >& cvs_co.log'
+# for fewer experiments
+#	    co MITgcm_verif_basic >& cvs_co.log'
+	    
+# download code to this directory
+set TDIR=/iblade/user/mlosch/tmp_$VENDOR
+# put temporatry output here (for sending)
+set SavD=$HOME/scripts
+# mpack needs to be in this directory
+set SEND="ssh iblade1 $HOME/bin/mpack"	    
+# this could be replaced by "/dev/null"
+set MYOUTPUT=$HOME/testreport.output
+#set selectexperiment='-t exp2'
+set selectexperiment=' '
+#
+# create batch script to run experiments after (cross-)compiling
+#
+cat << EOF >! $HERE/$RUNIT
+#!/bin/bash -x
+# LoadLeveler batch commands that are used if this script is submitted to
+#   the share batch queue:
+# @ job_type = parallel
+# @ job_name = mitgcm_testreport
+# @ output = testreport.out
+# @ error = testreport.out
+# @ wall_clock_limit = 8:00:0,8:00:0
+# @ resources = ConsumableCpus(1)
+# @ image_size = 50
+# @ class = cpar
+
+# @ notification = never
+## @ notification = complete
+## @ notify_user = Martin.Losch@awi.de
+
+# @ node = 1
+# @ tasks_per_node = $NPROCS
+# @ node_usage = shared
+# @ queue
+
+cd \${LOADL_STEP_INITDIR}
+echo "current working directory: \$pwd" >> $MYOUTPUT
+echo "now start to run the model" >> $MYOUTPUT
+./testreport -bash /usr/bin/bash -match 10 -runonly $MPI $selectexperiment \
+     -of=${OPTFILE} -command "$EXE" -send "$SEND" -sd $SavD \
+     -a "jmc@mitgcm.org Martin.Losch@awi.de" >> $MYOUTPUT 2>&1
+
+EOF
+
+# make the script executable (not really necessary)
+chmod a+x $RUNIT
+#chmod 744 $RUNIT
+
+#if ( 0 ) then
+if ( -e $TDIR ) then
+    rm -rf $TDIR
+endif
+mkdir $TDIR
+cd $TDIR
+# download the model
+eval ${CVSCMD}
+#
+if ( $status > 0 ) then
+  cat cvs_co.log
+  exit
+endif
+
+cd $TDIR/MITgcm/verification
+
+if ( -e $MYOUTPUT ) then
+  rm -rf $MYOUTPUT
+endif
+bash ./testreport -bash /usr/bin/bash -postclean $MPI \
+     -of=${OPTFILE} -norun $selectexperiment >& $MYOUTPUT
+     
+#else
+#  cd $TDIR/MITgcm/verification
+#endif
+
+# now submit the job that actually runs all the experiments in one go
+llsubmit $HERE/$RUNIT
+
+echo "end of mt_iblade_split" >>& $MYOUTPUT
+
