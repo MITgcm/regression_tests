@@ -14,8 +14,8 @@
 # *************************
 # Unfortunately the "TR_NPROC" trick does not work and until we find a fix
 # I am using 2 processors
-# $Header: $
-# $Name: $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/iblade/mt_iblade_split,v 1.1 2015/03/02 14:29:12 mlosch Exp $
+# $Name:  $
 
 set VENDOR=mpxlf95
 set RUNIT="runtestreport_"$VENDOR
@@ -23,9 +23,9 @@ set HERE=$cwd
 # this does not work so far, because I dont know how to trick the loadLeveler
 # so we use fixed number of processors for now
 #set NPROCS=6
-#set EXE='poe ./mitgcmuv -procs TR_NPROC'
+#set EXE="poe ./mitgcmuv -procs TR_NPROC"
 set NPROCS=2
-set EXE='poe ./mitgcmuv -procs $NPROCS'
+set EXE="poe ./mitgcmuv -procs $NPROCS"
 set MPI="-MPI $NPROCS"
 
 set OPTFILE=../tools/build_options/sp6+mpi_iblade
