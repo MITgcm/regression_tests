@@ -1,6 +1,6 @@
 #! /usr/bin/env bash
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/svante/test_svante.sh,v 1.1 2014/10/13 23:15:18 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/svante/test_svante.sh,v 1.2 2014/11/02 13:47:51 jmc Exp $
 
 #  Test script for MITgcm to run on head-node of svante cluster
 
@@ -33,7 +33,7 @@ QSTAT="qstat"
 HERE="$HOME/test_${dNam}"
 OUTP="$HERE/output"
 SUB_DIR="$HERE/$dNam"
-TESTDIR="/net/fs07/d1/testreport/test_${dNam}"
+TESTDIR="/net/fs09/d0/jm_c/test_${dNam}"
 checkOut=1
 option=
 

@@ -7,7 +7,7 @@
 #PBS -o /home/jm_c/test_svante/output/run_tst_ifc.stdout
 ##PBS  -j oe
 
-# $Header:  $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/svante/run_tst_ifc.pbs,v 1.1 2014/10/13 23:15:18 jmc Exp $
 
 if test -f /etc/profile.d/modules.sh ; then
     . /etc/profile.d/modules.sh
@@ -24,7 +24,7 @@ dNam='svante'
 HERE="$HOME/test_$dNam"
 OUTP="$HERE/output"; SavD="$HERE/send"
 SEND="ssh svante $SavD/mpack"
-TST_DIR="/net/fs07/d1/testreport/test_${dNam}"
+TST_DIR="/net/fs09/d0/jm_c/test_${dNam}"
 
 if test -d $TST_DIR ; then
   echo "start from TST_DIR='$TST_DIR' at: "`date`
