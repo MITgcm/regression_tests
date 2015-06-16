@@ -2,12 +2,12 @@
 #
 #PBS -q short
 #PBS -N run_tst_ifc
-#PBS -l nodes=1:ppn=6:nehalem
+#PBS -l nodes=1:ppn=6:sandy
 #PBS -e /home/jm_c/test_svante/output/run_tst_ifc.stderr
 #PBS -o /home/jm_c/test_svante/output/run_tst_ifc.stdout
 ##PBS  -j oe
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/svante/run_tst_ifc.pbs,v 1.1 2014/10/13 23:15:18 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/svante/run_tst_ifc.pbs,v 1.2 2015/04/11 14:21:18 jmc Exp $
 
 if test -f /etc/profile.d/modules.sh ; then
     . /etc/profile.d/modules.sh
