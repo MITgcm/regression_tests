@@ -15,7 +15,7 @@
 #   if not, testreport will try to run the sx ace-code on the tx7 frontend
 #   which will fail inevitably and produce more errors, maybe we can
 #   have a flag that skips everything but the evaluation step to avoid this
-# $Header: $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/sxace/mitgcmtestreport,v 1.1 2015/04/08 14:28:53 mlosch Exp $
 # $Name:  $
 
 # for some reason the module command is not available in a bash script on
@@ -51,19 +51,20 @@ JOBSCRIPT=job_${VENDOR}
 selectexperiment='-t exp2'
 selectexperiment=''
 # download code into this directory
-TDIR=/ace/scr/mlosch/tmp_$VENDOR
+TDIR=/ace/user/mlosch/tmp_$VENDOR
 
 OPTFILE=../tools/build_options/SUPER-UX_SX-ACE_sxf90_awi
-OPTFILE=/home/ace/mlosch/MITgcm/tools/build_options/SUPER-UX_SX-ACE_sxf90_awi
+#OPTFILE=/home/ace/mlosch/MITgcm/tools/build_options/SUPER-UX_SX-ACE_sxf90_awi
 
 RUNTESTREPORT="./testreport $MPI -of=${OPTFILE} $selectexperiment -small_f"
 #
 # create batch script
 #
 cat << EOF > $HERE/$JOBSCRIPT
-###PBS -q ace-test                         # job queue not neccesary  so far 
+#PBS -q ace-r                            # job queue
 #PBS -N $JOBNAME                         # give the job a name
 #PBS -l cpunum_job=$NPROCS               # cpus per node
+#PBS -l elapstim_req=2:00:00
 #PBS -l cputim_job=2:00:00               # time limit
 #PBS -l memsz_job=32gb                   # max accumulated memory, we need this much because of many netcdf files
 #PBS -j o                                # join i/o
@@ -159,6 +160,7 @@ echo "now run testreport for a final time to evaluate results:" >> $MYOUTPUT
 echo "$RUNTESTREPORT -match 10 -runonly" >> $MYOUTPUT
 #$RUNTESTREPORT -match 10 -runonly >> $MYOUTPUT 2>&1
 $RUNTESTREPORT -match 10 -runonly \
-    -a "jmc@mitgcm.org, Martin.Losch@awi.de" >> $MYOUTPUT 2>&1
+    -a "jmc@mitgcm.org" >> $MYOUTPUT 2>&1
+#   -a "jmc@mitgcm.org, Martin.Losch@awi.de" >> $MYOUTPUT 2>&1
 
 echo "end of mitgcmtestreport"
