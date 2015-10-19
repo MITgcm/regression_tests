@@ -1,0 +1,100 @@
+#! /usr/bin/env bash
+
+# $Header:  $
+# $Name:  $
+
+today=`date +%Y%m%d`
+dInWeek=`date +%a`
+
+if test $# = 0
+then
+  TEST_LIST='gnu mp2 adm pgi path mth op64 tuv'
+  TEST_LIST='o64Adm gfoTlm'
+ #if test "x$dInWeek" = xSat ; then TEST_LIST="$TEST_LIST iad ifc oad" ; fi
+ #if test "x$dInWeek" = xSun ; then TEST_LIST="$TEST_LIST iad ifc oad" ; fi
+else
+  TEST_LIST=$*
+fi
+
+QSUB="/usr/bin/sbatch"
+QSTAT="/usr/bin/qstat"
+dNam='engaging'
+HERE="$HOME/test_$dNam"
+TST_DIR="/pool001/jm_c/test_$dNam"
+logPfix='test_submit'
+
+SUB_DIR="$HERE/engaging"
+OUT_DIR="$HERE/output"
+LOG_FIL="$OUT_DIR/$logPfix."`date +%m%d`".log"
+
+#-- clean up old log files and start a new one:
+cd $OUT_DIR
+
+rm -f $logPfix.*.log_bak
+if test -f $LOG_FIL ; then mv -f $LOG_FIL ${LOG_FIL}_bak ; fi
+echo -n '-- Starting: ' | tee -a $LOG_FIL
+date | tee -a $LOG_FIL
+
+n=$(( `ls $logPfix.*.log | wc -l` - 10 ))
+if test $n -gt 0 ; then
+  echo ' remove old log files:' | tee -a $LOG_FIL
+    ls -lt $logPfix.*.log | tail -"$n" | tee -a $LOG_FIL
+    ls -t  $logPfix.*.log | tail -"$n" | xargs rm -f
+fi
+
+. /etc/profile.d/modules.sh
+module list >> $LOG_FIL 2>&1
+
+#-- now really do something:
+#cd $HERE
+#---+----1----+----2----+----3----+----4----+----5----+----6----+----7-|--+----|
+
+  JOB_LIST=$TEST_LIST
+  NB_SUB_JOBS=0
+  for i in $JOB_LIST
+  do
+    case $i in
+      'o64Adm') sfx='op64_adm' ;;
+      'gfoTlm') sfx='gfo_tlm' ;;
+             *) sfx=${i}'_mpi'  ;;
+    esac
+    BATCH_SCRIPT="test_engag_$sfx"
+    if test -f $SUB_DIR/$BATCH_SCRIPT ; then
+      JOB="tst_"$i
+      job_exist=`$QSTAT -a | grep $USER | grep $JOB | wc -l`
+      if test "x_$job_exist" = x_0 ; then
+        #-- move previous output file
+        outList=`ls $JOB.std??? 2> /dev/null`
+        if test "x$outList" != x ; then
+          echo -n " moving job $JOB old output files:"
+          if test -d $OUT_DIR/prev ; then
+            for xx in $outList ; do
+              echo -n " $xx"
+              mv -f $xx $OUT_DIR/prev
+            done
+            echo " to dir $OUT_DIR/prev"
+          else
+            echo " <-- missing dir $OUT_DIR/prev"
+          fi
+        else echo " no old output files from job '$JOB'"
+        fi
+        #-- submit job
+          echo -n " $JOB : " | tee -a $LOG_FIL
+          $QSUB $SUB_DIR/$BATCH_SCRIPT | tee -a $LOG_FIL
+         #eval M_$i='submitted'
+          NB_SUB_JOBS=`expr $NB_SUB_JOBS + 1`
+      else
+          echo $JOB | tee -a $LOG_FIL
+          $QSTAT -a | grep $USER | grep $JOB | tee -a $LOG_FIL
+          echo 'job already exist => skip this test' | tee -a $LOG_FIL
+         #eval M_$i='skipped'
+      fi
+    else
+       echo 'no file:' $BATCH_SCRIPT 'to submit' | tee -a $LOG_FIL
+      #eval M_$i='skipped'
+    fi
+  done
+  echo " info-sub-list: NB_SUB_JOBS='$NB_SUB_JOBS'" >> $LOG_FIL
+
+#---+----1----+----2----+----3----+----4----+----5----+----6----+----7-|--+----|
+exit 0
