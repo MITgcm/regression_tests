@@ -7,7 +7,7 @@
 #SBATCH -e /home/jm_c/test_engaging/output/tst_o64Adm.stderr
 #SBATCH -o /home/jm_c/test_engaging/output/tst_o64Adm.stdout
 
-# $Header:  $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/engaging/test_engag_op64_adm,v 1.1 2015/10/19 18:23:42 jmc Exp $
 # $Name:  $
 
 if test -f /etc/profile.d/modules.sh ; then
@@ -65,14 +65,16 @@ checkOut=1
 #options="$options -q"  ; checkOut=0
 
 NSLOTS=$SLURM_NTASKS
-echo '********************************************************************************'
 THEDATE=`date`
+echo '********************************************************************************'
 echo 'Start job '$THEDATE
 echo 'NSLOTS = '$NSLOTS
 echo '======= NODELIST ==============================================================='
 echo $SLURM_NODELIST
 echo '======= env ===================================================================='
-env
+env | grep SLURM
+echo '======= modules ================================================================'
+module list 2>&1
 echo '================================================================================'
 
 #- keep a copy of MPI_MFILE:
@@ -154,14 +156,13 @@ else
   exit
 fi
 
+echo ''
 echo ./testreport $options -of $OPTFILE -odir ${dNam}-$sfx \
   -send \"$SEND\" -sd $SavD -a jmc@mitgcm.org
 ./testreport $options -of $OPTFILE -odir ${dNam}-$sfx \
   -send "$SEND" -sd $SavD -a jmc@mitgcm.org
 
 #echo ''
-##echo ../tools/do_tst_2+2 -o ${dNam}-$sfx -a NONE
-##../tools/do_tst_2+2 -o ${dNam}-$sfx -a NONE
-#echo ../tools/do_tst_2+2 -o ${dNam}-$sfx -send \"$SEND\" -sd $SavD -a jmc@mitgcm.org
-#../tools/do_tst_2+2 -o ${dNam}-$sfx -send "$SEND" -sd $SavD -a jmc@mitgcm.org
+#echo ../tools/do_tst_2+2 -mpi -o ${dNam}-$sfx -send \"$SEND\" -sd $SavD -a jmc@mitgcm.org
+#../tools/do_tst_2+2 -mpi -o ${dNam}-$sfx -send "$SEND" -sd $SavD -a jmc@mitgcm.org
 
