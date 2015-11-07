@@ -1,6 +1,6 @@
 #! /usr/bin/env bash
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/engaging/test_submit_engag,v 1.1 2015/10/19 18:23:42 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/engaging/test_submit_engag,v 1.2 2015/10/21 14:01:55 jmc Exp $
 # $Name:  $
 
 today=`date +%Y%m%d`
@@ -31,18 +31,20 @@ cd $OUT_DIR
 
 rm -f $logPfix.*.log_bak
 if test -f $LOG_FIL ; then mv -f $LOG_FIL ${LOG_FIL}_bak ; fi
-echo -n '-- Starting: ' | tee -a $LOG_FIL
-date | tee -a $LOG_FIL
+echo -n '-- Starting: '					| tee -a $LOG_FIL
+date							| tee -a $LOG_FIL
 
 n=$(( `ls $logPfix.*.log | wc -l` - 10 ))
 if test $n -gt 0 ; then
-  echo ' remove old log files:' | tee -a $LOG_FIL
-    ls -lt $logPfix.*.log | tail -"$n" | tee -a $LOG_FIL
+  echo ' remove old log files:'				| tee -a $LOG_FIL
+    ls -lt $logPfix.*.log | tail -"$n"			| tee -a $LOG_FIL
     ls -t  $logPfix.*.log | tail -"$n" | xargs rm -f
 fi
 
-. /etc/profile.d/modules.sh
-module list >> $LOG_FIL 2>&1
+if test -f /etc/profile.d/modules.sh ; then
+  . /etc/profile.d/modules.sh
+fi
+module list						>> $LOG_FIL 2>&1
 
 #---+----1----+----2----+----3----+----4----+----5----+----6----+----7-|--+----|
 #-- now really do something:
@@ -64,32 +66,36 @@ module list >> $LOG_FIL 2>&1
         #-- move previous output file
         outList=`ls $JOB.std??? 2> /dev/null`
         if test "x$outList" != x ; then
-          echo -n " moving job $JOB old output files:" | tee -a $LOG_FIL
+          echo -n " moving job $JOB old output files:"	| tee -a $LOG_FIL
           if test -d $OUT_DIR/prev ; then
             for xx in $outList ; do
-              echo -n " $xx" | tee -a $LOG_FIL
-              mv -f $xx $OUT_DIR/prev
+              pp=$OUT_DIR/prev/$xx ; echo -n " $xx"	| tee -a $LOG_FIL
+              test -f $pp.sav && mv -f $pp.sav $pp.old
+              test -f $pp     && mv -f $pp     $pp.sav
+              chmod a+r $xx ; mv -f $xx $OUT_DIR/prev
             done
-            echo " to dir ./prev" | tee -a $LOG_FIL
+            echo " to dir ./prev"			| tee -a $LOG_FIL
           else
-            echo " <-- missing dir $OUT_DIR/prev" | tee -a $LOG_FIL
+            echo " <-- missing dir $OUT_DIR/prev"	| tee -a $LOG_FIL
           fi
         else echo " no old output files from job '$JOB'" | tee -a $LOG_FIL
         fi
         #-- submit job
-          echo -n "--> $JOB : " | tee -a $LOG_FIL
-          $QSUB $SUB_DIR/$BATCH_SCRIPT | tee -a $LOG_FIL
+          echo -n "--> $JOB : "				| tee -a $LOG_FIL
+          $QSUB $SUB_DIR/$BATCH_SCRIPT			| tee -a $LOG_FIL
           NB_SUB_JOBS=`expr $NB_SUB_JOBS + 1`
       else
-          echo "--> $JOB :" | tee -a $LOG_FIL
-          $QSTAT -a | grep $USER | grep $JOB | tee -a $LOG_FIL
-          echo ' job already exist => skip this test' | tee -a $LOG_FIL
+          echo "--> $JOB :"				| tee -a $LOG_FIL
+          $QSTAT -a | grep $USER | grep $JOB		| tee -a $LOG_FIL
+          echo ' job already exist => skip this test'	| tee -a $LOG_FIL
       fi
     else
-       echo 'no file:' $BATCH_SCRIPT 'to submit' | tee -a $LOG_FIL
+       echo 'no file:' $BATCH_SCRIPT 'to submit'	| tee -a $LOG_FIL
     fi
   done
-  echo "info-sub-list: NB_SUB_JOBS='$NB_SUB_JOBS'" >> $LOG_FIL
+  echo "info-sub-list: NB_SUB_JOBS='$NB_SUB_JOBS'"	>> $LOG_FIL
+  echo -n '-- Finished at: '				| tee -a $LOG_FIL
+  date							| tee -a $LOG_FIL
 
 #---+----1----+----2----+----3----+----4----+----5----+----6----+----7-|--+----|
 exit 0

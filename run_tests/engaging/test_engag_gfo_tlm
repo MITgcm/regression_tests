@@ -7,13 +7,13 @@
 #SBATCH -e /home/jm_c/test_engaging/output/tst_gfoTlm.stderr
 #SBATCH -o /home/jm_c/test_engaging/output/tst_gfoTlm.stdout
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/engaging/test_engag_gfo_tlm,v 1.1 2015/10/19 18:23:42 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/engaging/test_engag_gfo_tlm,v 1.2 2015/10/21 14:02:19 jmc Exp $
 # $Name:  $
 
 if test -f /etc/profile.d/modules.sh ; then
     . /etc/profile.d/modules.sh
 fi
-# Note: added "ulimit -s unlimited" in file "~/.tcshrc"
+# Note: added "ulimit -s unlimited" in file "~/.bashrc"
 # to pass big test (the 2 fizhi-cs-* test & adjoint tests) with MPI
 
 umask 0022
@@ -60,7 +60,7 @@ dAlt=`date +%d` ; dAlt=`expr $dAlt % 3`
 if [ $dAlt -eq 1 ] ; then options="$options -fast"
 else options="$options -devel" ; fi
 
-checkOut=1
+checkOut=1 ; #options="$options -do"
 #options="$options -nc" ; checkOut=1
 #options="$options -q"  ; checkOut=0
 
@@ -80,7 +80,7 @@ echo '==========================================================================
 #- keep a copy of MPI_MFILE:
 #cp -p $PBS_NODEFILE $OUTP"/mf_"$sfx
 
-cvsArg="-d :pserver:cvsanon@mitgcm.org:/u/gcmpack"
+cmdCVS='cvs -d :pserver:cvsanon@mitgcm.org:/u/gcmpack -q'
 gcmDIR="MITgcm_$sfx"
 cd $TST_DIR
 #- check for disk space: relative space (99%) or absolute (10.G):
@@ -113,7 +113,7 @@ if [ $checkOut -eq 1 ] ; then
 #   ( cd $gcmDIR/verification ; ../tools/do_tst_2+2 -clean )
     ( cd $gcmDIR/verification ; ./testreport $typ -clean )
     echo "cvs update of dir $gcmDIR :"
-    ( cd $gcmDIR ; cvs -q $cvsArg update -P -d )
+    ( cd $gcmDIR ; $cmdCVS update -P -d ) 2>&1
     RETVAL=$?
     if test "x$RETVAL" != x0 ; then
        echo "cvs update on '"`hostname`"' fail (return val=$RETVAL) => exit"
@@ -126,19 +126,22 @@ if [ $checkOut -eq 1 ] ; then
 fi
 if [ $checkOut -eq 2 ] ; then
   if test -e $gcmDIR ; then
-     rm -rf $gcmDIR
+    echo -n "Removing working copy: $gcmDIR ..."
+    rm -rf $gcmDIR
+    echo "  done"
   fi
 # cvs co MITgcm
-  cvs $cvsArg co -P -d $gcmDIR MITgcm > /dev/null
+  echo "Downloading using '$cmdCVS co -P -d $gcmDIR MITgcm' ..."
+  $cmdCVS co -P -d $gcmDIR MITgcm > /dev/null
   RETVAL=$?
   if test "x$RETVAL" != x0 ; then
       echo "cvs co on '"`hostname`"' fail (return val=$RETVAL) => exit"
       exit
-  fi
+  else echo "  done" ; fi
   if test -d $gcmDIR/verification ; then
     for exp2add in $addExp ; do
       echo " add dir: $exp2add (from Contrib:verification_other)"
-      ( cd $gcmDIR/verification ; cvs $cvsArg co -P -d $exp2add \
+      ( cd $gcmDIR/verification ; $cmdCVS co -P -d $exp2add \
                      MITgcm_contrib/verification_other/$exp2add > /dev/null )
     done
     /usr/bin/find $gcmDIR -type d | xargs chmod g+rxs
@@ -163,6 +166,8 @@ echo ./testreport $options -of $OPTFILE -odir ${dNam}-$sfx \
   -send "$SEND" -sd $SavD -a jmc@mitgcm.org
 
 #echo ''
-#echo ../tools/do_tst_2+2 -mpi -o ${dNam}-$sfx -send \"$SEND\" -sd $SavD -a jmc@mitgcm.org
-#../tools/do_tst_2+2 -mpi -o ${dNam}-$sfx -send "$SEND" -sd $SavD -a jmc@mitgcm.org
+#echo ../tools/do_tst_2+2 -mpi -o ${dNam}-$sfx \
+#  -send \"$SEND\" -sd $SavD -a jmc@mitgcm.org
+#../tools/do_tst_2+2 -mpi -o ${dNam}-$sfx \
+#  -send "$SEND" -sd $SavD -a jmc@mitgcm.org
 
