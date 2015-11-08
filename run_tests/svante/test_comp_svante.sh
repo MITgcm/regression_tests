@@ -1,6 +1,6 @@
 #! /usr/bin/env bash
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/svante/test_svante.sh,v 1.2 2014/11/02 13:47:51 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/svante/test_svante.sh,v 1.3 2015/04/11 14:21:18 jmc Exp $
 
 #  Test script for MITgcm to run on head-node of svante cluster
 
@@ -23,20 +23,24 @@ module list
 #- method to acces CVS:
 cmdCVS='cvs -d :pserver:cvsanon@mitgcm.org:/u/gcmpack -q'
 
+QSUB="qsub"
+QSTAT="qstat"
+dNam=`hostname -s`
+HERE="$HOME/test_${dNam}"
+
+SUB_DIR="$HERE/$dNam"
+OUT_DIR="$HERE/output"
+TST_DIR="/net/fs09/d0/jm_c/test_${dNam}"
+#SUB_DIR="$HERE/temp"
+
 # checkOut=2 : download new code ;
 #   =1 : update code       (if no existing code -> swith to 2)
 #   =0 : use existing code (if no existing code -> swith to 2)
-dInWeek=`date +%a`
-dNam=`hostname -s`
-QSUB="qsub"
-QSTAT="qstat"
-HERE="$HOME/test_${dNam}"
-OUTP="$HERE/output"
-SUB_DIR="$HERE/$dNam"
-TESTDIR="/net/fs09/d0/jm_c/test_${dNam}"
 checkOut=1
 option=
 
+dInWeek=`date +%a`
+TODAY=`date +%d`
 #tst_list='gads gadm gfo+rs gmpi gmth gmp2+rs ifc pgi'
 #if test "x$dInWeek" = xSun ; then tst_list="$tst_list tlm oad" ; fi
 tst_list='ifc+rs'
@@ -44,19 +48,18 @@ tst_list='ifc+rs'
 #option="-nc" ; checkOut=1
 #option="-q"  ; checkOut=0
 
-TODAY=`date +%d`
-tdir=$TESTDIR
-if test ! -d $TESTDIR ; then
-   echo -n "Creating a working dir: $TESTDIR ..."
-   /bin/rm -rf $TESTDIR
-   mkdir $TESTDIR
+tdir=$TST_DIR
+if test ! -d $TST_DIR ; then
+   echo -n "Creating a working dir: $TST_DIR ..."
+   /bin/rm -rf $TST_DIR
+   mkdir $TST_DIR
    retVal=$?
    if test "x$retVal" != x0 ; then
-      echo "Error: unable to make dir: $TESTDIR (err=$retVal ) --> Exit"
+      echo "Error: unable to make dir: $TST_DIR (err=$retVal ) --> Exit"
       exit 1
    fi
 fi
-cd $TESTDIR
+cd $TST_DIR
 
 #------------------------------------------------------------------------
 
@@ -71,6 +74,7 @@ do
   gcmDIR="MITgcm_$typ"
   tst2submit="run_tst_$typ"
   addExp=''
+  LOG_FIL=$OUT_DIR/output_${typ}
   #- check day and time:
   curDay=`date +%d` ; curHour=`date +%H`
   if [ $curDay -ne $TODAY ] ; then
@@ -91,9 +95,13 @@ do
     continue
   fi
   #- clean-up old output files
-  rm -f $OUTP/output_${typ}*.old $OUTP/$tst2submit.std???.old
-  oldS=`ls $OUTP/output_${typ} $OUTP/$tst2submit.std??? 2> /dev/null`
+  rm -f ${LOG_FIL}*.old $OUT_DIR/$tst2submit.std???.old
+  oldS=`ls $LOG_FIL $OUT_DIR/$tst2submit.std??? 2> /dev/null`
   for xx in $oldS ; do mv $xx $xx.old ; done
+ #for xx in $oldS ; do
+ #  if test -f $xx.sav ; then mv $xx.sav $xx.old ; fi
+ #  mv $xx $xx.sav
+ #done
   if test -d prev ; then
     #-- save previous summary: tr_out.txt* tst_2+2_out.txt
     oldS=`( cd ${gcmDIR}/verification ; ls t*_out.txt* ) 2> /dev/null`
@@ -105,12 +113,12 @@ do
       cp -p ${gcmDIR}/verification/$xx prev/${yy}$ss
     done
   fi
-  touch $OUTP/output_$typ
+  touch $LOG_FIL
 
   #- clean and update code
   if [ $newCode -eq 1 ] ; then
     if test -d $gcmDIR/CVS ; then
-      echo "cleaning output from $gcmDIR/verification :"	| tee -a $OUTP/output_$typ
+      echo "cleaning output from $gcmDIR/verification :"	| tee -a $LOG_FIL
   #- remove previous output tar files and tar & remove previous output-dir
       /bin/rm -f $gcmDIR/verification/??_${dNam}*_????????_?.tar.gz
       ( cd $gcmDIR/verification
@@ -127,29 +135,29 @@ do
           fi
         done )
       if test $tt != $typ ; then
-        ( cd $gcmDIR/verification ; ../tools/do_tst_2+2 -clean ) >> $OUTP/output_$typ 2>&1
+        ( cd $gcmDIR/verification ; ../tools/do_tst_2+2 -clean ) >> $LOG_FIL 2>&1
       fi
-        ( cd $gcmDIR/verification ; ./testreport -clean ) >> $OUTP/output_$typ 2>&1
-      echo "cvs update of dir $gcmDIR :"			| tee -a $OUTP/output_$typ
-      ( cd $gcmDIR ; $cmdCVS update -P -d ) >> $OUTP/output_$typ 2>&1
+        ( cd $gcmDIR/verification ; ./testreport -clean ) >> $LOG_FIL 2>&1
+      echo "cvs update of dir $gcmDIR :"			| tee -a $LOG_FIL
+      ( cd $gcmDIR ; $cmdCVS update -P -d ) >> $LOG_FIL 2>&1
       retVal=$?
       if test "x$retVal" != x0 ; then
         echo "cvs update on '"`hostname`"' fail (return val=$retVal) => exit"
         exit
       fi
     else
-      echo "no dir: $gcmDIR/CVS => try a fresh check-out"	| tee -a $OUTP/output_$typ
+      echo "no dir: $gcmDIR/CVS => try a fresh check-out"	| tee -a $LOG_FIL
       newCode=2
     fi
   fi
   #- download new code
   if [ $newCode -eq 2 ] ; then
     test -e $gcmDIR && rm -rf $gcmDIR
-    echo -n "Downloading the MITgcm code using: $cmdCVS ..."	| tee -a $OUTP/output_$typ
-    $cmdCVS co -P -d $gcmDIR MITgcm > /dev/null 2>&1
-    echo "  done"						| tee -a $OUTP/output_$typ
+    echo -n "Downloading the MITgcm code using: $cmdCVS ..."	| tee -a $LOG_FIL
+    $cmdCVS co -P -d $gcmDIR MITgcm > /dev/null
+    echo "  done"						| tee -a $LOG_FIL
     for exp2add in $addExp ; do
-     echo " add dir: $exp2add (from Contrib:verification_other)"| tee -a $OUTP/output_$typ
+     echo " add dir: $exp2add (from Contrib:verification_other)"| tee -a $LOG_FIL
      ( cd $gcmDIR/verification ; $cmdCVS co -P -d $exp2add \
                 MITgcm_contrib/verification_other/$exp2add > /dev/null 2>&1 )
     done
@@ -209,46 +217,46 @@ do
  #fi
 
 #-- run the testreport command:
-  echo -n "Running testreport using"	| tee -a $OUTP/output_$typ
+  echo -n "Running testreport using"	| tee -a $LOG_FIL
   if test "x$OPTFILE" != x ; then
     comm="$comm -of=$OPTFILE"
   fi
   if test $MPI != 0 ; then comm="$comm -MPI $MPI" ; fi
-  echo " -norun option ('-nr'):"	| tee -a $OUTP/output_$typ
+  echo " -norun option ('-nr'):"	| tee -a $LOG_FIL
   comm="$comm -nr"
   if test "x$option" != x ; then comm="$comm $option" ; fi
-  echo "  \"eval $comm\""		| tee -a $OUTP/output_$typ
+  echo "  \"eval $comm\""		| tee -a $LOG_FIL
   echo "======================"
   ( cd $gcmDIR/verification
-    eval $comm >> $OUTP/output_$typ 2>&1
+    eval $comm				>> $LOG_FIL 2>&1
   )
- #sed -n "/^An email /,/^======== End of testreport / p" $OUTP/output_$typ
-  sed -n "/^No results email was sent/,/^======== End of testreport / p" $OUTP/output_$typ
-  echo ""				| tee -a $OUTP/output_$typ
+ #sed -n "/^An email /,/^======== End of testreport / p" $LOG_FIL
+  sed -n "/^No results email was sent/,/^======== End of testreport / p" $LOG_FIL
+  echo ""				| tee -a $LOG_FIL
 
 #-- submit PBS script to run
   if test -e $SUB_DIR/${tst2submit}.pbs ; then
-    echo " submit PBS bach script '$SUB_DIR/${tst2submit}.pbs'"	| tee -a $OUTP/output_$typ
-    $QSUB $SUB_DIR/${tst2submit}.pbs				| tee -a $OUTP/output_$typ
-    echo " job '$tst2submit' in queue:"				| tee -a $OUTP/output_$typ
-    $QSTAT -a | grep $USER | grep $tst2submit			| tee -a $OUTP/output_$typ
+    echo " submit PBS bach script '$SUB_DIR/${tst2submit}.pbs'"	| tee -a $LOG_FIL
+    $QSUB $SUB_DIR/${tst2submit}.pbs				| tee -a $LOG_FIL
+    echo " job '$tst2submit' in queue:"				| tee -a $LOG_FIL
+    $QSTAT -a | grep $USER | grep $tst2submit			| tee -a $LOG_FIL
   else
-    echo " no PBS script '$SUB_DIR/${tst2submit}.pbs' to submit"| tee -a $OUTP/output_$typ
+    echo " no PBS script '$SUB_DIR/${tst2submit}.pbs' to submit"| tee -a $LOG_FIL
     continue
   fi
 
 #-- also test restart (test 2+2=4)
 # if test $tt != $typ ; then
-#   echo "testing restart using:"	| tee -a $OUTP/output_$typ
+#   echo "testing restart using:"	| tee -a $LOG_FIL
 #   comm="../tools/do_tst_2+2 -o $dNam -a jmc@mitgcm.org"
 #   if test $MPI = 0 ; then
-#     echo "  \"$comm\""		| tee -a $OUTP/output_$typ
+#     echo "  \"$comm\""		| tee -a $LOG_FIL
 #     echo "======================"
-#     $comm >> $OUTP/output_$typ 2>&1
+#     $comm				>> $LOG_FIL 2>&1
 #   else
-#     echo "  \"$comm -mpi\""		| tee -a $OUTP/output_$typ
+#     echo "  \"$comm -mpi\""		| tee -a $LOG_FIL
 #     echo "======================"
-#     $comm -mpi >> $OUTP/output_$typ 2>&1
+#     $comm -mpi			>> $LOG_FIL 2>&1
 #   fi
 #   echo ; cat tst_2+2_out.txt
 #   echo
