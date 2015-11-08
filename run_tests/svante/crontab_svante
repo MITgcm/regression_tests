@@ -4,10 +4,11 @@
 #   sed -n '1,/^# \$Header:/ p' crontab_svante.bak > crontab_svante
 #   ( echo '' ; crontab -l ) >> crontab_svante
 #-
-# $Header:  $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/svante/crontab_svante,v 1.1 2014/10/13 23:15:18 jmc Exp $
 
-MAILTO=jmc@ocean.mit.edu
+#MAILTO=jmc@ocean.mit.edu
 
-45 00 * *  6  cd /home/jm_c/test_svante/svante && cvs -q -d :pserver:cvsanon@mitgcm.org:/u/gcmpack update -P -d
-55 00 * * 0,6 /home/jm_c/test_svante/svante/test_svante.sh
-#17 10 * * *   /home/jm_c/test_svante/temp/test_crontab
+05 00 * * *   cd /home/jm_c/test_svante/svante && cvs -q -d :pserver:cvsanon@mitgcm.org:/u/gcmpack update -P -d
+20 00 * * *   /home/jm_c/test_svante/svante/test_submit_svante
+55 00 * * 0,6 /home/jm_c/test_svante/svante/test_comp_svante.sh
+#58 10 * * *   /home/jm_c/test_svante/temp/test_crontab
