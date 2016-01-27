@@ -1,6 +1,6 @@
 #! /usr/bin/env bash
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/svante/test_svante.sh,v 1.3 2015/04/11 14:21:18 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/svante/test_comp_svante.sh,v 1.1 2015/11/08 17:30:45 jmc Exp $
 
 #  Test script for MITgcm to run on head-node of svante cluster
 
@@ -30,7 +30,8 @@ HERE="$HOME/test_${dNam}"
 
 SUB_DIR="$HERE/$dNam"
 OUT_DIR="$HERE/output"
-TST_DIR="/net/fs09/d0/jm_c/test_${dNam}"
+TST_DISK="/net/fs09/d0/jm_c"
+TST_DIR="$TST_DISK/test_${dNam}"
 #SUB_DIR="$HERE/temp"
 
 # checkOut=2 : download new code ;
@@ -48,10 +49,10 @@ tst_list='ifc+rs'
 #option="-nc" ; checkOut=1
 #option="-q"  ; checkOut=0
 
-tdir=$TST_DIR
+cd $TST_DISK ; pwd
 if test ! -d $TST_DIR ; then
    echo -n "Creating a working dir: $TST_DIR ..."
-   /bin/rm -rf $TST_DIR
+  #/bin/rm -rf $TST_DIR
    mkdir $TST_DIR
    retVal=$?
    if test "x$retVal" != x0 ; then

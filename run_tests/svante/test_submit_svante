@@ -1,6 +1,6 @@
 #! /usr/bin/env bash
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/engaging/test_submit_engag,v 1.2 2015/10/21 14:01:55 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/svante/test_submit_svante,v 1.1 2015/11/08 17:33:13 jmc Exp $
 # $Name:  $
 
 today=`date +%Y%m%d`
@@ -17,8 +17,9 @@ fi
 QSUB="qsub"
 QSTAT="qstat"
 dNam=`hostname -s`
-HERE="$HOME/test_$dNam"
-TST_DIR="/net/fs09/d0/jm_c/test_${dNam}"
+HERE="$HOME/test_${dNam}"
+TST_DISK="/net/fs09/d0/jm_c"
+TST_DIR="$TST_DISK/test_${dNam}"
 logPfix='test_submit'
 
 SUB_DIR="$HERE/$dNam"
@@ -67,9 +68,11 @@ gcmDIR='MITgcm'
 exp2add=''
 updFile='updated_code'
 
+cd $TST_DISK	| tee -a $LOG_FIL 2>&1
+pwd		| tee -a $LOG_FIL
 if test ! -d $TST_DIR ; then
    echo -n "Creating a working dir: $TST_DIR ..."	| tee -a $LOG_FIL
-   /bin/rm -rf $TST_DIR
+  #/bin/rm -rf $TST_DIR
    mkdir $TST_DIR
    retVal=$?
    if test "x$retVal" != x0 ; then

@@ -6,7 +6,7 @@
 #PBS -e /home/jm_c/test_svante/output/tst_pgiMPI.stderr
 #PBS -o /home/jm_c/test_svante/output/tst_pgiMPI.stdout
 
-# $Header:  $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/svante/test_svante_pgi_mpi,v 1.1 2015/11/08 17:33:13 jmc Exp $
 # $Name:  $
 
 if test -f /etc/profile.d/modules.sh ; then
@@ -21,15 +21,17 @@ export LC_ALL="en_US.UTF-8"
 echo " running on: "`hostname`
 
 dNam='svante'
-HERE="$HOME/test_$dNam"
+HERE="$HOME/test_${dNam}"
 OUTP="$HERE/output"; SavD="$HERE/send"
 SEND="ssh svante $SavD/mpack"
-TST_DIR="/net/fs09/d0/jm_c/test_${dNam}"
+TST_DISK="/net/fs09/d0/jm_c"
+TST_DIR="$TST_DISK/test_${dNam}"
 
+cd $TST_DISK ; pwd
 if test -d $TST_DIR ; then
   echo "start from TST_DIR='$TST_DIR' at: "`date`
 else
- #if test ! -d /scratch/jm_c ; then mkdir /scratch/jm_c ; fi
+ #if test ! -d $TST_DISK ; then mkdir $TST_DISK ; fi
  #if test ! -d $TST_DIR ; then mkdir $TST_DIR ; fi
  #if test ! -d $TST_DIR ; then
  #  echo "ERROR: Can't create directory \"$TST_DIR\""
