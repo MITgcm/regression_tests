@@ -1,0 +1,201 @@
+#!/bin/bash -e
+# new script for running testreport on ollie.awi.de
+# - split the testreport into 2 steps:
+# 1/ compiling on head node, with -norun option
+# 2/ running on compute node (using SBATCH), with -runonly option
+#$Header: $
+#$Name: $
+
+# needed for cron-job
+source /usr/Modules/3.2.10/init/bash
+source /etc/profile.d/cray_pe.sh
+source /etc/profile.d/AWI.sh
+#
+module purge
+module load slurm
+module load craype-broadwell
+module load PrgEnv-cray/1.0.0
+module unload cudatoolkit
+module swap mvapich2_cce cray-impi
+module load intel/impi-5.1.3
+export LD_LIBRARY_PATH=${CRAY_LD_LIBRARY_PATH}:${LD_LIBRARY_PATH}:
+
+dNam='ollie'
+TST_DIR="/work/ollie/mlosch/test_$dNam"
+echo "start from TST_DIR='$TST_DIR' at: "`date`
+
+umask 0022
+
+sfx='ftn'
+RUNIT="runit_"$sfx
+
+OPTFILE=../tools/build_options/linux_ia64_cray_ollie
+options="-MPI 6"
+options="$options -odir $dNam"
+options="$options -devel"
+#options="$options -j 2"
+#options="$options -j 6"
+#options="$options -t global_ocean.90x40x15"
+#EXE='mpiexec.hydra -bootstrap slurm -n TR_NPROC ./mitgcmuv'
+EXE='srun --mpi=pmi2 -n TR_NPROC ./mitgcmuv'
+
+if [ -e $TST_DIR ]; then
+    echo "$TST_DIR exists"
+else 
+    mkdir $TST_DIR
+fi
+cd $TST_DIR
+HERE=$TST_DIR/output
+if [ -e $HERE ]; then
+    echo "$HERE"
+else 
+    mkdir $HERE
+fi
+OUTFILE=$HERE/testreport.out
+MYOUTPUT=$HERE/out_$sfx
+if [ -e $MYOUTPUT ]; then
+  rm -rf $MYOUTPUT
+fi
+if [ -e $OUTFILE ]; then
+  rm -r $OUTFILE
+fi
+gcmDIR="MITgcm_$sfx"
+#gcmDIR="MITgcm"
+checkOut=1
+if [ $checkOut -eq 1 ] ; then
+ if test -d $gcmDIR/CVS ; then
+  /bin/rm -rf $gcmDIR/verification/??_${dNam}_????????_?
+  ( cd $gcmDIR/verification ; ../tools/do_tst_2+2 -clean )
+  echo "cvs update of dir $gcmDIR :"
+  ( cd $gcmDIR ; cvs -q -d :pserver:cvsanon@mitgcm.org:/u/gcmpack update -P -d ) 2>&1
+  RETVAL=$?
+  if test "x$RETVAL" != x0 ; then
+   echo "cvs update on '"`hostname`"' failed (return val=$RETVAL) => exit"
+   exit
+  fi
+ else
+  echo "no dir: $gcmDIR/CVS => try a fresh check-out"
+  checkOut=2
+ fi
+fi
+if [ $checkOut -eq 2 ] ; then
+  if test -e $gcmDIR ; then
+   rm -rf $gcmDIR
+  fi
+# cvs co MITgcm
+  cvs -d :pserver:cvsanon@mitgcm.org:/u/gcmpack co -P -d $gcmDIR MITgcm > /dev/null 2>&1
+  /usr/bin/find $gcmDIR -type d | xargs chmod g+rxs
+  /usr/bin/find $gcmDIR -type f | xargs chmod g+r
+fi
+
+cd ${gcmDIR}/verification
+
+runtestreport="./testreport $options -of $OPTFILE -command \"${EXE}\"" 
+
+if [ ! -e $MYOUTPUT ]
+    then
+    touch $MYOUTPUT
+fi
+
+echo "running testreport like this:"
+echo ${runtestreport} -norun
+eval "${runtestreport} -norun >> $MYOUTPUT 2>&1"
+
+# create batch script
+#
+JOBNAME=tstoll
+echo "creating batch script $HERE/$RUNIT"
+cat << EOF >| $HERE/$RUNIT
+#!/bin/bash -x
+#SBATCH --job-name=${JOBNAME}
+#SBATCH  -o ${OUTFILE}
+#SBATCH --time=3:00:00
+#SBATCH --ntasks=6
+#SBATCH  -p smp
+#SBATCH --qos=short
+
+ulimit -s 1048576
+
+cd \${SLURM_SUBMIT_DIR}
+
+echo "running testreport like this:"
+echo "${runtestreport} -runonly"
+#${runtestreport} -runonly -match 10 -a 'Martin.Losch@awi.de' >> $MYOUTPUT
+${runtestreport} -runonly -match 10 -a 'jmc@mitcm.org' >> $MYOUTPUT
+
+EOF
+
+chmod a+x $HERE/$RUNIT
+
+echo " " >> $MYOUTPUT
+echo "***********************************************************" >> $MYOUTPUT
+echo "Submitting this job script:" >> $MYOUTPUT
+echo "***********************************************************" >> $MYOUTPUT
+cat $HERE/$RUNIT >> $MYOUTPUT
+echo "***********************************************************" >> $MYOUTPUT
+echo "end of job script" >> $MYOUTPUT
+echo "***********************************************************" >> $MYOUTPUT
+echo " " >> $MYOUTPUT
+
+sbatch $HERE/$RUNIT
+
+# keep looking for the job in the job queues and wait until has disappeared
+jobruns=somedummy
+while [ "${jobruns}"x != x ]
+do
+  sleep 20
+  jobruns=`squeue --noheader -u mlosch | grep "$JOBNAME" | awk '{print $1}'`
+  echo "waiting for job ${jobruns%% *} ($JOBNAME) to complete"
+  currentexp=`grep Experiment $MYOUTPUT | tail -1`
+  echo "currently running $currentexp"
+done
+
+# # after running the experiments send email to jmc (cannot be done from
+# # the compute node, yet)
+# MPACKCMD=../tools/mpack-1.6/mpack
+# fn=`ls -dtr tr_ollie* | grep -v tar.gz | tail -1`
+# echo "fn $fn"
+# tar cf - $fn | gzip > "${fn}.tar.gz"
+# ../tools/mpack-1.6/mpack -s MITgcm-test -m 3555000 ${fn}.tar.gz mlosch@awi.de
+# sleep 2
+# \rm -f ${fn}.tar.gz
+# ../tools/mpack-1.6/mpack -s MITgcm-test -m 3555000 ${fn}.tar.gz jmc@mitgcm.org
+
+# after running the experiments on the compute node run testreport
+# for a third time to evaluate results on the head node again
+# echo " " >> $MYOUTPUT
+# echo "now run testreport for a final time to evaluate results:" >> $MYOUTPUT
+# echo "$RUNTESTREPORT -match 10 -runonly" >> $MYOUTPUT
+# #$RUNTESTREPORT -match 10 -runonly >> $MYOUTPUT 2>&1
+# $RUNTESTREPORT -match 10 -runonly \
+#     -a "jmc@mitgcm.org" >> $MYOUTPUT 2>&1
+# #   -a "jmc@mitgcm.org, Martin.Losch@awi.de" >> $MYOUTPUT 2>&1
+
+# workaround for mailing the stuff
+echo "mail the stuff"
+# 1. set name of remote host where to do the mpack command
+# 2. pack directory into an archive an compress it
+# 3. copy gzipped archive to remote host
+# 4. on the remote host execute the mpack command, that send the email
+# 5. wait a little, just to be sure everything is done
+# 6. remove archives
+MPACKCMD=\${HOME}/bin/mpack
+rmhost=rayl4.awi.de
+pwd
+fn=`ls -dtr tr_ollie* | grep -v tar.gz | tail -1`
+echo "fname ${fn}"
+tar cf - $fn | gzip > "${fn}.tar.gz"
+eval "scp ${fn}.tar.gz ${rmhost}:"
+#ssh -Y $rmhost "$MPACKCMD -s MITgcm-test -m 3555000 ${fn}.tar.gz mlosch@awi.de"
+ssh -Y $rmhost "$MPACKCMD -s MITgcm-test -m 3555000 ${fn}.tar.gz jmc@mitgcm.org"
+sleep 2
+ssh -Y $rmhost "rm -f ${fn}.tar.gz"
+rm -rf "${fn}.tar.gz"
+# end workaround for mailing the stuff
+
+echo "end of mitgcmtestreport"
+
+
+
+
+

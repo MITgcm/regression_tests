@@ -1,6 +1,0 @@
-#!/bin/tcsh
-#$Header: $
-#$Name: $
-set XDHOME = /home/xd1/mlosch
-ssh xd1.awi-bremerhaven.de ${XDHOME}/scripts/mitgcmtestreport
-
