@@ -3,8 +3,8 @@
 # - split the testreport into 2 steps:
 # 1/ compiling on head node, with -norun option
 # 2/ running on compute node (using SBATCH), with -runonly option
-#$Header: $
-#$Name: $
+#$Header: /u/gcmpack/MITgcm_contrib/test_scripts/ollie/mitgcmtestreport_ifort,v 1.1 2016/06/02 12:51:56 mlosch Exp $
+#$Name:  $
 
 # needed for cron-job
 source /usr/Modules/3.2.10/init/bash
@@ -30,9 +30,9 @@ umask 0022
 sfx='ifort'
 RUNIT="runit_"$sfx
 
-OPTFILE=../tools/build_options/linux_ia64_ifort_ollie
+OPTFILE=../tools/build_options/linux_ia64_${sfx}_ollie
 options="-MPI 6"
-options="$options -odir $dNam"
+options="$options -odir ${dNam}-i"
 options="$options -devel"
 #options="$options -j 2"
 options="$options -j 6"
@@ -52,7 +52,7 @@ if [ -e $HERE ]; then
 else 
     mkdir $HERE
 fi
-OUTFILE=$HERE/testreport.out
+OUTFILE=$HERE/slurm_${sfx}.out
 MYOUTPUT=$HERE/out_$sfx
 if [ -e $MYOUTPUT ]; then
   rm -rf $MYOUTPUT
@@ -98,13 +98,13 @@ if [ ! -e $MYOUTPUT ]
     touch $MYOUTPUT
 fi
 
-echo "running testreport like this:"
-echo ${runtestreport} -norun
-eval "${runtestreport} -norun >> $MYOUTPUT 2>&1"
+# echo "running testreport like this:"
+# echo ${runtestreport} -norun
+# eval "${runtestreport} -norun >> $MYOUTPUT 2>&1"
 
 # create batch script
 #
-JOBNAME=tstoll
+JOBNAME=tst$sfx
 echo "creating batch script $HERE/$RUNIT"
 cat << EOF >| $HERE/$RUNIT
 #!/bin/bash -x
@@ -113,7 +113,6 @@ cat << EOF >| $HERE/$RUNIT
 #SBATCH --time=3:00:00
 #SBATCH --ntasks=6
 #SBATCH  -p smp
-#SBATCH --qos=short
 
 ulimit -s 1048576
 
@@ -122,7 +121,8 @@ cd \${SLURM_SUBMIT_DIR}
 echo "running testreport like this:"
 echo "${runtestreport} -runonly"
 #${runtestreport} -runonly -match 10 -a 'Martin.Losch@awi.de' >> $MYOUTPUT
-${runtestreport} -runonly -match 10 -a 'jmc@mitcm.org' >> $MYOUTPUT
+#${runtestreport} -runonly -match 10 -a 'jmc@mitcm.org' >> $MYOUTPUT
+${runtestreport} -match 10 >> $MYOUTPUT
 
 EOF
 
@@ -144,55 +144,23 @@ sbatch $HERE/$RUNIT
 jobruns=somedummy
 while [ "${jobruns}"x != x ]
 do
-  sleep 20
+  sleep 200
   jobruns=`squeue --noheader -u mlosch | grep "$JOBNAME" | awk '{print $1}'`
   echo "waiting for job ${jobruns%% *} ($JOBNAME) to complete"
   currentexp=`grep Experiment $MYOUTPUT | tail -1`
   echo "currently running $currentexp"
 done
 
-# # after running the experiments send email to jmc (cannot be done from
-# # the compute node, yet)
-# MPACKCMD=../tools/mpack-1.6/mpack
-# fn=`ls -dtr tr_ollie* | grep -v tar.gz | tail -1`
-# echo "fn $fn"
-# tar cf - $fn | gzip > "${fn}.tar.gz"
-# ../tools/mpack-1.6/mpack -s MITgcm-test -m 3555000 ${fn}.tar.gz mlosch@awi.de
-# sleep 2
-# \rm -f ${fn}.tar.gz
-# ../tools/mpack-1.6/mpack -s MITgcm-test -m 3555000 ${fn}.tar.gz jmc@mitgcm.org
-
-# after running the experiments on the compute node run testreport
-# for a third time to evaluate results on the head node again
-# echo " " >> $MYOUTPUT
-# echo "now run testreport for a final time to evaluate results:" >> $MYOUTPUT
-# echo "$RUNTESTREPORT -match 10 -runonly" >> $MYOUTPUT
-# #$RUNTESTREPORT -match 10 -runonly >> $MYOUTPUT 2>&1
-# $RUNTESTREPORT -match 10 -runonly \
-#     -a "jmc@mitgcm.org" >> $MYOUTPUT 2>&1
-# #   -a "jmc@mitgcm.org, Martin.Losch@awi.de" >> $MYOUTPUT 2>&1
-
 # workaround for mailing the stuff
 echo "mail the stuff"
-# 1. set name of remote host where to do the mpack command
-# 2. pack directory into an archive an compress it
-# 3. copy gzipped archive to remote host
-# 4. on the remote host execute the mpack command, that send the email
-# 5. wait a little, just to be sure everything is done
-# 6. remove archives
-MPACKCMD=\${HOME}/bin/mpack
-rmhost=rayl4.awi.de
-pwd
-fn=`ls -dtr tr_ollie* | grep -v tar.gz | tail -1`
+
+MPACKCMD=../tools/mpack-1.6/mpack
+fn=`ls -dtr tr_$dNam* | grep -v tar.gz | tail -1`
 echo "fname ${fn}"
 tar cf - $fn | gzip > "${fn}.tar.gz"
-eval "scp ${fn}.tar.gz ${rmhost}:"
-#ssh -Y $rmhost "$MPACKCMD -s MITgcm-test -m 3555000 ${fn}.tar.gz mlosch@awi.de"
-ssh -Y $rmhost "$MPACKCMD -s MITgcm-test -m 3555000 ${fn}.tar.gz jmc@mitgcm.org"
+$MPACKCMD -s MITgcm-test -m 3555000 ${fn}.tar.gz jmc@mitgcm.org
 sleep 2
-ssh -Y $rmhost "rm -f ${fn}.tar.gz"
 rm -rf "${fn}.tar.gz"
-# end workaround for mailing the stuff
 
 echo "end of mitgcmtestreport"
 
