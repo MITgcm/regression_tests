@@ -1,9 +1,8 @@
 #!/bin/bash -e
 # new script for running testreport on ollie.awi.de
-# - split the testreport into 2 steps:
-# 1/ compiling on head node, with -norun option
-# 2/ running on compute node (using SBATCH), with -runonly option
-#$Header: /u/gcmpack/MITgcm_contrib/test_scripts/ollie/mitgcmtestreport_ifort,v 1.1 2016/06/02 12:51:56 mlosch Exp $
+# - compile and run on compute nodes
+# - use ssh to call mpack command from the head node ollie0
+#$Header: /u/gcmpack/MITgcm_contrib/test_scripts/ollie/mitgcmtestreport_ifort,v 1.2 2016/06/10 07:55:29 mlosch Exp $
 #$Name:  $
 
 # needed for cron-job
@@ -33,10 +32,9 @@ RUNIT="runit_"$sfx
 OPTFILE=../tools/build_options/linux_ia64_${sfx}_ollie
 options="-MPI 6"
 options="$options -odir ${dNam}-i"
-options="$options -devel"
-#options="$options -j 2"
 options="$options -j 6"
 #options="$options -t global_ocean.90x40x15"
+
 EXE='mpiexec.hydra -bootstrap slurm -n TR_NPROC ./mitgcmuv'
 #EXE='srun --mpi=pmi2 -n TR_NPROC ./mitgcmuv'
 
@@ -61,7 +59,6 @@ if [ -e $OUTFILE ]; then
   rm -r $OUTFILE
 fi
 gcmDIR="MITgcm_$sfx"
-#gcmDIR="MITgcm"
 checkOut=1
 if [ $checkOut -eq 1 ] ; then
  if test -d $gcmDIR/CVS ; then
@@ -91,7 +88,9 @@ fi
 
 cd ${gcmDIR}/verification
 
-runtestreport="./testreport $options -of $OPTFILE -command \"${EXE}\"" 
+cwd=`pwd`
+SENDCMD="ssh ollie0 ${TST_DIR}/${gcmDIR}/tools/mpack-1.6/mpack"
+runtestreport="./testreport $options -of $OPTFILE -command \"${EXE}\" -send \"${SENDCMD}\" -sd ${cwd}" 
 
 if [ ! -e $MYOUTPUT ]
     then
@@ -107,22 +106,30 @@ fi
 JOBNAME=tst$sfx
 echo "creating batch script $HERE/$RUNIT"
 cat << EOF >| $HERE/$RUNIT
-#!/bin/bash -x
+#!/bin/bash
 #SBATCH --job-name=${JOBNAME}
 #SBATCH  -o ${OUTFILE}
-#SBATCH --time=3:00:00
+#SBATCH --time=6:00:00
 #SBATCH --ntasks=6
-#SBATCH  -p smp
 
-ulimit -s 1048576
+# still need this to be able to run a few experiments: 
+# cfc_example, fizhi, tutorial_deep_convection
+ulimit -s unlimited
 
 cd \${SLURM_SUBMIT_DIR}
 
-echo "running testreport like this:"
-echo "${runtestreport} -runonly"
-#${runtestreport} -runonly -match 10 -a 'Martin.Losch@awi.de' >> $MYOUTPUT
-#${runtestreport} -runonly -match 10 -a 'jmc@mitcm.org' >> $MYOUTPUT
-${runtestreport} -match 10 >> $MYOUTPUT
+cwd=`pwd`
+echo "running testreport like this in \${cwd}:"
+echo "${runtestreport} -devel -match 10"
+${runtestreport} -devel -match 10 -a jmc@mitgcm.org >> $MYOUTPUT 2>&1
+
+echo "running testreport like this in \${cwd}:"
+echo "./testreport -clean"
+./testreport -clean
+
+echo "running testreport like this in \${cwd}:"
+echo "${runtestreport} -fast -match 10"
+${runtestreport} -fast -match 10 -a jmc@mitgcm.org >> $MYOUTPUT 2>&1
 
 EOF
 
@@ -140,27 +147,27 @@ echo " " >> $MYOUTPUT
 
 sbatch $HERE/$RUNIT
 
-# keep looking for the job in the job queues and wait until has disappeared
-jobruns=somedummy
-while [ "${jobruns}"x != x ]
-do
-  sleep 200
-  jobruns=`squeue --noheader -u mlosch | grep "$JOBNAME" | awk '{print $1}'`
-  echo "waiting for job ${jobruns%% *} ($JOBNAME) to complete"
-  currentexp=`grep Experiment $MYOUTPUT | tail -1`
-  echo "currently running $currentexp"
-done
+# # keep looking for the job in the job queues and wait until it has disappeared
+# jobruns=somedummy
+# while [ "${jobruns}"x != x ]
+# do
+#   sleep 200
+#   jobruns=`squeue --noheader -u mlosch | grep "$JOBNAME" | awk '{print $1}'`
+#   echo "waiting for job ${jobruns%% *} ($JOBNAME) to complete"
+#   currentexp=`grep Experiment $MYOUTPUT | tail -1`
+#   echo "currently running $currentexp"
+# done
 
-# workaround for mailing the stuff
-echo "mail the stuff"
+# # workaround for mailing the stuff
+# echo "mail the stuff"
 
-MPACKCMD=../tools/mpack-1.6/mpack
-fn=`ls -dtr tr_$dNam* | grep -v tar.gz | tail -1`
-echo "fname ${fn}"
-tar cf - $fn | gzip > "${fn}.tar.gz"
-$MPACKCMD -s MITgcm-test -m 3555000 ${fn}.tar.gz jmc@mitgcm.org
-sleep 2
-rm -rf "${fn}.tar.gz"
+# MPACKCMD=../tools/mpack-1.6/mpack
+# fn=`ls -dtr tr_$dNam* | grep -v tar.gz | tail -1`
+# echo "fname ${fn}"
+# tar cf - $fn | gzip > "${fn}.tar.gz"
+# $MPACKCMD -s MITgcm-test -m 3555000 ${fn}.tar.gz jmc@mitgcm.org
+# sleep 2
+# rm -rf "${fn}.tar.gz"
 
 echo "end of mitgcmtestreport"
 
