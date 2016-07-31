@@ -7,7 +7,7 @@
 #SBATCH -e /home/jm_c/test_engaging/output/tst_gfoMp2.stderr
 #SBATCH -o /home/jm_c/test_engaging/output/tst_gfoMp2.stdout
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/engaging/test_engag_gfo_tlm,v 1.4 2016/03/09 15:26:50 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/engaging/test_engag_gfo_mp2,v 1.1 2016/07/27 14:49:25 jmc Exp $
 # $Name:  $
 
 if test -f /etc/profile.d/modules.sh ; then
@@ -87,7 +87,7 @@ echo '==========================================================================
  MPI_MFile="${OUTP}/mf_${sfx}"
  mpiCMD="mpirun -hostfile TR_MFILE ./mitgcmuv"
 #- make the testreport MPI_MFILE:
- listNODES=`echo $SLURM_NODELIST | sed -e 's/\[/ /' -e 's/\]/ /' -e 's/,/ /'`
+ listNODES=`echo $SLURM_NODELIST | sed -e 's/\[/ /' -e 's/\]//' -e 's/,/ /' -e 's/-/ /'`
 # duplicate the 2 listed nodes into a 4 list file:
  /bin/rm -f $MPI_MFile ; touch $MPI_MFile ; pfx=''
 for nd in $listNODES
