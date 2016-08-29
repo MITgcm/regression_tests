@@ -2,7 +2,7 @@
 # new script for running testreport on ollie.awi.de
 # - compile and run on compute nodes
 # - use ssh to call mpack command from the head node ollie0
-#$Header: /u/gcmpack/MITgcm_contrib/test_scripts/ollie/mitgcmtestreport_cray,v 1.4 2016/06/21 09:44:26 mlosch Exp $
+#$Header: /u/gcmpack/MITgcm_contrib/test_scripts/ollie/mitgcmtestreport_cray,v 1.5 2016/06/22 06:23:27 mlosch Exp $
 #$Name:  $
 
 # needed for cron-job
@@ -10,14 +10,16 @@ source /usr/Modules/3.2.10/init/bash
 source /etc/profile.d/cray_pe.sh
 source /etc/profile.d/AWI.sh
 #
+
 module purge
 module load slurm
 module load craype-broadwell
-module load PrgEnv-cray/1.0.0
-module unload cudatoolkit
-module swap mvapich2_cce cray-impi
-module load intel/impi-5.1.3
-export LD_LIBRARY_PATH=${CRAY_LD_LIBRARY_PATH}:${LD_LIBRARY_PATH}:
+module load PrgEnv-cray
+#export LD_LIBRARY_PATH=${CRAY_LD_LIBRARY_PATH}:${LD_LIBRARY_PATH}:
+# not sure why I have set these paths here again
+export MPI_ROOT=$(dirname `echo $LD_LIBRARY_PATH  | awk -F: '{print $1}'`)
+export MPI_INC_DIR=${MPI_ROOT}/include
+
 
 dNam='ollie'
 TST_DIR="/work/ollie/mlosch/test_$dNam"
@@ -87,7 +89,7 @@ fi
 
 cd ${gcmDIR}/verification
 
-cwd=`pwd`
+cwd=\`pwd\`
 SENDCMD="ssh ollie0 ${TST_DIR}/${gcmDIR}/tools/mpack-1.6/mpack"
 runtestreport="./testreport $options -of $OPTFILE -command \"${EXE}\" -send \"${SENDCMD}\" -sd ${cwd}" 
 
