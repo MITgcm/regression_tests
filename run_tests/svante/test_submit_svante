@@ -1,6 +1,6 @@
 #! /usr/bin/env bash
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/svante/test_submit_svante,v 1.2 2016/01/27 22:45:34 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/svante/test_submit_svante,v 1.3 2016/04/16 14:55:05 jmc Exp $
 # $Name:  $
 
 today=`date +%Y%m%d`
@@ -68,8 +68,10 @@ gcmDIR='MITgcm'
 exp2add=''
 updFile='updated_code'
 
-echo "cd $TST_DISK ; pwd" | tee -a $LOG_FIL
+echo "cd $TST_DISK ; pwd (x2)" | tee -a $LOG_FIL
 cd $TST_DISK	| tee -a $LOG_FIL 2>&1
+pwd		| tee -a $LOG_FIL
+sleep 30
 pwd		| tee -a $LOG_FIL
 if test ! -d $TST_DIR ; then
    echo -n "Creating a working dir: $TST_DIR ..."	| tee -a $LOG_FIL
