@@ -7,7 +7,7 @@
 #SBATCH -e /home/jm_c/test_engaging/output/tst_ifort.stderr
 #SBATCH -o /home/jm_c/test_engaging/output/tst_ifort.stdout
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/engaging/test_engag_ifort_mpi,v 1.1 2016/07/16 13:47:39 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/engaging/test_engag_ifort_mpi,v 1.2 2016/09/22 22:39:20 jmc Exp $
 # $Name:  $
 
 if test -f /etc/profile.d/modules.sh ; then
@@ -59,8 +59,7 @@ addExp=''
 export PATH="$PATH:$HOME/bin"
 
 dAlt=`date +%d` ; dAlt=`expr $dAlt % 3`
-#if [ $dAlt -eq 1 ] ; then options="$options -fast"
-#else options="$options -devel" ; fi
+if [ $dAlt -eq 1 ] ; then options="$options -ur4 -match 5" ; fi
 options="$options -devel"
 
 checkOut=1 ; #options="$options -do"
