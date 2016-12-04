@@ -7,7 +7,7 @@
 #SBATCH -e /home/jm_c/test_engaging/output/tst_ifort.stderr
 #SBATCH -o /home/jm_c/test_engaging/output/tst_ifort.stdout
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/engaging/test_engag_ifort_mpi,v 1.3 2016/11/01 20:59:24 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/engaging/test_engag_ifort_mpi,v 1.4 2016/12/03 15:21:36 jmc Exp $
 # $Name:  $
 
 if test -f /etc/profile.d/modules.sh ; then
@@ -129,7 +129,7 @@ if [ $checkOut -eq 1 ] ; then
     ( cd $gcmDIR/verification ; ../tools/do_tst_2+2 -clean )
     ( cd $gcmDIR/verification ; ./testreport $typ -clean )
     ( cd $gcmDIR/verification ; rm -f */build/Makefile_syntax )
-    ( cd $gcmDIR/verification ; rm -f */build/port_rand.i )
+    ( cd $gcmDIR/verification ; rm -f */build/port_rand.i */build/ptracers_set_iolabel.i )
     echo "cvs update of dir $gcmDIR :"
     ( cd $gcmDIR ; $cmdCVS update -P -d ) 2>&1
     RETVAL=$?
