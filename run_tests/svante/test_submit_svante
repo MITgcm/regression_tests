@@ -1,6 +1,6 @@
 #! /usr/bin/env bash
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/svante/test_submit_svante,v 1.3 2016/04/16 14:55:05 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/svante/test_submit_svante,v 1.4 2016/09/22 20:27:40 jmc Exp $
 # $Name:  $
 
 today=`date +%Y%m%d`
@@ -14,9 +14,12 @@ else
   TEST_LIST=$*
 fi
 
-QSUB="qsub"
-QSTAT="qstat"
-dNam=`hostname -s`
+#QSUB="qsub"
+#QSTAT="qstat"
+#dNam=`hostname -s`
+QSUB="/usr/bin/sbatch"
+QSTAT="/usr/bin/qstat"
+dNam='svante'
 HERE="$HOME/test_${dNam}"
 TST_DISK="/net/fs09/d0"
 TST_DIR="$TST_DISK/jm_c/test_${dNam}"
@@ -51,11 +54,11 @@ export LC_ALL="en_US.UTF-8"
 #  Turn off stack limit for FIZHI & AD-tests
 ulimit -s unlimited
 
-if test -f /etc/profile.d/modules.sh ; then
-    . /etc/profile.d/modules.sh
-fi
+if test -f /etc/profile.d/modules.sh    ; then . /etc/profile.d/modules.sh    ; fi
+if test -f /etc/profile.d/zz_modules.sh ; then . /etc/profile.d/zz_modules.sh ; fi
 #- load standard modules:
-module add fedora torque maui svante
+#module add fedora slurm maui svante
+module add slurm
 module list 						>> $LOG_FIL 2>&1
 
 #- method to acces CVS:
