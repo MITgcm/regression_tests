@@ -1,6 +1,6 @@
 #! /usr/bin/env bash
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/svante/test_submit_svante,v 1.4 2016/09/22 20:27:40 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/svante/test_submit_svante,v 1.5 2016/12/29 22:05:32 jmc Exp $
 # $Name:  $
 
 today=`date +%Y%m%d`
@@ -21,8 +21,8 @@ QSUB="/usr/bin/sbatch"
 QSTAT="/usr/bin/qstat"
 dNam='svante'
 HERE="$HOME/test_${dNam}"
-TST_DISK="/net/fs09/d0"
-TST_DIR="$TST_DISK/jm_c/test_${dNam}"
+TST_DISK="/net/fs09/d0/jm_c"
+TST_DIR="$TST_DISK/test_${dNam}"
 logPfix='test_submit'
 
 SUB_DIR="$HERE/$dNam"
@@ -74,8 +74,6 @@ updFile='updated_code'
 echo "cd $TST_DISK ; pwd (x2)" | tee -a $LOG_FIL
 cd $TST_DISK	| tee -a $LOG_FIL 2>&1
 pwd		| tee -a $LOG_FIL
-sleep 30
-pwd		| tee -a $LOG_FIL
 if test ! -d $TST_DIR ; then
    echo -n "Creating a working dir: $TST_DIR ..."	| tee -a $LOG_FIL
   #/bin/rm -rf $TST_DIR
@@ -87,6 +85,7 @@ if test ! -d $TST_DIR ; then
    fi
 fi
 cd $TST_DIR
+pwd		| tee -a $LOG_FIL
 
 #- remove date/lock-file:
 if test -f $updFile ; then rm -f $updFile ; sleep 2 ; fi
