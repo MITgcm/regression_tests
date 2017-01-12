@@ -1,8 +1,8 @@
 #! /usr/bin/env bash
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/svante/test_comp_svante.sh,v 1.1 2015/11/08 17:30:45 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/svante/test_comp_svante.sh,v 1.2 2016/01/27 22:45:34 jmc Exp $
 
-#  Test script for MITgcm to run on head-node of svante cluster
+#  Test script for MITgcm to run on head-node of svante cluster (svante.mit.edu)
 
 # defaults
 #export PATH="$PATH:/usr/local/bin"
