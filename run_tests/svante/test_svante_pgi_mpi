@@ -8,7 +8,7 @@
 #SBATCH -e /home/jm_c/test_svante/output/tst_pgiMPI.stderr
 #SBATCH -o /home/jm_c/test_svante/output/tst_pgiMPI.stdout
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/svante/test_svante_pgi_mpi,v 1.4 2016/03/11 17:46:38 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/svante/test_svante_pgi_mpi,v 1.5 2016/12/29 22:05:32 jmc Exp $
 # $Name:  $
 
 if test -f /etc/profile.d/modules.sh    ; then . /etc/profile.d/modules.sh    ; fi
@@ -20,11 +20,12 @@ umask 0022
 #- to get case insensitive "ls" (and order of tested experiments)
 export LC_ALL="en_US.UTF-8"
 echo " running on: "`hostname`
+headNode='svante-login'
 
 dNam='svante'
 HERE="$HOME/test_${dNam}"
 OUTP="$HERE/output"; SavD="$HERE/send"
-SEND="ssh svante-login $SavD/mpack"
+SEND="ssh $headNode $SavD/mpack"
 TST_DISK="/net/fs09/d0/jm_c"
 TST_DIR="$TST_DISK/test_${dNam}"
 

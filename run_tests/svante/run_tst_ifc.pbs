@@ -7,7 +7,7 @@
 #PBS -o /home/jm_c/test_svante/output/run_tst_ifc.stdout
 ##PBS  -j oe
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/svante/run_tst_ifc.pbs,v 1.4 2015/11/08 17:30:45 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/svante/run_tst_ifc.pbs,v 1.5 2016/01/27 22:45:34 jmc Exp $
 
 if test -f /etc/profile.d/modules.sh ; then
     . /etc/profile.d/modules.sh
@@ -19,11 +19,12 @@ umask 0022
 #- to get case insensitive "ls" (and order of tested experiments)
 export LC_ALL="en_US.UTF-8"
 echo " running on: "`hostname`
+headNode='svante'
 
 dNam='svante'
 HERE="$HOME/test_${dNam}"
 OUTP="$HERE/output"; SavD="$HERE/send"
-SEND="ssh svante $SavD/mpack"
+SEND="ssh $headNode $SavD/mpack"
 TST_DISK="/net/fs09/d0/jm_c"
 TST_DIR="$TST_DISK/test_${dNam}"
 
@@ -40,16 +41,14 @@ sfx='ifc'
 module add intel
 module add mvapich2
 OPTFILE="../tools/build_options/linux_amd64_ifort11"
-options="-MPI 6 -ro"
+options="-MPI 6"
 #options="$options -t hs94.cs-32x32x5"
 #EXE="mpirun -v -all-local -np TR_NPROC ./mitgcmuv"
 
-dInWeek=`date +%a`
-if test "x$dInWeek" = xSun ; then
-  options="$options -fast"
-#else
-# options="$options -devel"
-fi
+#dInWeek=`date +%a`
+#if test "x$dInWeek" = xSun ; then options="$options -fast"
+#                            #else options="$options -devel" ; fi
+#fi
 
 #- need this to get "staf":
 #export PATH="$PATH:$HOME/bin"
@@ -64,6 +63,23 @@ if test -e $gcmDIR/verification ; then
 else
   echo "no dir: $gcmDIR/verification => exit"
   exit
+fi
+
+#- get option -devel/-fast from head-node testreport output:
+options="$options -ro"
+prevName=`grep '^on :' tr_out.txt | awk '{print $4}'`
+if test "x$prevName" = "x$headNode" ; then
+  dev_Opt=`grep '^run:' tr_out.txt | grep -c ' -devel'`
+  fastOpt=`grep '^run:' tr_out.txt | grep -c ' -fast'`
+  if test $dev_Opt = 1 -a $fastOpt = 0 ; then
+    options="$options -devel"
+  fi
+  if test $dev_Opt = 0 -a $fastOpt = 1 ; then
+    options="$options -fast"
+  fi
+else
+  echo " missing previous testreport output "tr_out.txt" from $headNode"
+  echo ' skip addition of -devel/-fast to $options'
 fi
 
  echo ./testreport $options -of $OPTFILE -odir ${dNam}-$sfx \

@@ -1,6 +1,6 @@
 #! /usr/bin/env bash
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/svante/test_comp_svante.sh,v 1.2 2016/01/27 22:45:34 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/svante/test_comp_ifc.sh,v 1.1 2017/01/12 17:36:35 jmc Exp $
 
 #  Test script for MITgcm to run on head-node of svante cluster (svante.mit.edu)
 
@@ -23,9 +23,10 @@ module list
 #- method to acces CVS:
 cmdCVS='cvs -d :pserver:cvsanon@mitgcm.org:/u/gcmpack -q'
 
+headNode=`hostname -s`
 QSUB="qsub"
-QSTAT="qstat"
-dNam=`hostname -s`
+QSTAT="qstat -a | grep $USER"
+dNam=$headNode
 HERE="$HOME/test_${dNam}"
 
 SUB_DIR="$HERE/$dNam"
@@ -87,11 +88,11 @@ do
     continue
   fi
   #- check for unfinished jobs
-  job_exist=`$QSTAT -a | grep $USER | grep $tst2submit | wc -l`
+  job_exist=`$QSTAT | grep $tst2submit | wc -l`
   if test "x$job_exist" != x0 ; then
     echo $tst2submit
     echo "job '$tst2submit' still in queue:"
-    $QSTAT -a | grep $USER | grep $tst2submit
+    $QSTAT | grep $tst2submit
     echo " => skip this test"
     continue
   fi
@@ -123,7 +124,7 @@ do
   #- remove previous output tar files and tar & remove previous output-dir
       /bin/rm -f $gcmDIR/verification/??_${dNam}*_????????_?.tar.gz
       ( cd $gcmDIR/verification
-        listD=`ls -1 -d tr_${dNam}_????????_? ??_${dNam}-${typ}_????????_? 2> /dev/null`
+        listD=`ls -1 -d tr_${headNode}_????????_? ??_${dNam}-${sfx}_????????_? 2> /dev/null`
         for dd in $listD
         do
           if test -d $dd ; then
@@ -240,7 +241,7 @@ do
     echo " submit PBS bach script '$SUB_DIR/${tst2submit}.pbs'"	| tee -a $LOG_FIL
     $QSUB $SUB_DIR/${tst2submit}.pbs				| tee -a $LOG_FIL
     echo " job '$tst2submit' in queue:"				| tee -a $LOG_FIL
-    $QSTAT -a | grep $USER | grep $tst2submit			| tee -a $LOG_FIL
+    $QSTAT | grep $tst2submit					| tee -a $LOG_FIL
   else
     echo " no PBS script '$SUB_DIR/${tst2submit}.pbs' to submit"| tee -a $LOG_FIL
     continue
