@@ -1,6 +1,6 @@
 #! /usr/bin/env bash
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/svante/test_comp_ifc.sh,v 1.1 2017/01/12 17:36:35 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/svante/test_comp_ifc.sh,v 1.2 2017/01/13 22:41:26 jmc Exp $
 
 #  Test script for MITgcm to run on head-node of svante cluster (svante.mit.edu)
 
@@ -25,7 +25,7 @@ cmdCVS='cvs -d :pserver:cvsanon@mitgcm.org:/u/gcmpack -q'
 
 headNode=`hostname -s`
 QSUB="qsub"
-QSTAT="qstat -a | grep $USER"
+QSTAT="qstat -u $USER"
 dNam=$headNode
 HERE="$HOME/test_${dNam}"
 
@@ -75,6 +75,7 @@ do
   typ=`echo $tt | sed 's/+rs//'`
   gcmDIR="MITgcm_$typ"
   tst2submit="run_tst_$typ"
+  JOB=$tst2submit
   addExp=''
   LOG_FIL=$OUT_DIR/output_${typ}
   #- check day and time:
@@ -88,11 +89,11 @@ do
     continue
   fi
   #- check for unfinished jobs
-  job_exist=`$QSTAT | grep $tst2submit | wc -l`
+  job_exist=`$QSTAT | grep $JOB | wc -l`
   if test "x$job_exist" != x0 ; then
     echo $tst2submit
-    echo "job '$tst2submit' still in queue:"
-    $QSTAT | grep $tst2submit
+    echo "job '$JOB' still in queue:"
+    $QSTAT | grep $JOB
     echo " => skip this test"
     continue
   fi
@@ -224,7 +225,7 @@ do
     comm="$comm -of=$OPTFILE"
   fi
   if test $MPI != 0 ; then comm="$comm -MPI $MPI" ; fi
-  echo " -norun option ('-nr'):"	| tee -a $LOG_FIL
+  echo " option '-nr' (norun):"		| tee -a $LOG_FIL
   comm="$comm -nr"
   if test "x$option" != x ; then comm="$comm $option" ; fi
   echo "  \"eval $comm\""		| tee -a $LOG_FIL
@@ -240,8 +241,8 @@ do
   if test -e $SUB_DIR/${tst2submit}.pbs ; then
     echo " submit PBS bach script '$SUB_DIR/${tst2submit}.pbs'"	| tee -a $LOG_FIL
     $QSUB $SUB_DIR/${tst2submit}.pbs				| tee -a $LOG_FIL
-    echo " job '$tst2submit' in queue:"				| tee -a $LOG_FIL
-    $QSTAT | grep $tst2submit					| tee -a $LOG_FIL
+    echo " job '$JOB' in queue:"				| tee -a $LOG_FIL
+    $QSTAT | grep $JOB						| tee -a $LOG_FIL
   else
     echo " no PBS script '$SUB_DIR/${tst2submit}.pbs' to submit"| tee -a $LOG_FIL
     continue

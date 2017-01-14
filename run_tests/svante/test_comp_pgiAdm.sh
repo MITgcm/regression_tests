@@ -1,13 +1,13 @@
 #! /usr/bin/env bash
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/svante/test_comp_ifc.sh,v 1.1 2017/01/12 17:36:35 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/svante/test_comp_pgiAdm.sh,v 1.1 2017/01/13 22:40:45 jmc Exp $
 
 #  Test script for MITgcm to run on head-node of svante cluster (svante-login.mit.edu)
 #   to just generate source code (*.f) including TAF output src code.
 
 headNode=`hostname -s`
 #QSUB="qsub"
-#QSTAT="qstat -a | grep $USER"
+#QSTAT="qstat -u $USER"
 #dNam=$headNode
 QSUB="/usr/bin/sbatch"
 QSTAT="/usr/bin/squeue -u $USER"
@@ -29,6 +29,7 @@ addExp=''
 
 logPfix="test_comp_$sfx"
 tst2submit="run_tst_$sfx"
+JOB="t_$sfx"
 
 #-------------------------------
 # checkOut=2 : download new code ;
@@ -128,11 +129,11 @@ pwd								| tee -a $LOG_FIL
     exit 2
   fi
   #- check for unfinished jobs
-  job_exist=`$QSTAT | grep $tst2submit | wc -l`
+  job_exist=`$QSTAT | grep $JOB | wc -l`
   if test "x$job_exist" != x0 ; then
     echo $tst2submit						| tee -a $LOG_FIL
-    echo "job '$tst2submit' still in queue:"			| tee -a $LOG_FIL
-    $QSTAT | grep $tst2submit					| tee -a $LOG_FIL
+    echo "job '$JOB' still in queue:"				| tee -a $LOG_FIL
+    $QSTAT | grep $JOB						| tee -a $LOG_FIL
     echo " => skip this test"					| tee -a $LOG_FIL
     exit 2
   fi
@@ -207,7 +208,7 @@ pwd								| tee -a $LOG_FIL
   if test "x$OPTFILE" != x ; then
     comm="$comm -of=$OPTFILE"
   fi
-  echo " only produces fortran source-files ('-src'):"	| tee -a $LOG_FIL
+  echo " option '-src' (only fortran source-files):"	| tee -a $LOG_FIL
   comm="$comm -src"
   echo "  \"eval $comm\""		| tee -a $LOG_FIL
   echo "======================"
@@ -222,8 +223,8 @@ pwd								| tee -a $LOG_FIL
   if test -e $SUB_DIR/${tst2submit}.slurm ; then
     echo " submit SLURM bach script '$SUB_DIR/${tst2submit}.slurm'"	| tee -a $LOG_FIL
     $QSUB $SUB_DIR/${tst2submit}.slurm					| tee -a $LOG_FIL
-    echo " job '$tst2submit' in queue:"					| tee -a $LOG_FIL
-    $QSTAT | grep $tst2submit						| tee -a $LOG_FIL
+    echo " job '$JOB' in queue:"					| tee -a $LOG_FIL
+    $QSTAT | grep $JOB							| tee -a $LOG_FIL
   else
     echo " no SLURM script '$SUB_DIR/${tst2submit}.slurm' to submit"	| tee -a $LOG_FIL
     continue

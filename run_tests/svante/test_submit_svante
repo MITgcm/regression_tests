@@ -1,6 +1,6 @@
 #! /usr/bin/env bash
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/svante/test_submit_svante,v 1.6 2017/01/04 20:08:11 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/svante/test_submit_svante,v 1.7 2017/01/13 22:41:26 jmc Exp $
 # $Name:  $
 
 today=`date +%Y%m%d`
@@ -16,7 +16,7 @@ fi
 
 headNode=`hostname -s`
 #QSUB="qsub"
-#QSTAT="qstat -a | grep $USER"
+#QSTAT="qstat -u $USER"
 #dNam=$headNode
 QSUB="/usr/bin/sbatch"
 QSTAT="/usr/bin/squeue -u $USER"
@@ -150,7 +150,7 @@ cd $OUT_DIR
     esac
     BATCH_SCRIPT="test_svante_$sfx"
     if test -f $SUB_DIR/$BATCH_SCRIPT ; then
-      JOB="tst_"$i
+      JOB="t_"$i
       job_exist=`$QSTAT | grep $JOB | wc -l`
       if test "x_$job_exist" = x_0 ; then
         #-- move previous output file
