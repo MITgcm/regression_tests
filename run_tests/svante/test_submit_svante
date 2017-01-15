@@ -1,6 +1,6 @@
 #! /usr/bin/env bash
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/svante/test_submit_svante,v 1.7 2017/01/13 22:41:26 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/svante/test_submit_svante,v 1.8 2017/01/14 16:20:04 jmc Exp $
 # $Name:  $
 
 today=`date +%Y%m%d`
@@ -19,7 +19,8 @@ headNode=`hostname -s`
 #QSTAT="qstat -u $USER"
 #dNam=$headNode
 QSUB="/usr/bin/sbatch"
-QSTAT="/usr/bin/squeue -u $USER"
+#QSTAT="/usr/bin/qstat -u $USER"
+SLIST="/usr/bin/squeue -u $USER"
 dNam='svante'
 HERE="$HOME/test_${dNam}"
 TST_DISK="/net/fs09/d0/jm_c"
@@ -150,8 +151,12 @@ cd $OUT_DIR
     esac
     BATCH_SCRIPT="test_svante_$sfx"
     if test -f $SUB_DIR/$BATCH_SCRIPT ; then
-      JOB="t_"$i
-      job_exist=`$QSTAT | grep $JOB | wc -l`
+      #- job name ( $JOB ) & output-file name ( $JOB.std??? ) must match
+      #  definition within $BATCH_SCRIPT slurm script
+      JOB="tst_"$i
+      sJob=`printf "%8.8s" $JOB` #- squeue truncate name to only 1rst 8c
+      #job_exist=`$QSTAT | grep $JOB | wc -l`
+      job_exist=`$QLIST | grep $sJob | wc -l`
       if test "x_$job_exist" = x_0 ; then
         #-- move previous output file
         outList=`ls $JOB.std??? 2> /dev/null`
@@ -176,7 +181,8 @@ cd $OUT_DIR
           NB_SUB_JOBS=`expr $NB_SUB_JOBS + 1`
       else
           echo "--> $JOB :"				| tee -a $LOG_FIL
-          $QSTAT | grep $JOB				| tee -a $LOG_FIL
+          #$QSTAT | grep $JOB				| tee -a $LOG_FIL
+          $QLIST | grep $sJob				| tee -a $LOG_FIL
           echo ' job already exist => skip this test'	| tee -a $LOG_FIL
       fi
     else

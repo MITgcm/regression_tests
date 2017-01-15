@@ -1,6 +1,6 @@
 #! /usr/bin/env bash
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/svante/test_comp_pgiAdm.sh,v 1.1 2017/01/13 22:40:45 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/svante/test_comp_pgiAdm.sh,v 1.2 2017/01/14 16:20:04 jmc Exp $
 
 #  Test script for MITgcm to run on head-node of svante cluster (svante-login.mit.edu)
 #   to just generate source code (*.f) including TAF output src code.
@@ -10,7 +10,8 @@ headNode=`hostname -s`
 #QSTAT="qstat -u $USER"
 #dNam=$headNode
 QSUB="/usr/bin/sbatch"
-QSTAT="/usr/bin/squeue -u $USER"
+#QSTAT="/usr/bin/qstat -u $USER"
+SLIST="/usr/bin/squeue -u $USER"
 dNam='svante'
 HERE="$HOME/test_${dNam}"
 
@@ -28,8 +29,11 @@ sfx='pgiAdm'; typ='-adm'
 addExp=''
 
 logPfix="test_comp_$sfx"
-tst2submit="run_tst_$sfx"
-JOB="t_$sfx"
+BATCH_SCRIPT="run_tst_${sfx}.slurm"
+#- job name ($JOB) & output-file name ( $JOB.std??? ) must match
+#  definition within $BATCH_SCRIPT slurm script
+JOB="tst_$sfx"
+sJob=`printf "%8.8s" $JOB` #- squeue truncate name to only 1rst 8c
 
 #-------------------------------
 # checkOut=2 : download new code ;
@@ -129,13 +133,32 @@ pwd								| tee -a $LOG_FIL
     exit 2
   fi
   #- check for unfinished jobs
-  job_exist=`$QSTAT | grep $JOB | wc -l`
+  #job_exist=`$QSTAT | grep $JOB | wc -l`
+  job_exist=`$QLIST | grep $sJob | wc -l`
   if test "x$job_exist" != x0 ; then
-    echo $tst2submit						| tee -a $LOG_FIL
+    echo $BATCH_SCRIPT						| tee -a $LOG_FIL
     echo "job '$JOB' still in queue:"				| tee -a $LOG_FIL
-    $QSTAT | grep $JOB						| tee -a $LOG_FIL
+    #$QSTAT | grep $JOB						| tee -a $LOG_FIL
+    $QLIST | grep $sJob						| tee -a $LOG_FIL
     echo " => skip this test"					| tee -a $LOG_FIL
     exit 2
+  fi
+  #-- move previous output file
+  outList=`( cd $OUT_DIR ; ls $JOB.std??? 2> /dev/null )`
+  if test "x$outList" != x ; then
+    echo -n " moving job $JOB old output files:"	| tee -a $LOG_FIL
+    if test -d $OUT_DIR/prev ; then
+      for xx in $outList ; do
+        pp=$OUT_DIR/prev/$xx ; echo -n " $xx"		| tee -a $LOG_FIL
+        test -f $pp.sav && mv -f $pp.sav $pp.old
+        test -f $pp     && mv -f $pp     $pp.sav
+        chmod a+r $OUT_DIR/$xx ; mv -f $OUT_DIR/$xx $OUT_DIR/prev
+      done
+      echo " to dir ./prev"				| tee -a $LOG_FIL
+    else
+      echo " <-- missing dir $OUT_DIR/prev"		| tee -a $LOG_FIL
+    fi
+  else echo " no old output files from job '$JOB'"	| tee -a $LOG_FIL
   fi
   if test -d prev ; then
     #-- save previous summary: tr_out.txt* tst_2+2_out.txt
@@ -148,7 +171,6 @@ pwd								| tee -a $LOG_FIL
       cp -p ${gcmDIR}/verification/$xx prev/${yy}$ss
     done
   fi
-# touch $LOG_FIL
 
   #- clean and update code
   if [ $checkOut -eq 1 ] ; then
@@ -220,13 +242,14 @@ pwd								| tee -a $LOG_FIL
   echo ""				| tee -a $LOG_FIL
 
 #-- submit SLURM script to run
-  if test -e $SUB_DIR/${tst2submit}.slurm ; then
-    echo " submit SLURM bach script '$SUB_DIR/${tst2submit}.slurm'"	| tee -a $LOG_FIL
-    $QSUB $SUB_DIR/${tst2submit}.slurm					| tee -a $LOG_FIL
-    echo " job '$JOB' in queue:"					| tee -a $LOG_FIL
-    $QSTAT | grep $JOB							| tee -a $LOG_FIL
+  if test -e $SUB_DIR/$BATCH_SCRIPT ; then
+    echo " submit SLURM bach script '$SUB_DIR/$BATCH_SCRIPT'"	| tee -a $LOG_FIL
+    $QSUB $SUB_DIR/$BATCH_SCRIPT				| tee -a $LOG_FIL
+    echo " job '$JOB' in queue:"				| tee -a $LOG_FIL
+    #$QSTAT | grep $JOB						| tee -a $LOG_FIL
+    $QLIST | grep $sJob						| tee -a $LOG_FIL
   else
-    echo " no SLURM script '$SUB_DIR/${tst2submit}.slurm' to submit"	| tee -a $LOG_FIL
+    echo " no SLURM script '$SUB_DIR/$BATCH_SCRIPT' to submit"	| tee -a $LOG_FIL
     continue
   fi
 
