@@ -1,6 +1,6 @@
 #! /usr/bin/env bash
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/svante/test_comp_pgiAdm.sh,v 1.2 2017/01/14 16:20:04 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/svante/test_comp_pgiAdm.sh,v 1.3 2017/01/15 17:32:16 jmc Exp $
 
 #  Test script for MITgcm to run on head-node of svante cluster (svante-login.mit.edu)
 #   to just generate source code (*.f) including TAF output src code.
@@ -11,7 +11,7 @@ headNode=`hostname -s`
 #dNam=$headNode
 QSUB="/usr/bin/sbatch"
 #QSTAT="/usr/bin/qstat -u $USER"
-SLIST="/usr/bin/squeue -u $USER"
+QLIST="/usr/bin/squeue -u $USER"
 dNam='svante'
 HERE="$HOME/test_${dNam}"
 

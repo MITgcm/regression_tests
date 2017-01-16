@@ -1,6 +1,6 @@
 #! /usr/bin/env bash
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/svante/test_submit_svante,v 1.8 2017/01/14 16:20:04 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/svante/test_submit_svante,v 1.9 2017/01/15 17:32:16 jmc Exp $
 # $Name:  $
 
 today=`date +%Y%m%d`
@@ -20,7 +20,7 @@ headNode=`hostname -s`
 #dNam=$headNode
 QSUB="/usr/bin/sbatch"
 #QSTAT="/usr/bin/qstat -u $USER"
-SLIST="/usr/bin/squeue -u $USER"
+QLIST="/usr/bin/squeue -u $USER"
 dNam='svante'
 HERE="$HOME/test_${dNam}"
 TST_DISK="/net/fs09/d0/jm_c"
