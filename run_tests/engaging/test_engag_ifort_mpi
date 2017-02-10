@@ -6,8 +6,9 @@
 #SBATCH --tasks-per-node 3
 #SBATCH -e /home/jm_c/test_engaging/output/tst_ifort.stderr
 #SBATCH -o /home/jm_c/test_engaging/output/tst_ifort.stdout
+#SBATCH --no-requeue
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/engaging/test_engag_ifort_mpi,v 1.4 2016/12/03 15:21:36 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/engaging/test_engag_ifort_mpi,v 1.5 2016/12/04 16:56:12 jmc Exp $
 # $Name:  $
 
 if test -f /etc/profile.d/modules.sh ; then

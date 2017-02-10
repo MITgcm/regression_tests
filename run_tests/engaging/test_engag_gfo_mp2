@@ -6,8 +6,9 @@
 #SBATCH --tasks-per-node 4
 #SBATCH -e /home/jm_c/test_engaging/output/tst_gfoMp2.stderr
 #SBATCH -o /home/jm_c/test_engaging/output/tst_gfoMp2.stdout
+#SBATCH --no-requeue
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/engaging/test_engag_gfo_mp2,v 1.1 2016/07/27 14:49:25 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/engaging/test_engag_gfo_mp2,v 1.2 2016/07/31 15:26:31 jmc Exp $
 # $Name:  $
 
 if test -f /etc/profile.d/modules.sh ; then
