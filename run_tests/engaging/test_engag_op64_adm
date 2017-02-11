@@ -6,9 +6,9 @@
 #SBATCH -N 2
 #SBATCH -e /home/jm_c/test_engaging/output/tst_o64Adm.stderr
 #SBATCH -o /home/jm_c/test_engaging/output/tst_o64Adm.stdout
-#SBATCH --no-requeue
+#SBATCH --no-requeue --constraint=centos6
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/engaging/test_engag_op64_adm,v 1.4 2016/03/09 15:26:50 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/engaging/test_engag_op64_adm,v 1.5 2017/02/10 00:15:31 jmc Exp $
 # $Name:  $
 
 if test -f /etc/profile.d/modules.sh ; then
