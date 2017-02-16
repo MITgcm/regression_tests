@@ -1,6 +1,6 @@
 #! /usr/bin/env bash
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/svante/test_submit_svante,v 1.9 2017/01/15 17:32:16 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/svante/test_submit_svante,v 1.10 2017/01/16 14:20:00 jmc Exp $
 # $Name:  $
 
 today=`date +%Y%m%d`
@@ -8,7 +8,7 @@ dInWeek=`date +%a`
 
 if test $# = 0
 then
-  TEST_LIST='pgiMPI'
+  TEST_LIST='pgiMPI pgiAdm'
  #if test "x$dInWeek" = xSun ; then TEST_LIST="$TEST_LIST iad ifc oad" ; fi
 else
   TEST_LIST=$*
