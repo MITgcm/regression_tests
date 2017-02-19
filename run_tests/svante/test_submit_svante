@@ -1,6 +1,6 @@
 #! /usr/bin/env bash
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/svante/test_submit_svante,v 1.10 2017/01/16 14:20:00 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/svante/test_submit_svante,v 1.11 2017/02/16 21:39:48 jmc Exp $
 # $Name:  $
 
 today=`date +%Y%m%d`
@@ -8,8 +8,7 @@ dInWeek=`date +%a`
 
 if test $# = 0
 then
-  TEST_LIST='pgiMPI pgiAdm'
- #if test "x$dInWeek" = xSun ; then TEST_LIST="$TEST_LIST iad ifc oad" ; fi
+  TEST_LIST='ifcMPI pgiMPI pgiAdm'
 else
   TEST_LIST=$*
 fi
@@ -145,6 +144,7 @@ cd $OUT_DIR
   for i in $JOB_LIST
   do
     case $i in
+      'ifcMPI') sfx='ifc_mpi' ;;
       'pgiMPI') sfx='pgi_mpi' ;;
       'pgiAdm') sfx='pgi_adm' ;;
              *) sfx=${i}'_mpi'  ;;
