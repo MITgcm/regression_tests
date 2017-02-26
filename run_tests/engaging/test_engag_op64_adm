@@ -8,7 +8,7 @@
 #SBATCH -o /home/jm_c/test_engaging/output/tst_o64Adm.stdout
 #SBATCH --no-requeue --constraint=centos6
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/engaging/test_engag_op64_adm,v 1.5 2017/02/10 00:15:31 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/engaging/test_engag_op64_adm,v 1.6 2017/02/11 16:51:10 jmc Exp $
 # $Name:  $
 
 if test -f /etc/profile.d/modules.sh ; then
@@ -141,11 +141,6 @@ if [ $checkOut -eq 2 ] ; then
       exit
   else echo "  done" ; fi
   if test -d $gcmDIR/verification ; then
-    for exp2add in $addExp ; do
-      echo " add dir: $exp2add (from Contrib:verification_other)"
-      ( cd $gcmDIR/verification ; $cmdCVS co -P -d $exp2add \
-                     MITgcm_contrib/verification_other/$exp2add > /dev/null )
-    done
     /usr/bin/find $gcmDIR -type d | xargs chmod g+rxs
     /usr/bin/find $gcmDIR -type f | xargs chmod g+r
   fi
@@ -156,6 +151,18 @@ if test -e $gcmDIR/verification ; then
   if [ $checkOut -lt 2 ] ; then
     echo " dir $gcmDIR/verification exist" ; fi
   cd $gcmDIR/verification
+  for exp2add in $addExp ; do
+    if test -d ${exp2add}/CVS ; then
+      echo "  assumes dir: $exp2add has been updated"
+    else
+      test -r $exp2add && /bin/rm -rf $exp2add
+      echo " add dir: $exp2add (from Contrib:verification_other)"
+      ( $cmdCVS co -P -d $exp2add \
+                     MITgcm_contrib/verification_other/$exp2add > /dev/null )
+      /usr/bin/find $exp2add -type d | xargs chmod g+rxs
+      /usr/bin/find $exp2add -type f | xargs chmod g+r
+    fi
+  done
 else
   echo "no dir: $gcmDIR/verification => exit"
   exit
