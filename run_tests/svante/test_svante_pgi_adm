@@ -7,8 +7,9 @@
 #SBATCH --tasks-per-node 6
 #SBATCH -e /home/jm_c/test_svante/output/tst_pgiAdm.stderr
 #SBATCH -o /home/jm_c/test_svante/output/tst_pgiAdm.stdout
+#SBATCH --no-requeue
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/svante/test_svante_pgi_mpi,v 1.6 2017/01/13 22:41:26 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/svante/test_svante_pgi_adm,v 1.1 2017/02/16 21:39:48 jmc Exp $
 # $Name:  $
 
 if test -f /etc/profile.d/modules.sh    ; then . /etc/profile.d/modules.sh    ; fi
