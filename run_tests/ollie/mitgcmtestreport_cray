@@ -2,7 +2,7 @@
 # new script for running testreport on ollie.awi.de
 # - compile and run on compute nodes
 # - use ssh to call mpack command from the head node ollie0
-#$Header: /u/gcmpack/MITgcm_contrib/test_scripts/ollie/mitgcmtestreport_cray,v 1.5 2016/06/22 06:23:27 mlosch Exp $
+#$Header: /u/gcmpack/MITgcm_contrib/test_scripts/ollie/mitgcmtestreport_cray,v 1.6 2016/08/29 15:08:54 mlosch Exp $
 #$Name:  $
 
 # needed for cron-job
@@ -12,14 +12,23 @@ source /etc/profile.d/AWI.sh
 #
 
 module purge
-module load slurm
 module load craype-broadwell
 module load PrgEnv-cray
+# to me this looks like a terrible hack, but that is what we are supposed 
+# to use now
+module unload craype-network-infiniband cudatoolkit mvapich2_cce
+module load craype-network-opa
+module load mvapich2_cce
+module load netcdf
 #export LD_LIBRARY_PATH=${CRAY_LD_LIBRARY_PATH}:${LD_LIBRARY_PATH}:
 # not sure why I have set these paths here again
-export MPI_ROOT=$(dirname `echo $LD_LIBRARY_PATH  | awk -F: '{print $1}'`)
+export MPI_ROOT=$(dirname $(dirname `which mpicc`))
+# $(dirname `echo $LD_LIBRARY_PATH  | awk -F: '{print $1}'`)
 export MPI_INC_DIR=${MPI_ROOT}/include
 
+# there is no slurm module anymore and this is the current recommendation to
+# have sbatch in your path (rather than running /etc/profile.d./slurm.sh)
+export PATH=${PATH}:/global/opt/slurm/default/bin
 
 dNam='ollie'
 TST_DIR="/work/ollie/mlosch/test_$dNam"
@@ -116,6 +125,11 @@ cat << EOF >| $HERE/$RUNIT
 # still need this to be able to run a few experiments: 
 # cfc_example, fizhi, tutorial_deep_convection
 ulimit -s unlimited
+
+# # for debugging
+# export FLEXLM_DIAGNOSTICS=2
+# export FNP_IP_ENV=1
+# export LM_A_CONN_TIMEOUT=99
 
 cd \${SLURM_SUBMIT_DIR}
 
