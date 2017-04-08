@@ -8,7 +8,7 @@
 #SBATCH -o /home/jm_c/test_engaging/output/tst_ifcMp2.stdout
 #SBATCH --no-requeue --constraint=centos6
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/engaging/test_engag_ifc_mp2,v 1.1 2017/02/26 23:36:41 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/engaging/test_engag_ifc_mp2,v 1.2 2017/02/27 21:02:02 jmc Exp $
 # $Name:  $
 
 if test -f /etc/profile.d/modules.sh ; then
@@ -43,7 +43,7 @@ else
 fi
 
 sfx='ifcMp2'; typ=''
-addExp=''
+addExp='atm_gray offline_cheapaml'
  module add slurm
  module add gcc
  module add engaging/intel/2013.1.046
