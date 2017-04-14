@@ -1,6 +1,6 @@
 #! /usr/bin/env bash
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/svante/test_submit_svante,v 1.11 2017/02/16 21:39:48 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/svante/test_submit_svante,v 1.12 2017/02/19 16:50:34 jmc Exp $
 # $Name:  $
 
 today=`date +%Y%m%d`
@@ -8,7 +8,7 @@ dInWeek=`date +%a`
 
 if test $# = 0
 then
-  TEST_LIST='ifcMPI pgiMPI pgiAdm'
+  TEST_LIST='ifcMPI pgiMPI pgiAdm pgiMth'
 else
   TEST_LIST=$*
 fi
@@ -18,7 +18,6 @@ headNode=`hostname -s`
 #QSTAT="qstat -u $USER"
 #dNam=$headNode
 QSUB="/usr/bin/sbatch"
-#QSTAT="/usr/bin/qstat -u $USER"
 QLIST="/usr/bin/squeue -u $USER"
 dNam='svante'
 HERE="$HOME/test_${dNam}"
@@ -144,16 +143,15 @@ cd $OUT_DIR
   for i in $JOB_LIST
   do
     case $i in
-      'ifcMPI') sfx='ifc_mpi' ;;
-      'pgiMPI') sfx='pgi_mpi' ;;
       'pgiAdm') sfx='pgi_adm' ;;
-             *) sfx=${i}'_mpi'  ;;
+      'pgiMth') sfx='pgi_mth' ;;
+             *) sfx=`echo ${i} | sed 's/MPI$/_mpi/'`  ;;
     esac
     BATCH_SCRIPT="test_svante_$sfx"
     if test -f $SUB_DIR/$BATCH_SCRIPT ; then
       #- job name ( $JOB ) & output-file name ( $JOB.std??? ) must match
       #  definition within $BATCH_SCRIPT slurm script
-      JOB="tst_"$i
+      JOB="${i}_tst"
       sJob=`printf "%8.8s" $JOB` #- squeue truncate name to only 1rst 8c
       #job_exist=`$QSTAT | grep $JOB | wc -l`
       job_exist=`$QLIST | grep $sJob | wc -l`
