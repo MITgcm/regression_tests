@@ -1,4 +1,0 @@
-#! /usr/nas/bin/bash
-
-/usr/local/pbs/bin/qsub /u/edhill/bin/test_hopper_pbs
-
