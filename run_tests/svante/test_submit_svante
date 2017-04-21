@@ -1,6 +1,6 @@
 #! /usr/bin/env bash
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/svante/test_submit_svante,v 1.12 2017/02/19 16:50:34 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/svante/test_submit_svante,v 1.13 2017/04/14 21:02:06 jmc Exp $
 # $Name:  $
 
 today=`date +%Y%m%d`
@@ -147,7 +147,7 @@ cd $OUT_DIR
       'pgiMth') sfx='pgi_mth' ;;
              *) sfx=`echo ${i} | sed 's/MPI$/_mpi/'`  ;;
     esac
-    BATCH_SCRIPT="test_svante_$sfx"
+    BATCH_SCRIPT="test_${dNam}_$sfx"
     if test -f $SUB_DIR/$BATCH_SCRIPT ; then
       #- job name ( $JOB ) & output-file name ( $JOB.std??? ) must match
       #  definition within $BATCH_SCRIPT slurm script
