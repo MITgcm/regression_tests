@@ -9,7 +9,7 @@
 #SBATCH -o /home/jm_c/test_svante/output/pgiMth_tst.stdout
 #SBATCH --no-requeue
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/svante/test_svante_pgi_mpi,v 1.8 2017/03/18 13:11:08 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/svante/test_svante_pgi_mth,v 1.1 2017/04/14 21:01:30 jmc Exp $
 # $Name:  $
 
 if test -f /etc/profile.d/modules.sh    ; then . /etc/profile.d/modules.sh    ; fi
@@ -45,8 +45,9 @@ else
   exit 1
 fi
 
-sfx='pgiMth'; typ=''
-addExp=''
+typ='' ; addExp='' ; skipExp=''
+sfx='pgiMth'
+skipExp='internal_wave tutorial_advection_in_gyre'
  module add pgi/16.9
 #module add openmpi
  module add netcdf
@@ -183,14 +184,14 @@ else
 fi
 
 echo ''
-echo ./testreport $options -of $OPTFILE -odir ${dNam}-$sfx \
-  -send \"$SEND\" -sd $SavD -a jmc@mitgcm.org
-./testreport $options -of $OPTFILE -odir ${dNam}-$sfx \
-  -send "$SEND" -sd $SavD -a jmc@mitgcm.org
+echo ./testreport $options -of $OPTFILE -skd \'$skipExp\' \
+  -odir ${dNam}-$sfx -send \'$SEND\' -sd $SavD -a jmc@mitgcm.org
+./testreport $options -of $OPTFILE -skd "$skipExp" \
+  -odir ${dNam}-$sfx -send "$SEND" -sd $SavD -a jmc@mitgcm.org
 
 echo ''
-echo ../tools/do_tst_2+2 -o ${dNam}-$sfx \
-  -send \"$SEND\" -sd $SavD -a jmc@mitgcm.org
-../tools/do_tst_2+2 -o ${dNam}-$sfx \
-  -send "$SEND" -sd $SavD -a jmc@mitgcm.org
+echo ../tools/do_tst_2+2 \
+  -o ${dNam}-$sfx -send \'$SEND\' -sd $SavD -a jmc@mitgcm.org
+../tools/do_tst_2+2 \
+  -o ${dNam}-$sfx -send "$SEND" -sd $SavD -a jmc@mitgcm.org
 
