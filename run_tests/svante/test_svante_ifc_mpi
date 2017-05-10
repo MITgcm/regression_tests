@@ -9,7 +9,7 @@
 #SBATCH -o /home/jm_c/test_svante/output/ifcMPI_tst.stdout
 #SBATCH --no-requeue
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/svante/test_svante_ifc_mpi,v 1.3 2017/03/18 13:11:08 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/svante/test_svante_ifc_mpi,v 1.4 2017/04/14 21:02:06 jmc Exp $
 # $Name:  $
 
 if test -f /etc/profile.d/modules.sh    ; then . /etc/profile.d/modules.sh    ; fi
@@ -38,8 +38,8 @@ else
   exit 1
 fi
 
-sfx='ifcMPI'; typ=''
-addExp=''
+typ='' ; addExp='' ; skipExp=''
+sfx='ifcMPI'
  module add intel/2017.0.1
  module add openmpi
 #module add netcdf
@@ -159,25 +159,26 @@ fi
 if [ $dAlt -eq 1 ] ; then
   options="$options -fast"
   echo ''
-  echo ./testreport $options -of $OPTFILE -odir ${dNam}-$sfx \
-    -send \"$SEND\" -sd $SavD -a jmc@mitgcm.org
-  ./testreport $options -of $OPTFILE -odir ${dNam}-$sfx \
-    -send "$SEND" -sd $SavD -a jmc@mitgcm.org
+  echo ./testreport $options -of $OPTFILE -skd \'$skipExp\' \
+    -odir ${dNam}-$sfx -send \'$SEND\' -sd $SavD -a jmc@mitgcm.org
+  ./testreport $options -of $OPTFILE -skd "$skipExp" \
+    -odir ${dNam}-$sfx -send "$SEND" -sd $SavD -a jmc@mitgcm.org
 else
   options="$options -devel"
   echo ''
-  echo ./testreport $options -of $OPTFILE \
+  echo ./testreport $options -of $OPTFILE -skd \'$skipExp\' \
     -repl_mk do_make_syntax.sh -obj -dd
-  ./testreport $options -of $OPTFILE \
+  ./testreport $options -of $OPTFILE -skd "$skipExp" \
     -repl_mk do_make_syntax.sh -obj -dd 2>&1
   echo ''
-  echo ./testreport $options -of $OPTFILE -odir ${dNam}-$sfx \
-    -q -send \"$SEND\" -sd $SavD -a jmc@mitgcm.org
-  ./testreport $options -of $OPTFILE -odir ${dNam}-$sfx \
-    -q -send "$SEND" -sd $SavD -a jmc@mitgcm.org
+  echo ./testreport $options -of $OPTFILE -skd \'$skipExp\' \
+    -q -odir ${dNam}-$sfx -send \'$SEND\' -sd $SavD -a jmc@mitgcm.org
+  ./testreport $options -of $OPTFILE -skd "$skipExp" \
+    -q -odir ${dNam}-$sfx -send "$SEND" -sd $SavD -a jmc@mitgcm.org
 fi
   echo ''
-  echo ../tools/do_tst_2+2 -mpi -o ${dNam}-$sfx \
-    -send \"$SEND\" -sd $SavD -a jmc@mitgcm.org
-  ../tools/do_tst_2+2 -mpi -o ${dNam}-$sfx \
-    -send "$SEND" -sd $SavD -a jmc@mitgcm.org
+  echo ../tools/do_tst_2+2 -mpi \
+    -o ${dNam}-$sfx -send \'$SEND\' -sd $SavD -a jmc@mitgcm.org
+  ../tools/do_tst_2+2 -mpi \
+    -o ${dNam}-$sfx -send "$SEND" -sd $SavD -a jmc@mitgcm.org
+
