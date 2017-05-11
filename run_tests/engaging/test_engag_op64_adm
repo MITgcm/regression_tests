@@ -8,7 +8,7 @@
 #SBATCH -o /home/jm_c/test_engaging/output/tst_o64Adm.stdout
 #SBATCH --no-requeue --constraint=centos6
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/engaging/test_engag_op64_adm,v 1.6 2017/02/11 16:51:10 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/engaging/test_engag_op64_adm,v 1.7 2017/02/26 23:33:11 jmc Exp $
 # $Name:  $
 
 if test -f /etc/profile.d/modules.sh ; then
@@ -42,8 +42,8 @@ else
   exit 1
 fi
 
+typ='' ; addExp='' ; skipExp=''
 sfx='o64Adm'; typ='-adm'
-addExp=''
  module add open64
  module add mvapich2/open64/64/2.0b
  export MPI_INC_DIR="$MPI_HOME/include"
@@ -168,15 +168,15 @@ else
   exit
 fi
 
-echo ''
-echo ./testreport $options -of $OPTFILE -odir ${dNam}-$sfx \
-  -send \"$SEND\" -sd $SavD -a jmc@mitgcm.org
-./testreport $options -of $OPTFILE -odir ${dNam}-$sfx \
-  -send "$SEND" -sd $SavD -a jmc@mitgcm.org
+  echo ''
+  echo ./testreport $options -of $OPTFILE \
+    -odir ${dNam}-$sfx -send \'$SEND\' -sd $SavD -a jmc@mitgcm.org
+  ./testreport $options -of $OPTFILE \
+    -odir ${dNam}-$sfx -send "$SEND" -sd $SavD -a jmc@mitgcm.org
 
-#echo ''
-#echo ../tools/do_tst_2+2 -mpi -o ${dNam}-$sfx \
-#  -send \"$SEND\" -sd $SavD -a jmc@mitgcm.org
-#../tools/do_tst_2+2 -mpi -o ${dNam}-$sfx \
-#  -send "$SEND" -sd $SavD -a jmc@mitgcm.org
+# echo ''
+# echo ../tools/do_tst_2+2 -mpi \
+#   -o ${dNam}-$sfx -send \'$SEND\' -sd $SavD -a jmc@mitgcm.org
+# ../tools/do_tst_2+2 -mpi \
+#   -o ${dNam}-$sfx -send "$SEND" -sd $SavD -a jmc@mitgcm.org
 
