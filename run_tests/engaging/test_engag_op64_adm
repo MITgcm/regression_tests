@@ -8,7 +8,7 @@
 #SBATCH -o /home/jm_c/test_engaging/output/tst_o64Adm.stdout
 #SBATCH --no-requeue --constraint=centos6
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/engaging/test_engag_op64_adm,v 1.7 2017/02/26 23:33:11 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/engaging/test_engag_op64_adm,v 1.8 2017/05/11 22:51:45 jmc Exp $
 # $Name:  $
 
 if test -f /etc/profile.d/modules.sh ; then
@@ -170,13 +170,13 @@ fi
 
   echo ''
   echo ./testreport $options -of $OPTFILE \
-    -odir ${dNam}-$sfx -send \'$SEND\' -sd $SavD -a jmc@mitgcm.org
+    -odir ${dNam}-$sfx -send \'$SEND\' -sd $SavD -a jmc@dev.mitgcm.org
   ./testreport $options -of $OPTFILE \
-    -odir ${dNam}-$sfx -send "$SEND" -sd $SavD -a jmc@mitgcm.org
+    -odir ${dNam}-$sfx -send "$SEND" -sd $SavD -a jmc@dev.mitgcm.org
 
 # echo ''
 # echo ../tools/do_tst_2+2 -mpi \
-#   -o ${dNam}-$sfx -send \'$SEND\' -sd $SavD -a jmc@mitgcm.org
+#   -o ${dNam}-$sfx -send \'$SEND\' -sd $SavD -a jmc@dev.mitgcm.org
 # ../tools/do_tst_2+2 -mpi \
-#   -o ${dNam}-$sfx -send "$SEND" -sd $SavD -a jmc@mitgcm.org
+#   -o ${dNam}-$sfx -send "$SEND" -sd $SavD -a jmc@dev.mitgcm.org
 

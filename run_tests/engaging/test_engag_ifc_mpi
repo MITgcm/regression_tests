@@ -8,7 +8,7 @@
 #SBATCH -o /home/jm_c/test_engaging/output/tst_ifcMpi.stdout
 #SBATCH --no-requeue --constraint=centos6
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/engaging/test_engag_ifc_mpi,v 1.1 2017/02/26 23:32:00 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/engaging/test_engag_ifc_mpi,v 1.2 2017/05/11 22:51:45 jmc Exp $
 # $Name:  $
 
 if test -f /etc/profile.d/modules.sh ; then
@@ -208,16 +208,16 @@ fi
   echo ''
  #echo ./testreport $options -of $OPTFILE -command \'$mpiCMD\' -mf $MPI_MFile \
   echo ./testreport $options -of $OPTFILE \
-    -q -odir ${dNam}-$sfx -send \'$SEND\' -sd $SavD -a jmc@mitgcm.org
+    -q -odir ${dNam}-$sfx -send \'$SEND\' -sd $SavD -a jmc@dev.mitgcm.org
  #./testreport $options -of $OPTFILE -command "$mpiCMD" -mf $MPI_MFile \
   ./testreport $options -of $OPTFILE \
-    -q -odir ${dNam}-$sfx -send "$SEND" -sd $SavD -a jmc@mitgcm.org
+    -q -odir ${dNam}-$sfx -send "$SEND" -sd $SavD -a jmc@dev.mitgcm.org
 
   echo ''
  #echo ../tools/do_tst_2+2 -mpi -exe \'$mpiCMD\' -mf $MPI_MFile \
   echo ../tools/do_tst_2+2 -mpi \
-    -o ${dNam}-$sfx -send \'$SEND\' -sd $SavD -a jmc@mitgcm.org
+    -o ${dNam}-$sfx -send \'$SEND\' -sd $SavD -a jmc@dev.mitgcm.org
  #../tools/do_tst_2+2 -mpi -exe "$mpiCMD" -mf $MPI_MFile \
   ../tools/do_tst_2+2 -mpi \
-    -o ${dNam}-$sfx -send "$SEND" -sd $SavD -a jmc@mitgcm.org
+    -o ${dNam}-$sfx -send "$SEND" -sd $SavD -a jmc@dev.mitgcm.org
 
