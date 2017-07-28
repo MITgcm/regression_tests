@@ -1,6 +1,6 @@
 #! /usr/bin/env bash
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/other/test_local,v 1.2 2015/08/03 15:54:05 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/other/test_local,v 1.3 2016/05/27 19:45:48 jmc Exp $
 # $Name:  $
 
 if test $# = 0 ; then
@@ -125,7 +125,7 @@ case $tt in
   echo '' >> ../../tr_run_$tt.log 2>&1
 
   ./testreport -MPI 3 -adm -of ../tools/build_options/linux_amd64_ifort11 \
-   -devel -q -a jmc@mitgcm.org >> ../../tr_run_$tt.log 2>&1
+   -devel -q -a jmc@dev.mitgcm.org >> ../../tr_run_$tt.log 2>&1
 
   sed -n "/ email /,/^======== End of testreport / p" ../../tr_run_$tt.log
 ;;
@@ -137,7 +137,7 @@ case $tt in
   echo '' >> ../../tr_run_$tt.log 2>&1
 
   ./testreport -MPI 3 -ur4 -adm -of ../tools/build_options/linux_amd64_ifort11 \
-   -devel -q -match 5 -a jmc@mitgcm.org >> ../../tr_run_$tt.log 2>&1
+   -devel -q -match 5 -a jmc@dev.mitgcm.org >> ../../tr_run_$tt.log 2>&1
 
   sed -n "/ email /,/^======== End of testreport / p" ../../tr_run_$tt.log
 ;;
@@ -152,13 +152,13 @@ case $tt in
   echo '' >> ../../tr_run_$tt.log 2>&1
 
   ./testreport -MPI 2 -mth -of ../tools/build_options/linux_amd64_ifort11 \
-   -devel -q -a jmc@mitgcm.org >> ../../tr_run_$tt.log 2>&1
+   -devel -q -a jmc@dev.mitgcm.org >> ../../tr_run_$tt.log 2>&1
 
   sed -n "/ email /,/^======== End of testreport / p" ../../tr_run_$tt.log
 
   #- test restart:
   echo '' >> ../../tr_run_$tt.log 2>&1
-  ../tools/do_tst_2+2 -mpi -a jmc@mitgcm.org >> ../../tr_run_$tt.log 2>&1
+  ../tools/do_tst_2+2 -mpi -a jmc@dev.mitgcm.org >> ../../tr_run_$tt.log 2>&1
 ;;
 
 'iur4')
@@ -168,19 +168,19 @@ case $tt in
   echo '' >> ../../tr_run_$tt.log 2>&1
 
   ./testreport -MPI 3 -ur4 -of ../tools/build_options/linux_amd64_ifort11 \
-   -devel -q -match 5 -a jmc@mitgcm.org >> ../../tr_run_$tt.log 2>&1
+   -devel -q -match 5 -a jmc@dev.mitgcm.org >> ../../tr_run_$tt.log 2>&1
 
   sed -n "/ email /,/^======== End of testreport / p" ../../tr_run_$tt.log
 
   #- test restart:
   echo '' >> ../../tr_run_$tt.log 2>&1
-  ../tools/do_tst_2+2 -mpi -a jmc@mitgcm.org >> ../../tr_run_$tt.log 2>&1
+  ../tools/do_tst_2+2 -mpi -a jmc@dev.mitgcm.org >> ../../tr_run_$tt.log 2>&1
 ;;
 
 'gadm')
 
   ./testreport -MPI 3 -adm -of ../tools/build_options/linux_amd64_gfortran \
-   -devel -ncad -nc -a jmc@mitgcm.org >> ../../tr_run_$tt.log 2>&1
+   -devel -ncad -nc -a jmc@dev.mitgcm.org >> ../../tr_run_$tt.log 2>&1
 
   sed -n "/ email /,/^======== End of testreport / p" ../../tr_run_$tt.log
 ;;
@@ -188,7 +188,7 @@ case $tt in
 'gads')
 
   ./testreport -adm -of ../tools/build_options/linux_amd64_gfortran \
-   -devel -ncad -nc -a jmc@mitgcm.org >> ../../tr_run_$tt.log 2>&1
+   -devel -ncad -nc -a jmc@dev.mitgcm.org >> ../../tr_run_$tt.log 2>&1
 
   sed -n "/ email /,/^======== End of testreport / p" ../../tr_run_$tt.log
 ;;
@@ -196,7 +196,7 @@ case $tt in
 'gad4')
 
   ./testreport -adm -ur4 -of ../tools/build_options/linux_amd64_gfortran \
-   -devel -ncad -nc -match 5 -a jmc@mitgcm.org >> ../../tr_run_$tt.log 2>&1
+   -devel -ncad -nc -match 5 -a jmc@dev.mitgcm.org >> ../../tr_run_$tt.log 2>&1
 
   sed -n "/ email /,/^======== End of testreport / p" ../../tr_run_$tt.log
 ;;
@@ -207,74 +207,74 @@ case $tt in
   export GOMP_STACKSIZE=400m
 
   ./testreport -MPI 2 -mth -of ../tools/build_options/linux_amd64_gfortran \
-   -devel -nc -a jmc@mitgcm.org >> ../../tr_run_$tt.log 2>&1
+   -devel -nc -a jmc@dev.mitgcm.org >> ../../tr_run_$tt.log 2>&1
 
   sed -n "/ email /,/^======== End of testreport / p" ../../tr_run_$tt.log
 
   #- test restart:
   echo '' >> ../../tr_run_$tt.log 2>&1
-  ../tools/do_tst_2+2 -mpi -a jmc@mitgcm.org >> ../../tr_run_$tt.log 2>&1
+  ../tools/do_tst_2+2 -mpi -a jmc@dev.mitgcm.org >> ../../tr_run_$tt.log 2>&1
 ;;
 
 'gmpi')
 
   ./testreport -MPI 3 -of ../tools/build_options/linux_amd64_gfortran \
-   -devel -nc -a jmc@mitgcm.org >> ../../tr_run_$tt.log 2>&1
+   -devel -nc -a jmc@dev.mitgcm.org >> ../../tr_run_$tt.log 2>&1
 
   sed -n "/ email /,/^======== End of testreport / p" ../../tr_run_$tt.log
 
   #- test restart:
   echo '' >> ../../tr_run_$tt.log 2>&1
-  ../tools/do_tst_2+2 -mpi -a jmc@mitgcm.org >> ../../tr_run_$tt.log 2>&1
+  ../tools/do_tst_2+2 -mpi -a jmc@dev.mitgcm.org >> ../../tr_run_$tt.log 2>&1
 ;;
 
 'gmp4')
 
   ./testreport -MPI 3 -ur4 -of ../tools/build_options/linux_amd64_gfortran \
-   -devel -nc -match 5 -a jmc@mitgcm.org >> ../../tr_run_$tt.log 2>&1
+   -devel -nc -match 5 -a jmc@dev.mitgcm.org >> ../../tr_run_$tt.log 2>&1
 
   sed -n "/ email /,/^======== End of testreport / p" ../../tr_run_$tt.log
 
   #- test restart:
   echo '' >> ../../tr_run_$tt.log 2>&1
-  ../tools/do_tst_2+2 -mpi -a jmc@mitgcm.org >> ../../tr_run_$tt.log 2>&1
+  ../tools/do_tst_2+2 -mpi -a jmc@dev.mitgcm.org >> ../../tr_run_$tt.log 2>&1
 ;;
 
 'gfo')
 
   ./testreport -of ../tools/build_options/linux_amd64_gfortran \
-   -devel -nc -a jmc@mitgcm.org >> ../../tr_run_$tt.log 2>&1
+   -devel -nc -a jmc@dev.mitgcm.org >> ../../tr_run_$tt.log 2>&1
 
   sed -n "/ email /,/^======== End of testreport / p" ../../tr_run_$tt.log
 
   #- test restart:
   echo '' >> ../../tr_run_$tt.log 2>&1
-  ../tools/do_tst_2+2 -a jmc@mitgcm.org >> ../../tr_run_$tt.log 2>&1
+  ../tools/do_tst_2+2 -a jmc@dev.mitgcm.org >> ../../tr_run_$tt.log 2>&1
 ;;
 
 'gfo4')
 
   ./testreport -ur4 -of ../tools/build_options/linux_amd64_gfortran \
-   -devel -nc -match 5 -a jmc@mitgcm.org >> ../../tr_run_$tt.log 2>&1
+   -devel -nc -match 5 -a jmc@dev.mitgcm.org >> ../../tr_run_$tt.log 2>&1
 
   sed -n "/ email /,/^======== End of testreport / p" ../../tr_run_$tt.log
 
   #- test restart:
   echo '' >> ../../tr_run_$tt.log 2>&1
-  ../tools/do_tst_2+2 -a jmc@mitgcm.org >> ../../tr_run_$tt.log 2>&1
+  ../tools/do_tst_2+2 -a jmc@dev.mitgcm.org >> ../../tr_run_$tt.log 2>&1
 ;;
 
 'g77')
 
   ./testreport -of ../tools/build_options/linux_amd64_g77 \
    -skd 'fizhi-cs-32x32x40 fizhi-cs-aqualev20' \
-   -nc -a jmc@mitgcm.org >> ../../tr_run_$tt.log 2>&1
+   -nc -a jmc@dev.mitgcm.org >> ../../tr_run_$tt.log 2>&1
 
   sed -n "/ email /,/^======== End of testreport / p" ../../tr_run_$tt.log
 
   #- test restart:
   echo '' >> ../../tr_run_$tt.log 2>&1
-  ../tools/do_tst_2+2 -a jmc@mitgcm.org >> ../../tr_run_$tt.log 2>&1
+  ../tools/do_tst_2+2 -a jmc@dev.mitgcm.org >> ../../tr_run_$tt.log 2>&1
 ;;
 
 *) echo "unrecognized test suffix '$tt' <== skipped" ;;
