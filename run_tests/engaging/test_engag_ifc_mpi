@@ -8,7 +8,7 @@
 #SBATCH -o /home/jm_c/test_engaging/output/tst_ifcMpi.stdout
 #SBATCH --no-requeue --constraint=centos6
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/engaging/test_engag_ifc_mpi,v 1.2 2017/05/11 22:51:45 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/engaging/test_engag_ifc_mpi,v 1.3 2017/07/28 16:52:01 jmc Exp $
 # $Name:  $
 
 if test -f /etc/profile.d/modules.sh ; then
@@ -51,7 +51,8 @@ addExp='global_oce_cs32 global_oce_llc90'
 #export MPI_INC_DIR="$MPI_HOME/include"
  OPTFILE="../tools/build_options/linux_amd64_ifort+impi"
  mpiCMD="mpirun -env I_MPI_DEBUG 2 -n TR_NPROC ./mitgcmuv" #- currently not used
- options="-j 4 $typ -MPI 8"
+ options="$typ -MPI 8"
+ options="-j 4 $options"
 #export OMP_NUM_THREADS=2
 #export KMP_SLAVE_STACK_SIZE=400m
 #options="$options -gsl"
