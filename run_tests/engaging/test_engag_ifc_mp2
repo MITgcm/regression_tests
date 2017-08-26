@@ -8,7 +8,7 @@
 #SBATCH -o /home/jm_c/test_engaging/output/tst_ifcMp2.stdout
 #SBATCH --no-requeue --constraint=centos6
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/engaging/test_engag_ifc_mp2,v 1.6 2017/07/28 16:52:02 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/engaging/test_engag_ifc_mp2,v 1.7 2017/08/25 13:01:35 jmc Exp $
 # $Name:  $
 
 if test -f /etc/profile.d/modules.sh ; then
@@ -52,7 +52,7 @@ addExp='atm_gray offline_cheapaml'
  OPTFILE="../tools/build_options/linux_amd64_ifort+impi"
  export GENERIC='on' # <-- to prevent the use of "-xHost" option
  mpiCMD="mpirun -env I_MPI_DEBUG 2 -n TR_NPROC ./mitgcmuv" #- currently not used
- options="$typ -MPI 8"
+ options="$typ -MPI 4 -mth"
  options="-j 4 $options"
  export OMP_NUM_THREADS=2
  export KMP_STACKSIZE=400m
