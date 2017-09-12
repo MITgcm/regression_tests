@@ -8,7 +8,7 @@
 #SBATCH -o /home/jm_c/test_engaging/output/tst_ifcMp2.stdout
 #SBATCH --no-requeue --constraint=centos6
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/engaging/test_engag_ifc_mp2,v 1.7 2017/08/25 13:01:35 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/engaging/test_engag_ifc_mp2,v 1.8 2017/08/26 16:25:49 jmc Exp $
 # $Name:  $
 
 if test -f /etc/profile.d/modules.sh ; then
@@ -53,7 +53,7 @@ addExp='atm_gray offline_cheapaml'
  export GENERIC='on' # <-- to prevent the use of "-xHost" option
  mpiCMD="mpirun -env I_MPI_DEBUG 2 -n TR_NPROC ./mitgcmuv" #- currently not used
  options="$typ -MPI 4 -mth"
- options="-j 4 $options"
+#options="-j 4 $options"
  export OMP_NUM_THREADS=2
  export KMP_STACKSIZE=400m
 #options="$options -gsl"
@@ -192,15 +192,28 @@ else
   exit
 fi
 
+#- 0) just make all module header ( *__genmod.mod files) using modified Makefile
+#  <-- skip this step
   echo ''
- #echo ./testreport $options -of $OPTFILE -command \'$mpiCMD\' -mf $MPI_MFile \
+#- 1) just compile ("-nr"), using "-j 4" to speed up
   echo ./testreport $options -of $OPTFILE \
-    -odir ${dNam}-$sfx -send \'$SEND\' -sd $SavD -a jmc@dev.mitgcm.org
- #./testreport $options -of $OPTFILE -command "$mpiCMD" -mf $MPI_MFile \
+    -j 4 -nr -odir ${dNam}-$sfx
   ./testreport $options -of $OPTFILE \
-    -odir ${dNam}-$sfx -send "$SEND" -sd $SavD -a jmc@dev.mitgcm.org
+    -j 4 -nr -odir ${dNam}-$sfx
+  nFc=`grep -c '^Y . N N ' tr_out.txt`
+  echo " <= fail to compile $nFc experiments"
 
   echo ''
+#- 2) run and report results ; also finish to compile those who failed with "-j"
+ #echo ./testreport $options -of $OPTFILE -command \'$mpiCMD\' -mf $MPI_MFile \
+  echo ./testreport $options -of $OPTFILE \
+    -q -odir ${dNam}-$sfx -send \'$SEND\' -sd $SavD -a jmc@dev.mitgcm.org
+ #./testreport $options -of $OPTFILE -command "$mpiCMD" -mf $MPI_MFile \
+  ./testreport $options -of $OPTFILE \
+    -q -odir ${dNam}-$sfx -send "$SEND" -sd $SavD -a jmc@dev.mitgcm.org
+
+  echo ''
+#- 3) test restart and report results
  #echo ../tools/do_tst_2+2 -mpi -exe \'$mpiCMD\' -mf $MPI_MFile \
   echo ../tools/do_tst_2+2 -mpi \
     -o ${dNam}-$sfx -send \'$SEND\' -sd $SavD -a jmc@dev.mitgcm.org
