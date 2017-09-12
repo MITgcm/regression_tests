@@ -9,7 +9,7 @@
 #SBATCH -o /home/jm_c/test_svante/output/ifcMPI_tst.stdout
 #SBATCH --no-requeue
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/svante/test_svante_ifc_mpi,v 1.5 2017/05/10 16:34:29 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/svante/test_svante_ifc_mpi,v 1.6 2017/07/28 17:07:24 jmc Exp $
 # $Name:  $
 
 if test -f /etc/profile.d/modules.sh    ; then . /etc/profile.d/modules.sh    ; fi
@@ -47,6 +47,7 @@ sfx='ifcMPI'
 #- needed for DIVA with MPI:
 #export MPI_INC_DIR=$INC_MPI
  options="$typ -j 2 -MPI 6"
+#options="-j 2 $options"
 #- need this to get "staf":
 #export PATH="$PATH:$HOME/bin"
 
@@ -159,24 +160,38 @@ fi
 if [ $dAlt -eq 1 ] ; then
   options="$options -fast"
   echo ''
+  #- 1) just compile ("-nr"), using "-j 2" to speed up
   echo ./testreport $options -of $OPTFILE -skd \'$skipExp\' \
-    -odir ${dNam}-$sfx -send \'$SEND\' -sd $SavD -a jmc@dev.mitgcm.org
+    -j 2 -nr -odir ${dNam}-$sfx
   ./testreport $options -of $OPTFILE -skd "$skipExp" \
-    -odir ${dNam}-$sfx -send "$SEND" -sd $SavD -a jmc@dev.mitgcm.org
+    -j 2 -nr -odir ${dNam}-$sfx
+  nFc=`grep -c '^Y . N N ' tr_out.txt`
+  echo " <= fail to compile $nFc experiments"
 else
   options="$options -devel"
   echo ''
+  #- 0) just make all module header ( *__genmod.mod files) using modified Makefile
   echo ./testreport $options -of $OPTFILE -skd \'$skipExp\' \
     -repl_mk do_make_syntax.sh -obj -dd
   ./testreport $options -of $OPTFILE -skd "$skipExp" \
     -repl_mk do_make_syntax.sh -obj -dd 2>&1
   echo ''
+  #- 1) just compile ("-nr"), using "-j 2" to speed up
+  echo ./testreport $options -of $OPTFILE -skd \'$skipExp\' \
+    -j 2 -nr -q -odir ${dNam}-$sfx
+  ./testreport $options -of $OPTFILE -skd "$skipExp" \
+    -j 2 -nr -q -odir ${dNam}-$sfx
+  nFc=`grep -c '^Y . N N ' tr_out.txt`
+  echo " <= fail to compile $nFc experiments"
+fi
+  echo ''
+  #- 2) run and report results ; also finish to compile those who failed with "-j"
   echo ./testreport $options -of $OPTFILE -skd \'$skipExp\' \
     -q -odir ${dNam}-$sfx -send \'$SEND\' -sd $SavD -a jmc@dev.mitgcm.org
   ./testreport $options -of $OPTFILE -skd "$skipExp" \
     -q -odir ${dNam}-$sfx -send "$SEND" -sd $SavD -a jmc@dev.mitgcm.org
-fi
   echo ''
+  #- 3) test restart and report results
   echo ../tools/do_tst_2+2 -mpi \
     -o ${dNam}-$sfx -send \'$SEND\' -sd $SavD -a jmc@dev.mitgcm.org
   ../tools/do_tst_2+2 -mpi \
