@@ -9,7 +9,7 @@
 #SBATCH -o /home/jm_c/test_svante/output/pgiMPI_tst.stdout
 #SBATCH --no-requeue
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/svante/test_svante_pgi_mpi,v 1.11 2017/07/28 17:07:24 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/svante/test_svante_pgi_mpi,v 1.12 2017/12/28 17:33:38 jmc Exp $
 # $Name:  $
 
 if test -f /etc/profile.d/modules.sh    ; then . /etc/profile.d/modules.sh    ; fi
@@ -182,13 +182,13 @@ fi
 
 echo ''
 echo ./testreport $options -of $OPTFILE -skd \'$skipExp\' \
-  -odir ${dNam}-$sfx -send \'$SEND\' -sd $SavD -a jmc@dev.mitgcm.org
+  -odir ${dNam}-$sfx -send \'$SEND\' -sd $SavD -a jm_c@mitgcm.org
 ./testreport $options -of $OPTFILE -skd "$skipExp" \
-  -odir ${dNam}-$sfx -send "$SEND" -sd $SavD -a jmc@dev.mitgcm.org
+  -odir ${dNam}-$sfx -send "$SEND" -sd $SavD -a jm_c@mitgcm.org
 
 echo ''
 echo ../tools/do_tst_2+2 -mpi \
-  -o ${dNam}-$sfx -send \'$SEND\' -sd $SavD -a jmc@dev.mitgcm.org
+  -o ${dNam}-$sfx -send \'$SEND\' -sd $SavD -a jm_c@mitgcm.org
 ../tools/do_tst_2+2 -mpi \
-  -o ${dNam}-$sfx -send "$SEND" -sd $SavD -a jmc@dev.mitgcm.org
+  -o ${dNam}-$sfx -send "$SEND" -sd $SavD -a jm_c@mitgcm.org
 

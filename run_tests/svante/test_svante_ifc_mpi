@@ -9,7 +9,7 @@
 #SBATCH -o /home/jm_c/test_svante/output/ifcMPI_tst.stdout
 #SBATCH --no-requeue
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/svante/test_svante_ifc_mpi,v 1.7 2017/09/12 18:45:40 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/svante/test_svante_ifc_mpi,v 1.8 2017/12/28 17:33:38 jmc Exp $
 # $Name:  $
 
 if test -f /etc/profile.d/modules.sh    ; then . /etc/profile.d/modules.sh    ; fi
@@ -187,13 +187,13 @@ fi
   echo ''
   #- 2) run and report results ; also finish to compile those who failed with "-j"
   echo ./testreport $options -of $OPTFILE -skd \'$skipExp\' \
-    -q -odir ${dNam}-$sfx -send \'$SEND\' -sd $SavD -a jmc@dev.mitgcm.org
+    -q -odir ${dNam}-$sfx -send \'$SEND\' -sd $SavD -a jm_c@mitgcm.org
   ./testreport $options -of $OPTFILE -skd "$skipExp" \
-    -q -odir ${dNam}-$sfx -send "$SEND" -sd $SavD -a jmc@dev.mitgcm.org
+    -q -odir ${dNam}-$sfx -send "$SEND" -sd $SavD -a jm_c@mitgcm.org
   echo ''
   #- 3) test restart and report results
   echo ../tools/do_tst_2+2 -mpi \
-    -o ${dNam}-$sfx -send \'$SEND\' -sd $SavD -a jmc@dev.mitgcm.org
+    -o ${dNam}-$sfx -send \'$SEND\' -sd $SavD -a jm_c@mitgcm.org
   ../tools/do_tst_2+2 -mpi \
-    -o ${dNam}-$sfx -send "$SEND" -sd $SavD -a jmc@dev.mitgcm.org
+    -o ${dNam}-$sfx -send "$SEND" -sd $SavD -a jm_c@mitgcm.org
 
