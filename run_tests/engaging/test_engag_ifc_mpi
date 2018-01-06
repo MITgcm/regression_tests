@@ -4,11 +4,12 @@
 #SBATCH --mem-per-cpu 4000
 #SBATCH -N 2
 #SBATCH --tasks-per-node 4
+#SBATCH -x node[016,030,031,073,125,198,332]
 #SBATCH -e /home/jm_c/test_engaging/output/tst_ifcMpi.stderr
 #SBATCH -o /home/jm_c/test_engaging/output/tst_ifcMpi.stdout
 #SBATCH --no-requeue --constraint=centos6
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/engaging/test_engag_ifc_mpi,v 1.4 2017/08/25 13:01:35 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/engaging/test_engag_ifc_mpi,v 1.5 2017/09/12 18:47:45 jmc Exp $
 # $Name:  $
 
 if test -f /etc/profile.d/modules.sh ; then
@@ -200,6 +201,7 @@ else
   exit
 fi
 
+if [ $checkOut -ge 1 ] ; then
   echo ''
 #- 0) just make all module header ( *__genmod.mod files) using modified Makefile
   echo ./testreport $options -of $OPTFILE \
@@ -215,22 +217,23 @@ fi
     -j 4 -nr -q -odir ${dNam}-$sfx
   nFc=`grep -c '^Y . N N ' tr_out.txt`
   echo " <= fail to compile $nFc experiments"
+fi
 
   echo ''
 #- 2) run and report results ; also finish to compile those who failed with "-j"
  #echo ./testreport $options -of $OPTFILE -command \'$mpiCMD\' -mf $MPI_MFile \
   echo ./testreport $options -of $OPTFILE \
-    -q -odir ${dNam}-$sfx -send \'$SEND\' -sd $SavD -a jmc@dev.mitgcm.org
+    -q -odir ${dNam}-$sfx -send \'$SEND\' -sd $SavD -a jm_c@mitgcm.org
  #./testreport $options -of $OPTFILE -command "$mpiCMD" -mf $MPI_MFile \
   ./testreport $options -of $OPTFILE \
-    -q -odir ${dNam}-$sfx -send "$SEND" -sd $SavD -a jmc@dev.mitgcm.org
+    -q -odir ${dNam}-$sfx -send "$SEND" -sd $SavD -a jm_c@mitgcm.org
 
   echo ''
 #- 3) test restart and report results
  #echo ../tools/do_tst_2+2 -mpi -exe \'$mpiCMD\' -mf $MPI_MFile \
   echo ../tools/do_tst_2+2 -mpi \
-    -o ${dNam}-$sfx -send \'$SEND\' -sd $SavD -a jmc@dev.mitgcm.org
+    -o ${dNam}-$sfx -send \'$SEND\' -sd $SavD -a jm_c@mitgcm.org
  #../tools/do_tst_2+2 -mpi -exe "$mpiCMD" -mf $MPI_MFile \
   ../tools/do_tst_2+2 -mpi \
-    -o ${dNam}-$sfx -send "$SEND" -sd $SavD -a jmc@dev.mitgcm.org
+    -o ${dNam}-$sfx -send "$SEND" -sd $SavD -a jm_c@mitgcm.org
 
