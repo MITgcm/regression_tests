@@ -15,7 +15,7 @@
 #   if not, testreport will try to run the sx ace-code on the tx7 frontend
 #   which will fail inevitably and produce more errors, maybe we can
 #   have a flag that skips everything but the evaluation step to avoid this
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/sxace/mitgcmtestreport,v 1.1 2015/04/08 14:28:53 mlosch Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/sxace/mitgcmtestreport,v 1.2 2015/09/01 08:03:35 mlosch Exp $
 # $Name:  $
 
 # for some reason the module command is not available in a bash script on
@@ -160,7 +160,7 @@ echo "now run testreport for a final time to evaluate results:" >> $MYOUTPUT
 echo "$RUNTESTREPORT -match 10 -runonly" >> $MYOUTPUT
 #$RUNTESTREPORT -match 10 -runonly >> $MYOUTPUT 2>&1
 $RUNTESTREPORT -match 10 -runonly \
-    -a "jmc@mitgcm.org" >> $MYOUTPUT 2>&1
-#   -a "jmc@mitgcm.org, Martin.Losch@awi.de" >> $MYOUTPUT 2>&1
+    -a "jm_c@mitgcm.org" >> $MYOUTPUT 2>&1
+#   -a "jm_c@mitgcm.org, Martin.Losch@awi.de" >> $MYOUTPUT 2>&1
 
 echo "end of mitgcmtestreport"
