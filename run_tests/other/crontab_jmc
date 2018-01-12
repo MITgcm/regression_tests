@@ -4,7 +4,7 @@
 #   sed -n '1,/^# \$Header:/ p' crontab_jmc.bak > crontab_jmc
 #   ( echo '' ; crontab -l ) >> crontab_jmc
 #-
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/other/crontab_jmc,v 1.4 2016/05/27 19:45:48 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/other/crontab_jmc,v 1.5 2017/07/28 17:02:33 jmc Exp $
 
 #- crontab output from: jmc@jaures.mit.edu
 #35 23 28-31 * * cd /run/media/jmc/extd/jmc/test_jaures && ./test_local ifort >& test_local.outp_0
@@ -13,3 +13,4 @@
 #02 00   02  * * cd /run/media/jmc/extd/jmc/test_jaures && ./test_local gfor4 >& test_local.outp_1
 #02 00   03  * * cd /run/media/jmc/extd/jmc/test_jaures && ./test_local gfor8 >& test_local.outp_2
 #42 16  * * *   cd /home/jmc/mitgcm/testing && ./test_crontab >& cron_job.outp
+
