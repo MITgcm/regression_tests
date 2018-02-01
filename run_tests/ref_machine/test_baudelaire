@@ -1,6 +1,6 @@
 #! /usr/bin/env bash
 
-# $Header: /u/gcmpack/MITgcm/tools/example_scripts/csail/test_baudelaire,v 1.38 2018/01/29 21:59:01 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/ref_machine/test_baudelaire,v 1.1 2018/01/31 23:33:23 jmc Exp $
 
 #  Test script for MITgcm that should work on most of the x86_64 Linux machines.
 
@@ -312,7 +312,9 @@ do
 
 #-- set specific Env Vars:
   if test $typ = 'oad' ; then
-    source $HOME/mitgcm/bin/setenv_OpenAD.sh	| tee -a $tdir/output_$tt
+    #- for some reasons, "source ScriptFile | tee -a LogFile"
+    #  does run the script but does not keep the env-var settings
+    source $HOME/mitgcm/bin/setenv_OpenAD.sh	>> $tdir/output_$tt
   fi
   if test $typ = 'ifc' ; then
     source /srv/software/intel/intel-11.1.073/bin/ifortvars.sh intel64
