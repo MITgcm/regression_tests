@@ -1,6 +1,6 @@
 #! /usr/bin/env bash
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/ref_machine/test_baudelaire,v 1.1 2018/01/31 23:33:23 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/ref_machine/test_baudelaire,v 1.2 2018/02/01 16:38:45 jmc Exp $
 
 #  Test script for MITgcm that should work on most of the x86_64 Linux machines.
 
@@ -29,8 +29,8 @@ ulimit -s unlimited
 # cmdCVS='cvs -q -d :ext:jmc@mitgcm.org:/u/gcmpack'
 
 #- and which GitHub repository to use:
-  git_repo='MITgcm' ; git_code='MITgcm'
-# git_repo='altMITgcm' ; git_code='MITgcm66h'
+  git_repo='MITgcm';  git_code='MITgcm'
+ #git_repo='altMITgcm'; #git_code='MITgcm66h'
 
 # checkOut=3 : clone from GitHub and make a new copy (if sepDir)
 #   =2 : update (git pull) repo  and make a new copy code  (switch to 2 if no repo)
