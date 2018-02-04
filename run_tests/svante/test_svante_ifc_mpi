@@ -9,7 +9,7 @@
 #SBATCH -o /home/jm_c/test_svante/output/ifcMPI_tst.stdout
 #SBATCH --no-requeue
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/svante/test_svante_ifc_mpi,v 1.9 2018/01/05 22:13:25 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/svante/test_svante_ifc_mpi,v 1.10 2018/01/31 04:29:30 jmc Exp $
 # $Name:  $
 
 if test -f /etc/profile.d/modules.sh    ; then . /etc/profile.d/modules.sh    ; fi
@@ -29,14 +29,27 @@ OUTP="$HERE/output"; SavD="$HERE/send"
 SEND="ssh $headNode $SavD/mpack"
 TST_DISK="/net/fs09/d1/jm_c"
 TST_DIR="$TST_DISK/test_${dNam}"
+#- where local copy of code is (need to be consistent with "test_submit_svante"):
+#srcDIR=$HERE
+srcDIR='.'
+srcCode="MITgcm_today"
 
-cd $TST_DISK ; pwd
-if test -d $TST_DIR ; then
-  echo "start from TST_DIR='$TST_DIR' at: "`date`
-else
-  echo "ERROR: missing directory \"$TST_DIR\""
-  exit 1
+echo "cd $TST_DISK ; pwd (x2)"
+cd $TST_DISK
+pwd
+if test ! -d $TST_DIR ; then
+   echo -n "Creating a working dir: $TST_DIR ..."
+  #/bin/rm -rf $TST_DIR
+   mkdir $TST_DIR
+   retVal=$?
+   if test "x$retVal" != x0 ; then
+      echo "Error: unable to make dir: $TST_DIR (err=$retVal ) --> Exit"
+      exit 1
+   fi
 fi
+echo "start from TST_DIR='$TST_DIR' at: "`date`
+cd $TST_DIR
+pwd
 
 typ='' ; addExp='' ; skipExp=''
 sfx='ifcMPI'
@@ -75,7 +88,6 @@ echo '==========================================================================
 
 cmdCVS='cvs -d :pserver:cvsanon@mitgcm.org:/u/gcmpack -q'
 gcmDIR="MITgcm_$sfx"
-cd $TST_DIR
 #- check for disk space: relative space (99%) or absolute (10.G):
 dsp=`df -P . | tail -1 | awk '{print $5}' | sed 's/%$//'`
 if [ $dsp -gt 99 ] ; then
@@ -96,10 +108,10 @@ if [ $checkOut -eq 1 ] ; then
       do
         if test -d $dd ; then
           tar -cf ${dd}".tar" $dd > /dev/null 2>&1 && gzip ${dd}".tar" && /bin/rm -rf $dd
-          RETVAL=$?
-          if test "x$RETVAL" != x0 ; then
+          retVal=$?
+          if test "x$retVal" != x0 ; then
              echo "ERROR in tar+gzip prev outp-dir: $dd"
-             echo " on '"`hostname`"' (return val=$RETVAL) but continue"
+             echo " on '"`hostname`"' (return val=$retVal) but continue"
           fi
         fi
       done )
@@ -107,9 +119,9 @@ if [ $checkOut -eq 1 ] ; then
     ( cd $gcmDIR/verification ; ./testreport $typ -clean )
     echo "cvs update of dir $gcmDIR :"
     ( cd $gcmDIR ; $cmdCVS update -P -d ) 2>&1
-    RETVAL=$?
-    if test "x$RETVAL" != x0 ; then
-       echo "cvs update on '"`hostname`"' fail (return val=$RETVAL) => exit"
+    retVal=$?
+    if test "x$retVal" != x0 ; then
+       echo "cvs update on '"`hostname`"' fail (return val=$retVal) => exit"
        exit
     fi
   else
@@ -125,7 +137,7 @@ if [ $checkOut -eq 2 ] ; then
   fi
 # make a local copy (instead of using CVS):
   today=`date +%Y%m%d`
-  nCount=0; updFile='updated_code'
+  nCount=0; updFile="${srcDIR}/updated_code"
   updDate=0 ; test -f $updFile && updDate=`cat $updFile`
   while [ $today -gt $updDate ] ; do
    nCount=`expr $nCount + 1`
@@ -140,11 +152,11 @@ if [ $checkOut -eq 2 ] ; then
   done
   ls -l $updFile
   echo " waited nCount=$nCount for updated code ($updDate) to copy"
-  if test -d MITgcm ; then
-    echo -n "Make local copy of dir 'MITgcm' to: $gcmDIR ..."
-    cp -pra MITgcm $gcmDIR
+  if test -d $srcDIR/$srcCode ; then
+    echo -n "Make local copy of dir '$srcDIR/$srcCode' to: $gcmDIR ..."
+    cp -pra $srcDIR/$srcCode $gcmDIR
     echo "  done"
-  else echo " dir: MITgcm missing => exit" ; exit ; fi
+  else echo " dir: $srcDIR/$srcCode missing => exit" ; exit ; fi
 fi
 
 #- change dir to $gcmDIR/verification dir:
