@@ -9,7 +9,7 @@
 #SBATCH -o /home/jm_c/test_svante/output/pgiMth_tst.stdout
 #SBATCH --no-requeue
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/svante/test_svante_pgi_mth,v 1.5 2018/01/05 22:13:25 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/svante/test_svante_pgi_mth,v 1.6 2018/02/04 21:03:20 jmc Exp $
 # $Name:  $
 
 if test -f /etc/profile.d/modules.sh    ; then . /etc/profile.d/modules.sh    ; fi
@@ -27,11 +27,12 @@ dNam='svante'
 HERE="$HOME/test_${dNam}"
 OUTP="$HERE/output"; SavD="$HERE/send"
 SEND="ssh $headNode $SavD/mpack"
-TST_DISK="/net/fs09/d1/jm_c"
+#TST_DISK="/net/fs09/d1/jm_c"
+TST_DISK="/scratch/jm_c"
 TST_DIR="$TST_DISK/test_${dNam}"
 #- where local copy of code is (need to be consistent with "test_submit_svante"):
-#srcDIR=$HERE
-srcDIR='.'
+#srcDIR='.'
+srcDIR=$HERE
 srcCode="MITgcm_today"
 
 echo "cd $TST_DISK ; pwd (x2)"
