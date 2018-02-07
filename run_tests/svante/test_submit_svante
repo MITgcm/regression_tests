@@ -1,6 +1,6 @@
 #! /usr/bin/env bash
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/svante/test_submit_svante,v 1.16 2018/02/04 21:03:20 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/svante/test_submit_svante,v 1.17 2018/02/05 13:36:05 jmc Exp $
 # $Name:  $
 
 today=`date +%Y%m%d`
@@ -23,6 +23,7 @@ dNam='svante'
 HERE="$HOME/test_${dNam}"
 TST_DISK="/net/fs09/d1/jm_c"
 TST_DIR="$TST_DISK/test_${dNam}"
+tmpFil="/tmp/"`basename $0`".$$"
 #- where local copy of code is (need to be consistent with run-job scripts):
 #srcDIR=$TST_DIR
 srcDIR=$HERE
@@ -66,81 +67,94 @@ module add slurm
 module list 						>> $LOG_FIL 2>&1
 
 #- method to acces CVS:
-cmdCVS='cvs -d :pserver:cvsanon@mitgcm.org:/u/gcmpack -q'
+  cmdCVS='cvs -d :pserver:cvsanon@mitgcm.org:/u/gcmpack -q'
+#- and which GitHub repository to use:
+  git_repo='MITgcm';  git_code='MITgcm'
+ #git_repo='altMITgcm'; #git_code='MITgcm66h'
+
+checkOut=1
+addExp=''
+updFile='updated_code'
 
 #---+----1----+----2----+----3----+----4----+----5----+----6----+----7-|--+----|
 #-- Download/Update reference version of MITgcm code:
-checkOut=1
-exp2add=''
-updFile='updated_code'
+if [ $checkOut -ge 1 ] ; then
 
-if test $srcDIR = $TST_DIR ; then
-  echo "cd $TST_DISK ; pwd (x2)" | tee -a $LOG_FIL
-  cd $TST_DISK	| tee -a $LOG_FIL 2>&1
-  pwd		| tee -a $LOG_FIL
-fi
-if test ! -d $srcDIR ; then
-   echo -n "Creating a working dir: $srcDIR ..."	| tee -a $LOG_FIL
-  #/bin/rm -rf $srcDIR
-   mkdir $srcDIR
-   retVal=$?
-   if test "x$retVal" != x0 ; then
-      echo "Error: unable to make dir: $srcDIR (err=$retVal ) --> Exit" | tee -a $LOG_FIL
-      exit 1
-   fi
-fi
-cd $srcDIR
-pwd		| tee -a $LOG_FIL
-
-#- remove date/lock-file:
-if test -f $updFile ; then rm -f $updFile ; sleep 2 ; fi
-
-if [ $checkOut -eq 1 ] ; then
-  if test -d $srcCode/CVS ; then
-    echo -n "Update dir $srcCode using '$cmdCVS update -P -d' ..." | tee -a $LOG_FIL
-    echo '' >> $LOG_FIL
-    ( cd $srcCode ; $cmdCVS update -P -d )		>> $LOG_FIL 2>&1
-    RETVAL=$?
-    if test "x$RETVAL" != x0 ; then echo ''
-       echo "cvs update on '"`hostname`"' fail (return val=$RETVAL) => exit" | tee -a $LOG_FIL
-       exit
-    else echo "  done"					| tee -a $LOG_FIL
-    fi
- else
-    echo "no dir: $srcCode/CVS => try a fresh check-out"	| tee -a $LOG_FIL
-    checkOut=2
+  if test $srcDIR = $TST_DIR ; then
+    echo "cd $TST_DISK ; pwd (x2)" | tee -a $LOG_FIL
+    cd $TST_DISK	| tee -a $LOG_FIL 2>&1
+    pwd			| tee -a $LOG_FIL
   fi
-fi
-if [ $checkOut -eq 2 ] ; then
-    test -e $srcCode && rm -rf $srcCode
-    echo -n "Downloading using '$cmdCVS co -P -d $srcCode MITgcm' ..."	| tee -a $LOG_FIL
-    $cmdCVS co -P -d $srcCode MITgcm > /dev/null
-    RETVAL=$?
-    if test "x$RETVAL" != x0 ; then echo ''		| tee -a $LOG_FIL
-      echo "cvs co on '"`hostname`"' fail (return val=$RETVAL) => exit"	| tee -a $LOG_FIL
-      exit
-    else echo "  done"					| tee -a $LOG_FIL
-    fi
-    if test -d $srcCode/verification ; then
-      for exp2add in $addExp ; do
-        echo " add dir: $exp2add (from Contrib:verification_other)" | tee -a $LOG_FIL
-        ( cd $srcCode/verification ; $cmdCVS co -P -d $exp2add \
-                       MITgcm_contrib/verification_other/$exp2add > /dev/null )
-      done
-    fi
-    /usr/bin/find $srcCode -type d | xargs chmod g+rxs
-    /usr/bin/find $srcCode -type f | xargs chmod g+r
-fi
+  if test ! -d $srcDIR ; then
+     echo -n "Creating a working dir: $srcDIR ..."	| tee -a $LOG_FIL
+    #/bin/rm -rf $srcDIR
+     mkdir $srcDIR
+     retVal=$?
+     if test "x$retVal" != x0 ; then
+       echo "Error: unable to make dir: $srcDIR (err=$retVal ) --> Exit" | tee -a $LOG_FIL
+       exit 1
+     fi
+  fi
+  cd $srcDIR
+  pwd		| tee -a $LOG_FIL
 
-#- update date/lock-file:
-if test -d $srcCode/verification ; then
-  echo $today > $updFile ; sleep 2
-  ls -l $updFile					| tee -a $LOG_FIL
-fi
+  #- remove date/lock-file and old copy:
+  if test -f $updFile ; then rm -f $updFile ; sleep 2 ; fi
+  test -e $srcCode && rm -rf $srcCode
 
-#-- leave TST Dir and go back to output dir
-cd $OUT_DIR
+  if [ $checkOut -eq 1 ] ; then
+    if test -e $git_code/.git/config ; then
+      echo -n "Updating current clone ( $git_code ) ..."	| tee -a $LOG_FIL
+      echo '' >> $LOG_FIL
+      ( cd $git_code ; git pull )				>> $LOG_FIL 2>&1
+      retVal=$?
+      if test "x$retVal" != x0 ; then echo ''
+         echo "'git pull' on '"`hostname`"' fail (return val=$retVal) => exit" | tee -a $LOG_FIL
+         exit
+      else echo "  done"					| tee -a $LOG_FIL
+      fi
+    else
+      echo "missing file: $git_code/.git/config => try a new clone"	| tee -a $LOG_FIL
+      checkOut=2
+    fi
+  fi
+  if [ $checkOut -eq 2 ] ; then
+    echo -n "Make a clone of $git_code from repo: $git_repo ..."	| tee -a $LOG_FIL
+    git clone https://github.com/$git_repo/${git_code}.git 2> $tmpFil
+    retVal=$?
+    if test $retVal = 0 ; then
+       echo ' --> done!'				| tee -a $LOG_FIL
+       rm -f $tmpFil
+    else echo ''					| tee -a $LOG_FIL
+       echo " Error: 'git clone' returned: $retVal"	| tee -a $LOG_FIL
+       cat $tmpFil ; rm -f $tmpFil
+       exit 2
+    fi
+  fi
+  #---- making a new working copy: MITgcm_today
+  ( cd $git_code ; git checkout master )
+  rsync -a $git_code/ $srcCode --exclude '.git'
+  if test -d $srcCode/verification ; then
+    for exp2add in $addExp ; do
+      echo " add dir: $exp2add (from Contrib:verification_other)" | tee -a $LOG_FIL
+      ( cd $srcCode/verification ; $cmdCVS co -P -d $exp2add \
+                    MITgcm_contrib/verification_other/$exp2add > /dev/null )
+    done
+  fi
+  /usr/bin/find $srcCode -type d | xargs chmod g+rxs
+  /usr/bin/find $srcCode -type f | xargs chmod g+r
+  #- update date/lock-file:
+  if test -d $srcCode/verification ; then
+    echo $today > $updFile ; sleep 2
+    ls -l $updFile					| tee -a $LOG_FIL
+  fi
+
 #---+----1----+----2----+----3----+----4----+----5----+----6----+----7-|--+----|
+#-- Done with Download/Update of MITgcm code
+fi
+
+#-- leave srcDIR and go back to output dir
+cd $OUT_DIR
 #-- now really do something:
 
   JOB_LIST=$TEST_LIST
@@ -182,6 +196,7 @@ cd $OUT_DIR
           echo -n "--> $JOB : "				| tee -a $LOG_FIL
           $QSUB $SUB_DIR/$BATCH_SCRIPT			| tee -a $LOG_FIL
           NB_SUB_JOBS=`expr $NB_SUB_JOBS + 1`
+          sleep 1
       else
           echo "--> $JOB :"				| tee -a $LOG_FIL
           #$QSTAT | grep $JOB				| tee -a $LOG_FIL
