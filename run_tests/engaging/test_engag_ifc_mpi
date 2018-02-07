@@ -9,7 +9,7 @@
 #SBATCH -o /home/jm_c/test_engaging/output/tst_ifcMpi.stdout
 #SBATCH --no-requeue --constraint=centos6
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/engaging/test_engag_ifc_mpi,v 1.5 2017/09/12 18:47:45 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/engaging/test_engag_ifc_mpi,v 1.6 2018/01/06 16:05:39 jmc Exp $
 # $Name:  $
 
 if test -f /etc/profile.d/modules.sh ; then
@@ -28,20 +28,11 @@ HERE="$HOME/test_$dNam"
 OUTP="$HERE/output"; SavD="$HERE/send"
 SEND="ssh eofe4 $SavD/mpack"
 TST_DIR="/pool001/jm_c/test_$dNam"
-
-if test -d $TST_DIR ; then
-  echo "start from TST_DIR='$TST_DIR' at: "`date`
-else
- #if test ! -d /scratch/jm_c ; then mkdir /scratch/jm_c ; fi
- #if test ! -d $TST_DIR ; then mkdir $TST_DIR ; fi
- #if test ! -d $TST_DIR ; then
- #  echo "ERROR: Can't create directory \"$TST_DIR\""
- #  exit 1
- #fi
- #echo "start in new dir TST_DIR='$TST_DIR' at: "`date`
-  echo "ERROR: missing directory \"$TST_DIR\""
-  exit 1
-fi
+tmpFil="/tmp/"`basename $0`".$$"
+  cmdCVS='cvs -d :pserver:cvsanon@mitgcm.org:/u/gcmpack -q'
+#- and which GitHub repository to use:
+  git_repo='MITgcm';  git_code='MITgcm'
+ #git_repo='altMITgcm'; #git_code='MITgcm66h'
 
 typ='' ; addExp='' ; skipExp=''
 sfx='ifcMpi'
@@ -62,6 +53,7 @@ addExp='global_oce_cs32 global_oce_llc90'
 #- need this to get "staf" & "do_make_syntax.sh":
  export PATH="$PATH:$HOME/bin"
 
+gcmDIR="MITgcm_$sfx"
 dAlt=`date +%d` ; dAlt=`expr $dAlt % 3`
 if [ $dAlt -eq 1 ] ; then options="$options -ur4 -match 5" ; fi
 options="$options -devel"
@@ -69,6 +61,21 @@ options="$options -devel"
 checkOut=1 ; #options="$options -do"
 #options="$options -nc" ; checkOut=1
 #options="$options -q"  ; checkOut=0
+
+if test -d $TST_DIR ; then
+  echo "start from TST_DIR='$TST_DIR' at: "`date`
+else
+ #if test ! -d $TST_DIR ; then mkdir $TST_DIR ; fi
+ #if test ! -d $TST_DIR ; then
+ #  echo "ERROR: Can't create directory \"$TST_DIR\""
+ #  exit 1
+ #fi
+ #echo "start in new dir TST_DIR='$TST_DIR' at: "`date`
+  echo "ERROR: missing directory \"$TST_DIR\""
+  exit 1
+fi
+cd $TST_DIR
+pwd
 
 NSLOTS=$SLURM_NTASKS
 THEDATE=`date`
@@ -99,9 +106,6 @@ echo '==========================================================================
   done
  done
 
-cmdCVS='cvs -d :pserver:cvsanon@mitgcm.org:/u/gcmpack -q'
-gcmDIR="MITgcm_$sfx"
-cd $TST_DIR
 #- check for disk space: relative space (99%) or absolute (10.G):
 dsp=`df -P . | tail -1 | awk '{print $5}' | sed 's/%$//'`
 if [ $dsp -gt 99 ] ; then
@@ -112,7 +116,7 @@ if [ $dsp -gt 99 ] ; then
   exit
 fi
 if [ $checkOut -eq 1 ] ; then
-  if test -d $gcmDIR/CVS ; then
+  if test -e $gcmDIR/.git/config ; then
     echo "cleaning output from $gcmDIR/verification :"
 #- remove previous output tar files and tar & remove previous output-dir
     /bin/rm -f $gcmDIR/verification/??_${dNam}-${sfx}_????????_?.tar.gz
@@ -122,10 +126,10 @@ if [ $checkOut -eq 1 ] ; then
       do
         if test -d $dd ; then
           tar -cf ${dd}".tar" $dd > /dev/null 2>&1 && gzip ${dd}".tar" && /bin/rm -rf $dd
-          RETVAL=$?
-          if test "x$RETVAL" != x0 ; then
+          retVal=$?
+          if test "x$retVal" != x0 ; then
              echo "ERROR in tar+gzip prev outp-dir: $dd"
-             echo " on '"`hostname`"' (return val=$RETVAL) but continue"
+             echo " on '"`hostname`"' (return val=$retVal) but continue"
           fi
         fi
       done )
@@ -134,15 +138,15 @@ if [ $checkOut -eq 1 ] ; then
     ( cd $gcmDIR/verification ; ./testreport $typ -clean )
     ( cd $gcmDIR/verification ; rm -f */build/Makefile_syntax )
     ( cd $gcmDIR/verification ; rm -f */build/port_rand.i */build/ptracers_set_iolabel.i )
-    echo "cvs update of dir $gcmDIR :"
-    ( cd $gcmDIR ; $cmdCVS update -P -d ) 2>&1
-    RETVAL=$?
-    if test "x$RETVAL" != x0 ; then
-       echo "cvs update on '"`hostname`"' fail (return val=$RETVAL) => exit"
+    echo "Update MITgcm code in dir $gcmDIR :"
+    ( cd $gcmDIR ; git pull ) 2>&1
+    retVal=$?
+    if test "x$retVal" != x0 ; then
+       echo "git pull on '"`hostname`"' fail (return val=$retVal) => exit"
        exit
     fi
   else
-    echo "no dir: $gcmDIR/CVS => try a fresh check-out"
+    echo "no file: $gcmDIR/.git/config => try to download a fresh clone"
     checkOut=2
   fi
 fi
@@ -152,14 +156,16 @@ if [ $checkOut -eq 2 ] ; then
     rm -rf $gcmDIR
     echo "  done"
   fi
-# cvs co MITgcm
-  echo "Downloading using '$cmdCVS co -P -d $gcmDIR MITgcm' ..."
-  $cmdCVS co -P -d $gcmDIR MITgcm > /dev/null
-  RETVAL=$?
-  if test "x$RETVAL" != x0 ; then
-      echo "cvs co on '"`hostname`"' fail (return val=$RETVAL) => exit"
+  echo -n "Make a clone of $git_code from repo: $git_repo ..."
+  git clone https://github.com/$git_repo/${git_code}.git $gcmDIR 2> $tmpFil
+  retVal=$?
+  if test $retVal = 0 ; then
+      echo '  done' ; rm -f $tmpFil
+  else
+      echo " Error: 'git clone' returned: $retVal"
+      cat $tmpFil ; rm -f $tmpFil
       exit
-  else echo "  done" ; fi
+  fi
   if test -d $gcmDIR/verification ; then
     /usr/bin/find $gcmDIR -type d | xargs chmod g+rxs
     /usr/bin/find $gcmDIR -type f | xargs chmod g+r
@@ -173,7 +179,13 @@ if test -e $gcmDIR/verification ; then
   cd $gcmDIR/verification
   for exp2add in $addExp ; do
     if test -d ${exp2add}/CVS ; then
-      echo "  assumes dir: $exp2add has been updated"
+      echo "  update dir: $exp2add (from Contrib:verification_other)"
+      ( cd $exp2add ; $cmdCVS update -P -d ) 2>&1
+      retVal=$?
+      if test "x$retVal" != x0 ; then
+        echo "cvs update on '"`hostname`"' fail (return val=$retVal)"
+       #exit
+      fi
     else
       test -r $exp2add && /bin/rm -rf $exp2add
       echo " add dir: $exp2add (from Contrib:verification_other)"
