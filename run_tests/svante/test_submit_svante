@@ -1,6 +1,6 @@
 #! /usr/bin/env bash
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/svante/test_submit_svante,v 1.17 2018/02/05 13:36:05 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/svante/test_submit_svante,v 1.18 2018/02/07 21:13:57 jmc Exp $
 # $Name:  $
 
 today=`date +%Y%m%d`
@@ -104,6 +104,7 @@ if [ $checkOut -ge 1 ] ; then
 
   if [ $checkOut -eq 1 ] ; then
     if test -e $git_code/.git/config ; then
+      ( cd $git_code ; git checkout master )			| tee -a $LOG_FIL
       echo -n "Updating current clone ( $git_code ) ..."	| tee -a $LOG_FIL
       echo '' >> $LOG_FIL
       ( cd $git_code ; git pull )				>> $LOG_FIL 2>&1
@@ -132,8 +133,8 @@ if [ $checkOut -ge 1 ] ; then
     fi
   fi
   #---- making a new working copy: MITgcm_today
-  ( cd $git_code ; git checkout master )
   rsync -a $git_code/ $srcCode --exclude '.git'
+  ls -ld $srcCode					| tee -a $LOG_FIL
   if test -d $srcCode/verification ; then
     for exp2add in $addExp ; do
       echo " add dir: $exp2add (from Contrib:verification_other)" | tee -a $LOG_FIL
@@ -147,6 +148,7 @@ if [ $checkOut -ge 1 ] ; then
   if test -d $srcCode/verification ; then
     echo $today > $updFile ; sleep 2
     ls -l $updFile					| tee -a $LOG_FIL
+    echo ''						| tee -a $LOG_FIL
   fi
 
 #---+----1----+----2----+----3----+----4----+----5----+----6----+----7-|--+----|
