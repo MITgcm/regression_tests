@@ -9,7 +9,7 @@
 #SBATCH -o /home/jm_c/test_engaging/output/tst_ifcMp2.stdout
 #SBATCH --no-requeue --constraint=centos6
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/engaging/test_engag_ifc_mp2,v 1.10 2018/01/06 16:05:38 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/engaging/test_engag_ifc_mp2,v 1.11 2018/02/07 19:39:18 jmc Exp $
 # $Name:  $
 
 if test -f /etc/profile.d/modules.sh ; then
@@ -144,7 +144,7 @@ if [ $checkOut -eq 1 ] ; then
     ( cd $gcmDIR/verification ; rm -f */build/Makefile_syntax )
     ( cd $gcmDIR/verification ; rm -f */build/port_rand.i */build/ptracers_set_iolabel.i )
     echo "Update MITgcm code in dir $gcmDIR :"
-    ( cd $gcmDIR ; git pull ) 2>&1
+    ( cd $gcmDIR ; git checkout master ; git pull ) 2>&1
     retVal=$?
     if test "x$retVal" != x0 ; then
        echo "git pull on '"`hostname`"' fail (return val=$retVal) => exit"
