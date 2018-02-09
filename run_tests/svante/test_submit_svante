@@ -1,6 +1,6 @@
 #! /usr/bin/env bash
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/svante/test_submit_svante,v 1.18 2018/02/07 21:13:57 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/svante/test_submit_svante,v 1.19 2018/02/09 17:22:14 jmc Exp $
 # $Name:  $
 
 today=`date +%Y%m%d`
@@ -77,8 +77,8 @@ addExp=''
 updFile='updated_code'
 
 #---+----1----+----2----+----3----+----4----+----5----+----6----+----7-|--+----|
-#-- Download/Update reference version of MITgcm code:
 if [ $checkOut -ge 1 ] ; then
+#-- Download/Update reference version of MITgcm code:
 
   if test $srcDIR = $TST_DIR ; then
     echo "cd $TST_DISK ; pwd (x2)" | tee -a $LOG_FIL
@@ -120,6 +120,11 @@ if [ $checkOut -ge 1 ] ; then
     fi
   fi
   if [ $checkOut -eq 2 ] ; then
+    if test -e $git_code ; then
+       echo -n " removing dir: $git_code ..."           | tee -a $LOG_FIL
+       rm -rf $git_code
+       echo "  done"                                    | tee -a $LOG_FIL
+    fi
     echo -n "Make a clone of $git_code from repo: $git_repo ..."	| tee -a $LOG_FIL
     git clone https://github.com/$git_repo/${git_code}.git 2> $tmpFil
     retVal=$?
@@ -151,9 +156,9 @@ if [ $checkOut -ge 1 ] ; then
     echo ''						| tee -a $LOG_FIL
   fi
 
-#---+----1----+----2----+----3----+----4----+----5----+----6----+----7-|--+----|
 #-- Done with Download/Update of MITgcm code
 fi
+#---+----1----+----2----+----3----+----4----+----5----+----6----+----7-|--+----|
 
 #-- leave srcDIR and go back to output dir
 cd $OUT_DIR
