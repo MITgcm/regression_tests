@@ -6,7 +6,7 @@
 #PBS -e /u/jcampin/test_pleiades/output/tst_ieee.stderr
 #PBS -o /u/jcampin/test_pleiades/output/tst_ieee.stdout
 
-# $Header: /u/gcmpack/MITgcm/tools/example_scripts/nasa_ames/test_pleiades_ieee,v 1.6 2018/01/05 22:34:07 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/nasa_ames/test_pleiades_ieee,v 1.1 2018/01/29 19:58:45 jmc Exp $
 # $Name:  $
 
 if test -f /etc/profile.d/modules.sh ; then
@@ -27,14 +27,25 @@ SEND="ssh pfe $SavD/mpack"
 ADDR='jm_c@mitgcm.org'
 TST_DISK="/nobackupp2/jcampin"
 TST_DIR="$TST_DISK/test_${dNam}"
+#- where local copy of code is (need to be consistent with "test_submit_svante"):
+ srcDIR='.'
+#srcDIR=$HERE
+srcCode="MITgcm_today"
 
+echo "cd $TST_DISK ; pwd (x2)"
 cd $TST_DISK ; pwd
-if test -d $TST_DIR ; then
-  echo "start from TST_DIR='$TST_DIR' at: "`date`
-else
-  echo "ERROR: missing directory \"$TST_DIR\""
-  exit 1
+if test ! -d $TST_DIR ; then
+   echo -n "Creating a working dir: $TST_DIR ..."
+  #/bin/rm -rf $TST_DIR
+   mkdir $TST_DIR
+   retVal=$?
+   if test "x$retVal" != x0 ; then
+      echo "Error: unable to make dir: $TST_DIR (err=$retVal ) --> Exit"
+      exit 1
+   fi
 fi
+echo "start from TST_DIR='$TST_DIR' at: "`date`
+cd $TST_DIR ; pwd
 
 #sfx='ifc'
 sfx='ieee'
@@ -66,7 +77,6 @@ checkOut=2
 
 cmdCVS='cvs -d :pserver:cvsanon@mitgcm.org:/u/gcmpack -q'
 gcmDIR="MITgcm_$sfx"
-cd $TST_DIR
 
 if [ $checkOut -eq 1 ] ; then
   if test -d $gcmDIR/CVS ; then
@@ -78,10 +88,10 @@ if [ $checkOut -eq 1 ] ; then
       do
         if test -d $dd ; then
           tar -cf ${dd}".tar" $dd > /dev/null 2>&1 && gzip ${dd}".tar" && /bin/rm -rf $dd
-          RETVAL=$?
-          if test "x$RETVAL" != x0 ; then
+          retVal=$?
+          if test "x$retVal" != x0 ; then
              echo "ERROR in tar+gzip prev outp-dir: $dd"
-             echo " on '"`hostname`"' (return val=$RETVAL) but continue"
+             echo " on '"`hostname`"' (return val=$retVal) but continue"
           fi
         fi
       done )
@@ -92,9 +102,9 @@ if [ $checkOut -eq 1 ] ; then
 #   ( cd $gcmDIR/verification ; rm -f */build/port_rand.i */build/ptracers_set_iolabel.i )
     echo "cvs update of dir $gcmDIR :"
     ( cd $gcmDIR ; $cmdCVS update -P -d ) 2>&1
-    RETVAL=$?
-    if test "x$RETVAL" != x0 ; then
-       echo "cvs update on '"`hostname`"' fail (return val=$RETVAL) => exit"
+    retVal=$?
+    if test "x$retVal" != x0 ; then
+       echo "cvs update on '"`hostname`"' fail (return val=$retVal) => exit"
        exit
     fi
   else
@@ -110,9 +120,9 @@ if [ $checkOut -eq 2 ] ; then
   fi
  #echo "Downloading using '$cmdCVS co -P -d $gcmDIR MITgcm' ..."
  #$cmdCVS co -P -d $gcmDIR MITgcm > /dev/null
- #RETVAL=$?
- #if test "x$RETVAL" != x0 ; then
- #    echo "cvs co on '"`hostname`"' fail (return val=$RETVAL) => exit"
+ #retVal=$?
+ #if test "x$retVal" != x0 ; then
+ #    echo "cvs co on '"`hostname`"' fail (return val=$retVal) => exit"
  #    exit
  #fi
  #if test -d $gcmDIR/verification ; then
@@ -121,7 +131,7 @@ if [ $checkOut -eq 2 ] ; then
  #fi
 #- make a local copy (instead of using CVS):
   today=`date +%Y%m%d`
-  nCount=0; updFile='updated_code'
+  nCount=0; updFile="${srcDIR}/updated_code"
   updDate=0 ; test -f $updFile && updDate=`cat $updFile`
   while [ $today -gt $updDate ] ; do
    nCount=`expr $nCount + 1`
@@ -136,11 +146,11 @@ if [ $checkOut -eq 2 ] ; then
   done
   ls -l $updFile
   echo " waited nCount=$nCount for updated code ($updDate) to copy"
-  if test -d MITgcm ; then
-    echo -n "Make local copy of dir 'MITgcm' to: $gcmDIR ..."
-    cp -pra MITgcm $gcmDIR
+  if test -d $srcDIR/$srcCode ; then
+    echo -n "Make local copy of dir '$srcDIR/$srcCode' to: $gcmDIR ..."
+    cp -pra $srcDIR/$srcCode $gcmDIR
     echo "  done"
-  else echo " dir: MITgcm missing => exit" ; exit ; fi
+  else echo " dir: $srcDIR/$srcCode missing => exit" ; exit ; fi
 fi
 
 #- change dir to $gcmDIR/verification dir:
