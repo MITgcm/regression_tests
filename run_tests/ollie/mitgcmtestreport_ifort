@@ -2,7 +2,7 @@
 # new script for running testreport on ollie.awi.de
 # - compile and run on compute nodes
 # - use ssh to call mpack command from the head node ollie0
-#$Header: /u/gcmpack/MITgcm_contrib/test_scripts/ollie/mitgcmtestreport_ifort,v 1.5 2017/03/13 09:31:51 mlosch Exp $
+#$Header: /u/gcmpack/MITgcm_contrib/test_scripts/ollie/mitgcmtestreport_ifort,v 1.6 2018/02/08 15:13:00 mlosch Exp $
 #$Name:  $
 
 # needed for cron-job
@@ -63,7 +63,7 @@ fi
 if [ -e $OUTFILE ]; then
   rm -r $OUTFILE
 fi
-gcmDIR="MITgcm_${sfx}_git"
+gcmDIR="MITgcm_${sfx}"
 git_repo='MITgcm'
 git_code='MITgcm'
 
@@ -127,7 +127,7 @@ else
   cd $TST_DIR
 fi
 
-cd ${TST_DIR}/{gcmDIR}/verification
+cd ${TST_DIR}/${gcmDIR}/verification
 
 cwd=\`pwd\`
 SENDCMD="ssh ollie0 ${TST_DIR}/${gcmDIR}/tools/mpack-1.6/mpack"
