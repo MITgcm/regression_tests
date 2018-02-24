@@ -1,6 +1,6 @@
 #! /usr/bin/env bash
 
-# $Header: /u/gcmpack/MITgcm/tools/example_scripts/csail/test_baudelaire,v 1.38 2018/01/29 21:59:01 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/ref_machine/test_villon,v 1.1 2018/02/02 14:35:57 jmc Exp $
 
 #  Test script for MITgcm that should work on most of the x86_64 Linux machines.
 
@@ -91,14 +91,17 @@ if [ $checkOut -ge 2 ] ; then
   cd $tdir
 
   #---- Making a new clone or updating existing one:
-  if test -e MITgcm/.git/config ; then
-    echo MITgcm/.git/config 'exist'
-  else
-    echo -n MITgcm/.git/config 'missing ; '
-    checkOut=3
-    echo "will get new clone ( checkOut=$checkOut )"
+  if [ $checkOut -eq 2 ] ; then
+    if test -e MITgcm/.git/config ; then
+       echo MITgcm/.git/config 'exist'
+    else
+       echo -n MITgcm/.git/config 'missing ; '
+       checkOut=3
+       echo "will get new clone ( checkOut=$checkOut )"
+    fi
   fi
   if [ $checkOut -eq 3 ] ; then
+    test -e $git_code && rm -rf $git_code
     echo -n "Make a clone of $git_code from repo: $git_repo ..."
     git clone https://github.com/$git_repo/${git_code}.git 2> $tmpFil
     retVal=$?
@@ -114,7 +117,13 @@ if [ $checkOut -ge 2 ] ; then
   else
     echo "Updating current clone ( $git_code ) ..."
     ( cd $git_code ; git pull )
-    echo ' --> done!'
+    retVal=$?
+    if test $retVal = 0 ; then
+       echo ' --> done!'
+    else
+       echo "git pull on '"`hostname`"' fail (return val=$retVal) => exit"
+       exit 3
+    fi
   fi
 
   #---- making a new working copy: MITgcm_today
