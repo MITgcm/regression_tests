@@ -1,6 +1,6 @@
 #! /usr/bin/env bash
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/ref_machine/test_villon,v 1.1 2018/02/02 14:35:57 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/ref_machine/test_villon,v 1.2 2018/02/24 17:34:43 jmc Exp $
 
 #  Test script for MITgcm that should work on most of the x86_64 Linux machines.
 
@@ -20,15 +20,20 @@ ulimit -s unlimited
 #  MPI test (for now, only with gfortran)
   source $HOME/bin/openmpi.sh
 
-#- method to acces CVS:
+#- method to access CVS:
 # cmdCVS='cvs -d :pserver:cvsanon@mitgcm.org:/u/gcmpack'
 # cmdCVS='cvs -d /u/gcmpack'
   export CVS_RSH=ssh
   cmdCVS='cvs -q -d :ext:jmc@mitgcm.org:/u/gcmpack'
 
-#- and which GitHub repository to use:
+#- which GitHub repository to use and how to access it:
   git_repo='MITgcm';  git_code='MITgcm'
  #git_repo='altMITgcm'; #git_code='MITgcm66h'
+#--
+  git_repo="https://github.com/$git_repo"
+ #git_repo="git://github.com/$git_repo"
+ #git_repo="git@github.com:$git_repo"
+
 
 # checkOut=3 : clone from GitHub and make a new copy (if sepDir)
 #   =2 : update (git pull) repo  and make a new copy code  (switch to 2 if no repo)
@@ -103,7 +108,7 @@ if [ $checkOut -ge 2 ] ; then
   if [ $checkOut -eq 3 ] ; then
     test -e $git_code && rm -rf $git_code
     echo -n "Make a clone of $git_code from repo: $git_repo ..."
-    git clone https://github.com/$git_repo/${git_code}.git 2> $tmpFil
+    git clone $git_repo/${git_code}.git 2> $tmpFil
     retVal=$?
     if test $retVal = 0 ; then
        echo ' --> done!'
