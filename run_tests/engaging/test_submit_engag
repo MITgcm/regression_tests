@@ -1,6 +1,6 @@
 #! /usr/bin/env bash
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/engaging/test_submit_engag,v 1.4 2016/07/16 13:47:39 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/engaging/test_submit_engag,v 1.5 2017/02/26 23:32:00 jmc Exp $
 # $Name:  $
 
 today=`date +%Y%m%d`
@@ -15,7 +15,8 @@ else
 fi
 
 QSUB="/usr/bin/sbatch"
-QSTAT="/usr/bin/qstat"
+#QSTAT="/usr/bin/qstat -u $USER"
+QLIST="/usr/bin/squeue -u $USER"
 dNam='engaging'
 HERE="$HOME/test_$dNam"
 TST_DIR="/pool001/jm_c/test_$dNam"
@@ -60,8 +61,12 @@ module list						>> $LOG_FIL 2>&1
     esac
     BATCH_SCRIPT="test_engag_$sfx"
     if test -f $SUB_DIR/$BATCH_SCRIPT ; then
-      JOB="tst_"$i
-      job_exist=`$QSTAT -a | grep $USER | grep $JOB | wc -l`
+      #- job name ( $JOB ) & output-file name ( $JOB.std??? ) must match
+      #  definition within $BATCH_SCRIPT slurm script
+      JOB="${i}_tst"
+      sJob=`printf "%8.8s" $JOB` #- squeue truncate name to only 1rst 8c
+      #job_exist=`$QSTAT | grep $JOB | wc -l`
+      job_exist=`$QLIST | grep $sJob | wc -l`
       if test "x_$job_exist" = x_0 ; then
         #-- move previous output file
         outList=`ls $JOB.std??? 2> /dev/null`
