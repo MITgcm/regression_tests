@@ -2,7 +2,7 @@
 # new script for running testreport on ollie.awi.de
 # - compile and run on compute nodes
 # - use ssh to call mpack command from the head node ollie0
-#$Header: /u/gcmpack/MITgcm_contrib/test_scripts/ollie/mitgcmtestreport_cray,v 1.6 2016/08/29 15:08:54 mlosch Exp $
+#$Header: /u/gcmpack/MITgcm_contrib/test_scripts/ollie/mitgcmtestreport_cray,v 1.7 2017/03/13 09:31:51 mlosch Exp $
 #$Name:  $
 
 # needed for cron-job
@@ -10,18 +10,18 @@ source /usr/Modules/3.2.10/init/bash
 source /etc/profile.d/cray_pe.sh
 source /etc/profile.d/AWI.sh
 #
-
 module purge
 module load craype-broadwell
-module load PrgEnv-cray
+module load PrgEnv-cray/1.0.2_test
+# module load PrgEnv-cray
 # to me this looks like a terrible hack, but that is what we are supposed 
 # to use now
-module unload craype-network-infiniband cudatoolkit mvapich2_cce
-module load craype-network-opa
-module load mvapich2_cce
+# module unload craype-network-infiniband cudatoolkit mvapich2_cce
+# module load craype-network-opa
+# module load mvapich2_cce
 module load netcdf
 #export LD_LIBRARY_PATH=${CRAY_LD_LIBRARY_PATH}:${LD_LIBRARY_PATH}:
-# not sure why I have set these paths here again
+# not sure why I have to set these paths here again
 export MPI_ROOT=$(dirname $(dirname `which mpicc`))
 # $(dirname `echo $LD_LIBRARY_PATH  | awk -F: '{print $1}'`)
 export MPI_INC_DIR=${MPI_ROOT}/include
@@ -42,11 +42,12 @@ RUNIT="runit_"$sfx
 OPTFILE=../tools/build_options/linux_ia64_${sfx}_ollie
 options="-MPI 6"
 options="$options -odir ${dNam}-c"
-#options="$options -j 6"
+options="$options -j 6"
 #options="$options -t global_ocean.cs32x15"
 
-#EXE='mpiexec.hydra -bootstrap slurm -n TR_NPROC ./mitgcmuv'
-EXE='srun --mpi=pmi2 -n TR_NPROC ./mitgcmuv'
+#EXE='srun --mpi=pmi2 -n TR_NPROC ./mitgcmuv'
+#EXE='srun -n TR_NPROC ./mitgcmuv'
+EXE='srun -n TR_NPROC --cpu_bind=cores ./mitgcmuv'
 
 if [ -e $TST_DIR ]; then
     echo "$TST_DIR exists"
@@ -68,39 +69,76 @@ fi
 if [ -e $OUTFILE ]; then
   rm -r $OUTFILE
 fi
-gcmDIR="MITgcm_$sfx"
-checkOut=1
-if [ $checkOut -eq 1 ] ; then
- if test -d $gcmDIR/CVS ; then
-  /bin/rm -rf $gcmDIR/verification/??_${dNam}_????????_?
-  ( cd $gcmDIR/verification ; ../tools/do_tst_2+2 -clean )
-  echo "cvs update of dir $gcmDIR :"
-  ( cd $gcmDIR ; cvs -q -d :pserver:cvsanon@mitgcm.org:/u/gcmpack update -P -d ) 2>&1
-  RETVAL=$?
-  if test "x$RETVAL" != x0 ; then
-   echo "cvs update on '"`hostname`"' failed (return val=$RETVAL) => exit"
-   exit
+gcmDIR="MITgcm_${sfx}"
+git_repo='MITgcm'
+git_code='MITgcm'
+
+# checkOut determines how much checking out is being done
+# checkOut = 3: new clone from GitHub and make a new copy
+# checkOut = 2: update (git pull) existing repo and make a new copy
+# checkOut = 1: skip update
+# checkOut = 0: use existing test code (if available otherwise switch to 1)
+
+checkOut=2
+tdir=${TST_DIR}
+today=`date +%Y%m%d`
+TODAY=`date +%d`
+#tmpFil="/tmp/"`basename $0`".$$"
+tmpFil=$TST_DIR/error.out
+
+if [ $checkOut -le 1 ] ; then
+  if test -e $TST_DIR/${gcmDIR}/doc ; then
+    echo $TST_DIR/${gcmDIR}/doc 'exist'
+  else
+    echo -n $TST_DIR/${gcmDIR} 'missing ; '
+    checkOut=2
+    echo "will make a new copy ( checkOut=$checkOut )"
   fi
- else
-  echo "no dir: $gcmDIR/CVS => try a fresh check-out"
-  checkOut=2
- fi
-fi
-if [ $checkOut -eq 2 ] ; then
-  if test -e $gcmDIR ; then
-   rm -rf $gcmDIR
-  fi
-# cvs co MITgcm
-  cvs -d :pserver:cvsanon@mitgcm.org:/u/gcmpack co -P -d $gcmDIR MITgcm > /dev/null 2>&1
-  /usr/bin/find $gcmDIR -type d | xargs chmod g+rxs
-  /usr/bin/find $gcmDIR -type f | xargs chmod g+r
 fi
 
-cd ${gcmDIR}/verification
+if [ $checkOut -ge 2 ] ; then
+  #---- cleaning:
+  cd $TST_DIR
+
+  #---- Make a new clone or update existing one:
+  if test -e ${gcmDIR}/.git/config ; then
+    echo "${gcmDIR}/.git/config exist"
+  else
+    echo -n "${gcmDIR}/.git/config 'missing "
+    checkOut=3
+    echo "will get new clone ( checkOut=$checkOut )"
+  fi
+  if [ $checkOut -eq 3 ] ; then
+    echo -n "Removing old clone: $TST_DIR/${gcmDIR} ..."
+    test -e $TST_DIR/${gcmDIR}  &&  rm -rf $TST_DIR/${gcmDIR}
+    echo "  done"
+    echo -n "Make a new clone of $git_code from repo: $git_repo ..."
+    git clone https://github.com/$git_repo/${git_code}.git ${gcmDIR} 2> $tmpFil
+    retVal=$?
+    if test $retVal = 0 ; then
+       echo ' --> done!'
+       rm -f $tmpFil
+    else
+       echo " Error: 'git clone' returned: $retVal"
+       cat $tmpFil
+       rm -f $tmpFil
+       exit 2
+    fi
+  else
+    echo "Updating current clone ( $git_code ) ..."
+    ( cd ${gcmDIR}; git checkout master ; git pull )
+    echo ' --> done!'
+  fi
+else
+  cd $TST_DIR
+fi
+
+cd ${TST_DIR}/${gcmDIR}/verification
 
 cwd=\`pwd\`
 SENDCMD="ssh ollie0 ${TST_DIR}/${gcmDIR}/tools/mpack-1.6/mpack"
 runtestreport="./testreport $options -of $OPTFILE -command \"${EXE}\" -send \"${SENDCMD}\" -sd ${cwd}" 
+emailaddress="-a jm_c@mitgcm.org"
 
 if [ ! -e $MYOUTPUT ]
     then
@@ -126,7 +164,10 @@ cat << EOF >| $HERE/$RUNIT
 # cfc_example, fizhi, tutorial_deep_convection
 ulimit -s unlimited
 
-# # for debugging
+# binds OpenMP task to given cores
+export OMP_PROC_BIND=TRUE
+
+# for debugging
 # export FLEXLM_DIAGNOSTICS=2
 # export FNP_IP_ENV=1
 # export LM_A_CONN_TIMEOUT=99
@@ -136,7 +177,7 @@ cd \${SLURM_SUBMIT_DIR}
 cwd=`pwd`
 echo "running testreport like this in \${cwd}:"
 echo "${runtestreport} -devel -match 10"
-${runtestreport} -devel -match 10 -a jmc@mitgcm.org >> $MYOUTPUT 2>&1
+${runtestreport} -devel -match 10 ${emailaddress} >> $MYOUTPUT 2>&1
 
 echo "running testreport like this in \${cwd}:"
 echo "./testreport -clean"
@@ -144,7 +185,7 @@ echo "./testreport -clean"
 
 echo "running testreport like this in \${cwd}:"
 echo "${runtestreport} -fast -match 10"
-${runtestreport} -fast -match 10 -a jmc@mitgcm.org >> $MYOUTPUT 2>&1
+${runtestreport} -fast -match 10 ${emailaddress} >> $MYOUTPUT 2>&1
 
 EOF
 
@@ -160,6 +201,7 @@ echo "end of job script" >> $MYOUTPUT
 echo "***********************************************************" >> $MYOUTPUT
 echo " " >> $MYOUTPUT
 
+echo "sbatch $HERE/$RUNIT"
 sbatch $HERE/$RUNIT
 
 # # keep looking for the job in the job queues and wait until it has disappeared
@@ -180,7 +222,7 @@ sbatch $HERE/$RUNIT
 # fn=`ls -dtr tr_$dNam* | grep -v tar.gz | tail -1`
 # echo "fname ${fn}"
 # tar cf - $fn | gzip > "${fn}.tar.gz"
-# $MPACKCMD -s MITgcm-test -m 3555000 ${fn}.tar.gz jmc@mitgcm.org
+# $MPACKCMD -s MITgcm-test -m 3555000 ${fn}.tar.gz jm_c@mitgcm.org
 # sleep 2
 # rm -rf "${fn}.tar.gz"
 
