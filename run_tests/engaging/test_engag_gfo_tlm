@@ -1,15 +1,15 @@
 #!/bin/bash
-#SBATCH -J tst_gfoTlm
+#SBATCH -J gfoTlm_tst
 #SBATCH -p sched_mit_hill
 #SBATCH --mem-per-cpu 4000
 #SBATCH -n 6
 #SBATCH -N 2
 #SBATCH -x node[016,030,031,073,125,198,332]
-#SBATCH -e /home/jm_c/test_engaging/output/tst_gfoTlm.stderr
-#SBATCH -o /home/jm_c/test_engaging/output/tst_gfoTlm.stdout
+#SBATCH -e /home/jm_c/test_engaging/output/gfoTlm_tst.stderr
+#SBATCH -o /home/jm_c/test_engaging/output/gfoTlm_tst.stdout
 #SBATCH --no-requeue --constraint=centos6
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/engaging/test_engag_gfo_tlm,v 1.11 2018/02/07 19:39:18 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/engaging/test_engag_gfo_tlm,v 1.12 2018/02/09 17:33:41 jmc Exp $
 # $Name:  $
 
 if test -f /etc/profile.d/modules.sh ; then
@@ -30,9 +30,13 @@ SEND="ssh eofe4 $SavD/mpack"
 TST_DIR="/pool001/jm_c/test_$dNam"
 tmpFil="/tmp/"`basename $0`".$$"
   cmdCVS='cvs -d :pserver:cvsanon@mitgcm.org:/u/gcmpack -q'
-#- and which GitHub repository to use:
+#- which GitHub repository to use and how to access it:
   git_repo='MITgcm';  git_code='MITgcm'
  #git_repo='altMITgcm'; #git_code='MITgcm66h'
+#--
+  git_repo="https://github.com/$git_repo"
+ #git_repo="git://github.com/$git_repo"
+ #git_repo="git@github.com:$git_repo"
 
 typ='' ; addExp='' ; skipExp=''
 sfx='gfoTlm'; typ='-tlm'
@@ -139,7 +143,7 @@ if [ $checkOut -eq 2 ] ; then
     echo "  done"
   fi
   echo -n "Make a clone of $git_code from repo: $git_repo ..."
-  git clone https://github.com/$git_repo/${git_code}.git $gcmDIR 2> $tmpFil
+  git clone $git_repo/${git_code}.git $gcmDIR 2> $tmpFil
   retVal=$?
   if test $retVal = 0 ; then
       echo '  done' ; rm -f $tmpFil
