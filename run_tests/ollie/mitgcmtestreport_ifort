@@ -2,7 +2,7 @@
 # new script for running testreport on ollie.awi.de
 # - compile and run on compute nodes
 # - use ssh to call mpack command from the head node ollie0
-#$Header: /u/gcmpack/MITgcm_contrib/test_scripts/ollie/mitgcmtestreport_ifort,v 1.6 2018/02/08 15:13:00 mlosch Exp $
+#$Header: /u/gcmpack/MITgcm_contrib/test_scripts/ollie/mitgcmtestreport_ifort,v 1.7 2018/02/13 15:47:57 mlosch Exp $
 #$Name:  $
 
 # needed for cron-job
@@ -37,7 +37,7 @@ OPTFILE=../tools/build_options/linux_ia64_${sfx}_ollie
 options="-MPI 6"
 options="$options -odir ${dNam}-i"
 options="$options -j 6"
-#options="$options -t global_ocean.90x40x15"
+#options="$options -t global_ocean.cs32x15"
 
 #EXE='mpiexec.hydra -bootstrap slurm -n TR_NPROC ./mitgcmuv'
 #EXE='srun --mpi=pmi2 -n TR_NPROC ./mitgcmuv'
@@ -98,7 +98,7 @@ if [ $checkOut -ge 2 ] ; then
   if test -e ${gcmDIR}/.git/config ; then
     echo "${gcmDIR}/.git/config exist"
   else
-    echo -n "${gcmDIR}/.git/config 'missing"
+    echo -n "${gcmDIR}/.git/config 'missing "
     checkOut=3
     echo "will get new clone ( checkOut=$checkOut )"
   fi
@@ -132,6 +132,7 @@ cd ${TST_DIR}/${gcmDIR}/verification
 cwd=\`pwd\`
 SENDCMD="ssh ollie0 ${TST_DIR}/${gcmDIR}/tools/mpack-1.6/mpack"
 runtestreport="./testreport $options -of $OPTFILE -command \"${EXE}\" -send \"${SENDCMD}\" -sd ${cwd}" 
+emailaddress="-a jm_c@mitgcm.org"
 
 if [ ! -e $MYOUTPUT ]
     then
@@ -170,7 +171,7 @@ cd \${SLURM_SUBMIT_DIR}
 cwd=`pwd`
 echo "running testreport like this in \${cwd}:"
 echo "${runtestreport} -devel -match 10"
-${runtestreport} -devel -match 10 -a jm_c@mitgcm.org >> $MYOUTPUT 2>&1
+${runtestreport} -devel -match 10 ${emailaddress} >> $MYOUTPUT 2>&1
 
 echo "running testreport like this in \${cwd}:"
 echo "./testreport -clean"
@@ -178,7 +179,7 @@ echo "./testreport -clean"
 
 echo "running testreport like this in \${cwd}:"
 echo "${runtestreport} -fast -match 10"
-${runtestreport} -fast -match 10 -a jm_c@mitgcm.org >> $MYOUTPUT 2>&1
+${runtestreport} -fast -match 10 ${emailaddress} >> $MYOUTPUT 2>&1
 
 EOF
 
