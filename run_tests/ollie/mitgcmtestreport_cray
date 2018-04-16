@@ -2,7 +2,7 @@
 # new script for running testreport on ollie.awi.de
 # - compile and run on compute nodes
 # - use ssh to call mpack command from the head node ollie0
-#$Header: /u/gcmpack/MITgcm_contrib/test_scripts/ollie/mitgcmtestreport_cray,v 1.7 2017/03/13 09:31:51 mlosch Exp $
+#$Header: /u/gcmpack/MITgcm_contrib/test_scripts/ollie/mitgcmtestreport_cray,v 1.8 2018/04/03 12:58:37 mlosch Exp $
 #$Name:  $
 
 # needed for cron-job
@@ -11,14 +11,7 @@ source /etc/profile.d/cray_pe.sh
 source /etc/profile.d/AWI.sh
 #
 module purge
-module load craype-broadwell
-module load PrgEnv-cray/1.0.2_test
-# module load PrgEnv-cray
-# to me this looks like a terrible hack, but that is what we are supposed 
-# to use now
-# module unload craype-network-infiniband cudatoolkit mvapich2_cce
-# module load craype-network-opa
-# module load mvapich2_cce
+module load PrgEnv-cray/1.0.2_ollie
 module load netcdf
 #export LD_LIBRARY_PATH=${CRAY_LD_LIBRARY_PATH}:${LD_LIBRARY_PATH}:
 # not sure why I have to set these paths here again
