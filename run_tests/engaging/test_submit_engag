@@ -1,6 +1,6 @@
 #! /usr/bin/env bash
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/engaging/test_submit_engag,v 1.5 2017/02/26 23:32:00 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/engaging/test_submit_engag,v 1.6 2018/04/03 00:29:40 jmc Exp $
 # $Name:  $
 
 today=`date +%Y%m%d`
@@ -91,7 +91,8 @@ module list						>> $LOG_FIL 2>&1
           NB_SUB_JOBS=`expr $NB_SUB_JOBS + 1`
       else
           echo "--> $JOB :"				| tee -a $LOG_FIL
-          $QSTAT -a | grep $USER | grep $JOB		| tee -a $LOG_FIL
+          #$QSTAT | grep $JOB				| tee -a $LOG_FIL
+          $QLIST | grep $sJob				| tee -a $LOG_FIL
           echo ' job already exist => skip this test'	| tee -a $LOG_FIL
       fi
     else
