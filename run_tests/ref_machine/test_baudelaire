@@ -1,6 +1,6 @@
 #! /usr/bin/env bash
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/ref_machine/test_baudelaire,v 1.5 2018/02/26 21:15:14 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/ref_machine/test_baudelaire,v 1.6 2018/06/13 17:47:51 jmc Exp $
 
 #  Test script for MITgcm that should work on most of the x86_64 Linux machines.
 
@@ -29,7 +29,7 @@ ulimit -s unlimited
 # cmdCVS='cvs -q -d :ext:jmc@mitgcm.org:/u/gcmpack'
 
 #- which GitHub repository to use and how to access it:
-  git_repo='MITgcm';  git_code='MITgcm'
+  git_repo='MITgcm';  git_code='MITgcm' ; git_other='verification_other'
  #git_repo='altMITgcm'; #git_code='MITgcm66h'
 #--
  #git_repo="https://github.com/$git_repo"
@@ -98,18 +98,38 @@ if [ $checkOut -ge 2 ] ; then
 
   #---- Making a new clone or updating existing one:
   if [ $checkOut -eq 2 ] ; then
-    if test -e MITgcm/.git/config ; then
-       echo MITgcm/.git/config 'exist'
+    if test -e $git_code/.git/config ; then
+       echo $git_code/.git/config 'exist'
     else
-       echo -n MITgcm/.git/config 'missing ; '
+       echo -n $git_code/.git/config 'missing ; '
+       checkOut=3
+       echo "will get new clone ( checkOut=$checkOut )"
+    fi
+    if test -e $git_other/.git/config ; then
+       echo $git_other/.git/config 'exist'
+    else
+       echo -n $git_other/.git/config 'missing ; '
        checkOut=3
        echo "will get new clone ( checkOut=$checkOut )"
     fi
   fi
   if [ $checkOut -eq 3 ] ; then
     test -e $git_code && rm -rf $git_code
-    echo -n "Make a clone of $git_code from repo: $git_repo ..."
+    echo "Make a clone of $git_code from repo: $git_repo ..."
     git clone $git_repo/${git_code}.git 2> $tmpFil
+    retVal=$?
+    if test $retVal = 0 ; then
+       echo ' --> done!'
+       rm -f $tmpFil
+    else
+       echo " Error: 'git clone' returned: $retVal"
+       cat $tmpFil
+       rm -f $tmpFil
+       exit 2
+    fi
+    test -e $git_other && rm -rf $git_other
+    echo "Make a clone of $git_other from repo: $git_repo ..."
+    git clone $git_repo/${git_other}.git 2> $tmpFil
     retVal=$?
     if test $retVal = 0 ; then
        echo ' --> done!'
@@ -130,13 +150,26 @@ if [ $checkOut -ge 2 ] ; then
        echo "git pull on '"`hostname`"' fail (return val=$retVal) => exit"
        exit 3
     fi
+    echo "Updating current clone ( $git_other ) ..."
+    ( cd $git_other ; git pull )
+    retVal=$?
+    if test $retVal = 0 ; then
+       echo ' --> done!'
+    else
+       echo "git pull on '"`hostname`"' fail (return val=$retVal) => exit"
+       exit 3
+    fi
+    ( cd $git_other ; git checkout master )
   fi
-
   #---- making a new working copy: MITgcm_today
   ( cd $git_code ; git checkout master )
-   # mkdir MITgcm_today
-   # cp -p -ra $git_code/* MITgcm_today
   rsync -a $git_code/ MITgcm_today --exclude '.git'
+  if test $sepDir = 0 ; then
+    echo -n " make a local copy of $git_other in MITgcm_today ..."	| tee -a $tdir/output_$tt
+    ( cd MITgcm_today
+      rsync -a ../$git_other/ $git_other --exclude '.git' )
+    echo " done"                                | tee -a $tdir/output_$tt
+  fi
   #---- updating "other_input" dir
   if test -d other_input ; then
     list_dirs=`(cd other_input ; ls 2> /dev/null )`
@@ -262,13 +295,17 @@ do
         echo " missing dir verification --> end test $tt"	| tee -a $tdir/output_$tt
         continue
       fi
-      #-- download additional experience from Contrib:
+      if test "x$addExp" != x ; then
+        echo -n " make a local copy of $git_other ..."  | tee -a $tdir/output_$tt
+        rsync -a $tdir/$git_other/ $git_other --exclude '.git'
+        echo " done"                            | tee -a $tdir/output_$tt
+      fi
+      #-- add additional experience from $git_other
       for exp2add in $addExp ; do
-        echo " add dir: $exp2add (from Contrib:verification_other)"	| tee -a $tdir/output_$tt
-        ( cd verification ;  $cmdCVS co -P -d $exp2add \
-             MITgcm_contrib/verification_other/$exp2add > /dev/null )
+        echo "  add link: $exp2add (from $git_other )"  | tee -a $tdir/output_$tt
+        ( cd verification ;  ln -s ../$git_other/$exp2add . )
         if test $exp2add = 'global_oce_cs32' ; then
-          echo " link dir 'other_input/core2_cnyf' in here"		| tee -a $tdir/output_$tt
+          echo "      link dir 'other_input/core2_cnyf' in here"        | tee -a $tdir/output_$tt
           ( cd verification/${exp2add}
             ln -s ../../../other_input/core2_cnyf . )
         fi
