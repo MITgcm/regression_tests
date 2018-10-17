@@ -9,7 +9,7 @@
 #SBATCH -o /home/jm_c/test_engaging/output/ifcMp2_tst.stdout
 #SBATCH --no-requeue --constraint=centos6
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/engaging/test_engag_ifc_mp2,v 1.12 2018/02/09 17:33:41 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/engaging/test_engag_ifc_mp2,v 1.13 2018/04/03 00:27:06 jmc Exp $
 # $Name:  $
 
 if test -f /etc/profile.d/modules.sh ; then
@@ -31,7 +31,7 @@ TST_DIR="/pool001/jm_c/test_$dNam"
 tmpFil="/tmp/"`basename $0`".$$"
   cmdCVS='cvs -d :pserver:cvsanon@mitgcm.org:/u/gcmpack -q'
 #- which GitHub repository to use and how to access it:
-  git_repo='MITgcm';  git_code='MITgcm'
+  git_repo='MITgcm'; git_code='MITgcm' ; git_other='verification_other'
  #git_repo='altMITgcm'; #git_code='MITgcm66h'
 #--
   git_repo="https://github.com/$git_repo"
@@ -124,8 +124,20 @@ if [ $dsp -gt 99 ] ; then
   df .
   exit
 fi
+
 if [ $checkOut -eq 1 ] ; then
-  if test -e $gcmDIR/.git/config ; then
+  if test ! -e $gcmDIR/.git/config ; then
+    echo "no file: $gcmDIR/.git/config => try to download a fresh clone"
+    checkOut=2
+  fi
+  if test "x$addExp" != x ; then
+    if test ! -e $gcmDIR/$git_other/.git/config ; then
+      echo "no file: $gcmDIR/$git_other/.git/config => try a fresh clone"
+      checkOut=2
+    fi
+  fi
+fi
+if [ $checkOut -eq 1 ] ; then
     echo "cleaning output from $gcmDIR/verification :"
 #- remove previous output tar files and tar & remove previous output-dir
     /bin/rm -f $gcmDIR/verification/??_${dNam}-${sfx}_????????_?.tar.gz
@@ -147,25 +159,38 @@ if [ $checkOut -eq 1 ] ; then
     ( cd $gcmDIR/verification ; ./testreport $typ -clean )
     ( cd $gcmDIR/verification ; rm -f */build/Makefile_syntax )
     ( cd $gcmDIR/verification ; rm -f */build/port_rand.i */build/ptracers_set_iolabel.i )
-    echo "Update MITgcm code in dir $gcmDIR :"
+  if test "x$addExp" != x ; then
+    ( cd $gcmDIR/verification
+      listD=`ls -o | grep '^l' | awk '{print $8}' 2> /dev/null`
+      echo " + remove local links: $listD"
+      /bin/rm -f $listD
+    )
+  fi
+    echo "Update $git_code code in dir $gcmDIR :"
     ( cd $gcmDIR ; git checkout master ; git pull ) 2>&1
     retVal=$?
     if test "x$retVal" != x0 ; then
        echo "git pull on '"`hostname`"' fail (return val=$retVal) => exit"
        exit
     fi
-  else
-    echo "no file: $gcmDIR/.git/config => try to download a fresh clone"
-    checkOut=2
+  if test "x$addExp" != x ; then
+    echo "Update $git_other code in dir $gcmDIR/$git_other :"
+    ( cd $gcmDIR/$git_other ; git checkout master ; git pull ) 2>&1
+    retVal=$?
+    if test "x$retVal" != x0 ; then
+       echo "git pull on '"`hostname`"' fail (return val=$retVal) => exit"
+       exit
+    fi
   fi
 fi
+
 if [ $checkOut -eq 2 ] ; then
   if test -e $gcmDIR ; then
     echo -n "Removing working copy: $gcmDIR ..."
     rm -rf $gcmDIR
     echo "  done"
   fi
-  echo -n "Make a clone of $git_code from repo: $git_repo ..."
+  echo "Make a clone of $git_code from repo: $git_repo ..."
   git clone $git_repo/${git_code}.git $gcmDIR 2> $tmpFil
   retVal=$?
   if test $retVal = 0 ; then
@@ -175,33 +200,37 @@ if [ $checkOut -eq 2 ] ; then
       cat $tmpFil ; rm -f $tmpFil
       exit
   fi
+  if test "x$addExp" != x ; then
+    echo "Make a clone of $git_other from repo: $git_repo ..."
+    ( cd $gcmDIR ; git clone $git_repo/${git_other}.git 2> $tmpFil )
+    retVal=$?
+    if test $retVal = 0 ; then
+      echo '  done' ; rm -f $tmpFil
+    else
+      echo " Error: 'git clone' returned: $retVal"
+      cat $tmpFil ; rm -f $tmpFil
+      exit
+    fi
+  fi
   if test -d $gcmDIR/verification ; then
     /usr/bin/find $gcmDIR -type d | xargs chmod g+rxs
     /usr/bin/find $gcmDIR -type f | xargs chmod g+r
   fi
 fi
 
-# -change dir to $gcmDIR/verification dir + add additional experiments:
+# -change dir to $gcmDIR/verification + add link for additional experiments:
 if test -e $gcmDIR/verification ; then
   if [ $checkOut -lt 2 ] ; then
     echo " dir $gcmDIR/verification exist" ; fi
   cd $gcmDIR/verification
   for exp2add in $addExp ; do
-    if test -d ${exp2add}/CVS ; then
-      echo "  update dir: $exp2add (from Contrib:verification_other)"
-      ( cd $exp2add ; $cmdCVS update -P -d ) 2>&1
-      retVal=$?
-      if test "x$retVal" != x0 ; then
-        echo "cvs update on '"`hostname`"' fail (return val=$retVal)"
-       #exit
-      fi
+    test -r $exp2add && /bin/rm -rf $exp2add
+    if test -d  ../$git_other/$exp2add ; then
+      echo "  add $exp2add link from $git_other"
+      ln -s ../$git_other/$exp2add .
     else
-      test -r $exp2add && /bin/rm -rf $exp2add
-      echo " add dir: $exp2add (from Contrib:verification_other)"
-      ( $cmdCVS co -P -d $exp2add \
-                     MITgcm_contrib/verification_other/$exp2add > /dev/null )
-      /usr/bin/find $exp2add -type d | xargs chmod g+rxs
-      /usr/bin/find $exp2add -type f | xargs chmod g+r
+      echo "  missing dir: $git_other/$exp2add"
+      continue
     fi
   done
 else
