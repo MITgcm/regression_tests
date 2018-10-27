@@ -9,7 +9,7 @@
 #SBATCH -o /home/jm_c/test_engaging/output/ifcMpi_tst.stdout
 #SBATCH --no-requeue --constraint=centos6
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/engaging/test_engag_ifc_mpi,v 1.9 2018/04/03 00:27:07 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/engaging/test_engag_ifc_mpi,v 1.10 2018/10/17 18:52:19 jmc Exp $
 # $Name:  $
 
 if test -f /etc/profile.d/modules.sh ; then
@@ -225,14 +225,18 @@ if test -e $gcmDIR/verification ; then
       ln -s ../$git_other/$exp2add .
       if test $exp2add = 'global_oce_cs32' ; then
         echo "    link dir 'other_input/core2_cnyf' in here"
-        ( cd ../${git_other}/${exp2add} ; ln -s ../../../other_input/core2_cnyf . )
+        ( cd ../${git_other}/${exp2add}
+          test -L core2_cnyf && /bin/rm -f core2_cnyf
+          ln -s ../../../other_input/core2_cnyf . )
       fi
       if test $exp2add = 'global_oce_llc90' ; then
         echo "    link dir 'other_input/gael_oce_llc90_input' to 'input_fields'"
         ( cd ../${git_other}/${exp2add}
+          test -L input_fields && /bin/rm -f input_fields
           ln -s  ../../../other_input/gael_oce_llc90_input input_fields
         echo "    link dirs: 'core2_cnyf' & 'global_oce_input_fields/*' in input_verifs"
-          test ! -e input_verifs && mkdir input_verifs
+          test -r input_verifs && /bin/rm -rf input_verifs
+          mkdir input_verifs
           ( cd input_verifs
             ln -s ../../../../other_input/core2_cnyf .
             ln -s ../../../../other_input/global_oce_input_fields/* . )
