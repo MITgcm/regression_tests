@@ -1,6 +1,6 @@
 #! /usr/bin/env bash
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/other/test_local,v 1.5 2018/01/05 22:25:25 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/other/test_local,v 1.6 2018/02/09 20:42:07 jmc Exp $
 # $Name:  $
 
 if test $# = 0 ; then
@@ -101,12 +101,16 @@ do
   echo " Update MITgcm code in dir: $gcmDIR using 'git pull':" | tee -a tr_clean_$tt.log
   set -x
   #- update the code:
-  ( cd $gcmDIR ; git checkout master ; git pull ) >> tr_clean_$tt.log 2>&1 ; retv=$?
+  ( cd $gcmDIR ; git pull )				>> tr_clean_$tt.log 2>&1 ; retv=$?
   set +x
   if test $retv != 0 ; then
     echo "'git pull' in $gcmDIR fail (return val=$retv) => skip" | tee -a tr_clean_$tt.log
     continue
   fi
+  echo "  and checkout master:"				| tee -a tr_clean_$tt.log
+  set -x
+  ( cd $gcmDIR ; git checkout master -- . )		>> tr_clean_$tt.log 2>&1
+  set +x
  else
   echo "Missing '$gcmDIR/.git/config' or dir '$gcmDIR/verification'" >> tr_clean_$tt.log
   if test -e $gcmDIR ; then

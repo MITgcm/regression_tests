@@ -9,7 +9,7 @@
 #SBATCH -o /home/jm_c/test_engaging/output/ifcMpi_tst.stdout
 #SBATCH --no-requeue --constraint=centos6
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/engaging/test_engag_ifc_mpi,v 1.10 2018/10/17 18:52:19 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/engaging/test_engag_ifc_mpi,v 1.11 2018/10/27 14:04:15 jmc Exp $
 # $Name:  $
 
 if test -f /etc/profile.d/modules.sh ; then
@@ -162,20 +162,24 @@ if [ $checkOut -eq 1 ] ; then
     )
   fi
     echo "Update $git_code code in dir $gcmDIR :"
-    ( cd $gcmDIR ; git checkout master ; git pull ) 2>&1
+    ( cd $gcmDIR ; git pull ) 2>&1
     retVal=$?
     if test "x$retVal" != x0 ; then
        echo "git pull on '"`hostname`"' fail (return val=$retVal) => exit"
        exit
     fi
+    echo "  and checkout master:"
+    ( cd $gcmDIR ; git checkout master -- . ) 2>&1
   if test "x$addExp" != x ; then
     echo "Update $git_other code in dir $gcmDIR/$git_other :"
-    ( cd $gcmDIR/$git_other ; git checkout master ; git pull ) 2>&1
+    ( cd $gcmDIR/$git_other ; git pull ) 2>&1
     retVal=$?
     if test "x$retVal" != x0 ; then
        echo "git pull on '"`hostname`"' fail (return val=$retVal) => exit"
        exit
     fi
+    echo "  and checkout master:"
+    ( cd $gcmDIR/$git_other ; git checkout master -- . ) 2>&1
   fi
 fi
 
@@ -235,9 +239,8 @@ if test -e $gcmDIR/verification ; then
           test -L input_fields && /bin/rm -f input_fields
           ln -s  ../../../other_input/gael_oce_llc90_input input_fields
         echo "    link dirs: 'core2_cnyf' & 'global_oce_input_fields/*' in input_verifs"
-          test -r input_verifs && /bin/rm -rf input_verifs
-          mkdir input_verifs
-          ( cd input_verifs
+          test ! -e input_verifs && mkdir input_verifs
+          ( cd input_verifs ; /bin/rm -f *
             ln -s ../../../../other_input/core2_cnyf .
             ln -s ../../../../other_input/global_oce_input_fields/* . )
         )

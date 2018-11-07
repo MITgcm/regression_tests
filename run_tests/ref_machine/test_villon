@@ -1,6 +1,6 @@
 #! /usr/bin/env bash
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/ref_machine/test_villon,v 1.4 2018/06/13 17:47:51 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/ref_machine/test_villon,v 1.5 2018/10/11 19:12:07 jmc Exp $
 
 #  Test script for MITgcm that should work on most of the x86_64 Linux machines.
 
@@ -149,6 +149,7 @@ if [ $checkOut -ge 2 ] ; then
        echo "git pull on '"`hostname`"' fail (return val=$retVal) => exit"
        exit 3
     fi
+    ( cd $git_code ; git checkout master -- . )
     echo "Updating current clone ( $git_other ) ..."
     ( cd $git_other ; git pull )
     retVal=$?
@@ -158,10 +159,9 @@ if [ $checkOut -ge 2 ] ; then
        echo "git pull on '"`hostname`"' fail (return val=$retVal) => exit"
        exit 3
     fi
-    ( cd $git_other ; git checkout master )
+    ( cd $git_other ; git checkout master -- . )
   fi
   #---- making a new working copy: MITgcm_today
-  ( cd $git_code ; git checkout master )
   rsync -a $git_code/ MITgcm_today --exclude '.git'
   if test $sepDir = 0 ; then
     echo -n " make a local copy of $git_other in MITgcm_today ..."	| tee -a $tdir/output_$tt

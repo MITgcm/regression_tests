@@ -1,6 +1,6 @@
 #! /usr/bin/env bash
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/nasa_ames/test_submit_pleiades,v 1.1 2018/01/29 19:58:45 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/nasa_ames/test_submit_pleiades,v 1.2 2018/02/09 22:46:11 jmc Exp $
 # $Name:  $
 
 today=`date +%Y%m%d`
@@ -102,7 +102,6 @@ if [ $checkOut -ge 1 ] ; then
 
   if [ $checkOut -eq 1 ] ; then
     if test -e $git_code/.git/config ; then
-      ( cd $git_code ; git checkout master )			| tee -a $LOG_FIL
       echo -n "Updating current clone ( $git_code ) ..."	| tee -a $LOG_FIL
       echo '' >> $LOG_FIL
       ( cd $git_code ; git pull )				>> $LOG_FIL 2>&1
@@ -112,6 +111,8 @@ if [ $checkOut -ge 1 ] ; then
          exit
       else echo "  done"					| tee -a $LOG_FIL
       fi
+      echo "  and checkout master:"				| tee -a $LOG_FIL
+      ( cd $git_code ; git checkout master -- . )		| tee -a $LOG_FIL
     else
       echo "missing file: $git_code/.git/config => try a new clone"	| tee -a $LOG_FIL
       checkOut=2

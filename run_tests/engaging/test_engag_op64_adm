@@ -9,7 +9,7 @@
 #SBATCH -o /home/jm_c/test_engaging/output/o64Adm_tst.stdout
 #SBATCH --no-requeue --constraint=centos6
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/engaging/test_engag_op64_adm,v 1.12 2018/02/09 17:33:41 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/engaging/test_engag_op64_adm,v 1.13 2018/04/03 00:27:08 jmc Exp $
 # $Name:  $
 
 if test -f /etc/profile.d/modules.sh ; then
@@ -124,12 +124,14 @@ if [ $checkOut -eq 1 ] ; then
 #   ( cd $gcmDIR/verification ; ../tools/do_tst_2+2 -clean )
     ( cd $gcmDIR/verification ; ./testreport $typ -clean )
     echo "Update MITgcm code in dir $gcmDIR :"
-    ( cd $gcmDIR ; git checkout master ; git pull ) 2>&1
+    ( cd $gcmDIR ; git pull ) 2>&1
     retVal=$?
     if test "x$retVal" != x0 ; then
        echo "git pull on '"`hostname`"' fail (return val=$retVal) => exit"
        exit
     fi
+    echo "  and checkout master:"
+    ( cd $gcmDIR ; git checkout master -- . ) 2>&1
   else
     echo "no file: $gcmDIR/.git/config => try to download a fresh clone"
     checkOut=2
