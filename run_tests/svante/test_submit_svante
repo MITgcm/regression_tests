@@ -1,6 +1,6 @@
 #! /usr/bin/env bash
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/svante/test_submit_svante,v 1.21 2018/02/26 21:28:39 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/svante/test_submit_svante,v 1.22 2018/11/07 23:10:03 jmc Exp $
 # $Name:  $
 
 today=`date +%Y%m%d`
@@ -69,7 +69,7 @@ module list 						>> $LOG_FIL 2>&1
 #- method to access CVS:
   cmdCVS='cvs -d :pserver:cvsanon@mitgcm.org:/u/gcmpack -q'
 #- which GitHub repository to use and how to access it:
-  git_repo='MITgcm';  git_code='MITgcm'
+  git_repo='MITgcm';  git_code='MITgcm' ; git_other='verification_other'
  #git_repo='altMITgcm'; #git_code='MITgcm66h'
 #--
   git_repo="https://github.com/$git_repo"
@@ -107,28 +107,20 @@ if [ $checkOut -ge 1 ] ; then
   test -e $srcCode && rm -rf $srcCode
 
   if [ $checkOut -eq 1 ] ; then
-    if test -e $git_code/.git/config ; then
-      echo -n "Updating current clone ( $git_code ) ..."	| tee -a $LOG_FIL
-      echo '' >> $LOG_FIL
-      ( cd $git_code ; git pull )				>> $LOG_FIL 2>&1
-      retVal=$?
-      if test "x$retVal" != x0 ; then echo ''
-         echo "'git pull' on '"`hostname`"' fail (return val=$retVal) => exit" | tee -a $LOG_FIL
-         exit
-      else echo "  done"					| tee -a $LOG_FIL
-      fi
-      echo "  and checkout master:"				| tee -a $LOG_FIL
-      ( cd $git_code ; git checkout master -- . )		| tee -a $LOG_FIL
-    else
-      echo "missing file: $git_code/.git/config => try a new clone"	| tee -a $LOG_FIL
+    if test ! -e $git_code/.git/config ; then
+      echo "no file: $git_code/.git/config => try a new clone"	| tee -a $LOG_FIL
+      checkOut=2
+    fi
+    if test ! -e $git_other/.git/config ; then
+      echo "no file: $git_other/.git/config => try a new clone"	| tee -a $LOG_FIL
       checkOut=2
     fi
   fi
   if [ $checkOut -eq 2 ] ; then
     if test -e $git_code ; then
-       echo -n " removing dir: $git_code ..."           | tee -a $LOG_FIL
+       echo -n " removing dir: $git_code ..."		| tee -a $LOG_FIL
        rm -rf $git_code
-       echo "  done"                                    | tee -a $LOG_FIL
+       echo "  done"					| tee -a $LOG_FIL
     fi
     echo -n "Make a clone of $git_code from repo: $git_repo ..."	| tee -a $LOG_FIL
     git clone $git_repo/${git_code}.git 2> $tmpFil
@@ -141,17 +133,53 @@ if [ $checkOut -ge 1 ] ; then
        cat $tmpFil ; rm -f $tmpFil
        exit 2
     fi
+   #--
+    if test -e $git_other ; then
+       echo -n " removing dir: $git_other ..."		| tee -a $LOG_FIL
+       rm -rf $git_other
+       echo "  done"					| tee -a $LOG_FIL
+    fi
+    echo -n "Make a clone of $git_other from repo: $git_repo ..."	| tee -a $LOG_FIL
+    git clone $git_repo/${git_other}.git 2> $tmpFil
+    retVal=$?
+    if test $retVal = 0 ; then
+       echo ' --> done!'				| tee -a $LOG_FIL
+       rm -f $tmpFil
+    else echo ''					| tee -a $LOG_FIL
+       echo " Error: 'git clone' returned: $retVal"	| tee -a $LOG_FIL
+       cat $tmpFil ; rm -f $tmpFil
+       exit 2
+    fi
+  fi
+  #--
+  if [ $checkOut -eq 1 ] ; then
+    echo -n "Updating current clone ( $git_code ) ..."	| tee -a $LOG_FIL
+    echo '' >> $LOG_FIL
+    ( cd $git_code ; git pull )				>> $LOG_FIL 2>&1
+    retVal=$?
+    if test "x$retVal" != x0 ; then echo ''
+         echo "'git pull' on '"`hostname`"' fail (return val=$retVal) => exit" | tee -a $LOG_FIL
+         exit
+    else echo "  done"					| tee -a $LOG_FIL
+    fi
+    echo "  and checkout master:"			| tee -a $LOG_FIL
+    ( cd $git_code ; git checkout master -- . )		| tee -a $LOG_FIL
+   #---
+    echo -n "Updating current clone ( $git_other ) ..."	| tee -a $LOG_FIL
+    echo '' >> $LOG_FIL
+    ( cd $git_other ; git pull )			>> $LOG_FIL 2>&1
+    retVal=$?
+    if test "x$retVal" != x0 ; then echo ''
+         echo "'git pull' on '"`hostname`"' fail (return val=$retVal) => exit" | tee -a $LOG_FIL
+         exit
+    else echo "  done"					| tee -a $LOG_FIL
+    fi
+    echo "  and checkout master:"			| tee -a $LOG_FIL
+    ( cd $git_other ; git checkout master -- . )	| tee -a $LOG_FIL
   fi
   #---- making a new working copy: MITgcm_today
   rsync -a $git_code/ $srcCode --exclude '.git'
   ls -ld $srcCode					| tee -a $LOG_FIL
-  if test -d $srcCode/verification ; then
-    for exp2add in $addExp ; do
-      echo " add dir: $exp2add (from Contrib:verification_other)" | tee -a $LOG_FIL
-      ( cd $srcCode/verification ; $cmdCVS co -P -d $exp2add \
-                    MITgcm_contrib/verification_other/$exp2add > /dev/null )
-    done
-  fi
   /usr/bin/find $srcCode -type d | xargs chmod g+rxs
   /usr/bin/find $srcCode -type f | xargs chmod g+r
   #- update date/lock-file:
