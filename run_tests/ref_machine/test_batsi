@@ -1,0 +1,444 @@
+#! /usr/bin/env bash
+
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/ref_machine/test_villon,v 1.6 2018/11/07 23:10:02 jmc Exp $
+
+#  Test script for MITgcm that should work on most of the x86_64 Linux machines.
+
+tst_grp=0 ; if test $# = 1 ; then tst_grp=$1 ; fi
+if test $tst_grp != 'a' -a $tst_grp != 'b' ; then
+  echo "missing or invalid argument (expect: 'a' or 'b') ==> exit"
+  exit 1
+fi
+
+#- defaults
+#export PATH="$PATH:/usr/local/bin"
+if [ -d ~/bin ]; then export PATH=$PATH:~/bin ; fi
+#- to get case insensitive "ls" (and order of tested experiments)
+export LC_ALL="en_US.UTF-8"
+#  Turn off stack limit for FIZHI & AD-tests
+ulimit -s unlimited
+#  MPI test (for now, only with gfortran)
+  source $HOME/bin/openmpi.sh
+
+#- method to access CVS:
+  cmdCVS='cvs -d :pserver:cvsanon@mitgcm.org:/u/gcmpack'
+# cmdCVS='cvs -d /u/gcmpack'
+# export CVS_RSH=ssh
+# cmdCVS='cvs -q -d :ext:jmc@mitgcm.org:/u/gcmpack'
+
+#- which GitHub repository to use and how to access it:
+  git_repo='MITgcm';  git_code='MITgcm' ; git_other='verification_other'
+ #git_repo='altMITgcm'; #git_code='MITgcm66h'
+#--
+  git_repo="https://github.com/$git_repo"
+ #git_repo="git://github.com/$git_repo"
+ #git_repo="git@github.com:$git_repo"
+
+
+# checkOut=3 : clone from GitHub and make a new copy (if sepDir)
+#   =2 : update (git pull) repo  and make a new copy code  (switch to 2 if no repo)
+#   =1 : skip update             but use a new copy  (if sepDir)
+#   =0 : use existing test code ( switch to 1 if missing test code )
+dInWeek=`date +%a`
+
+dNam=`hostname -s | tr '[:upper:]' '[:lower:]'`
+ TESTDIR="$HOME/test_${dNam}"
+ outDir=$dNam
+ MC=11
+#TESTDIR="/scratch/jmc/test_${dNam}"
+#outDir="${dNam}-${tst_grp}"
+#MC=13
+sepDir=1
+option=
+
+if test $tst_grp = 'a' ; then
+ checkOut=2
+#tst_list='g7a mpa mth mp2+rs mpi oad'
+ tst_list='mpa adm mpi gfo+rs mth+rs'
+#tst_list="$tst_list oad"
+else
+ checkOut=1
+ tst_list='adm g77 gfo+rs ifc'
+ if test "x$dInWeek" = xSun ; then tst_list="$tst_list tlm" ; fi
+fi
+echo " test: $outDir ; list='$tst_list'"
+
+#option="-nc" ; checkOut=0
+#option="-q"  ; checkOut=0
+
+TODAY=`date +%d`
+tmpFil="/tmp/"`basename $0`".$$"
+tdir=$TESTDIR
+updFile='updated_code' ; today=`date +%Y%m%d`
+
+if [ $checkOut -le 1 ] ; then
+  if test -e $tdir/MITgcm_today/doc ; then
+    echo $tdir/MITgcm_today/doc 'exist'
+  else
+    echo -n $tdir/MITgcm_today 'missing ; '
+    checkOut=2
+    echo "will make a new copy ( checkOut=$checkOut )"
+  fi
+fi
+
+if [ $checkOut -ge 2 ] ; then
+  #---- cleaning:
+  if test -e $tdir ; then
+  #- remove date/lock-file:
+    if test -f $tdir/$updFile ; then rm -f $tdir/$updFile ; sleep 2 ; fi
+    echo -n "Removing working copy: $tdir/MITgcm_today ..."
+    test -e $tdir/MITgcm_today  &&  rm -rf $tdir/MITgcm_today
+  else
+    echo -n "Creating a working dir: $tdir ..."
+    mkdir $tdir
+  fi
+  echo "  done"
+  cd $tdir
+
+  #---- Making a new clone or updating existing one:
+  if [ $checkOut -eq 2 ] ; then
+    if test -e $git_code/.git/config ; then
+       echo $git_code/.git/config 'exist'
+    else
+       echo -n $git_code/.git/config 'missing ; '
+       checkOut=3
+       echo "will get new clone ( checkOut=$checkOut )"
+    fi
+    if test -e $git_other/.git/config ; then
+       echo $git_other/.git/config 'exist'
+    else
+       echo -n $git_other/.git/config 'missing ; '
+       checkOut=3
+       echo "will get new clone ( checkOut=$checkOut )"
+    fi
+  fi
+  if [ $checkOut -eq 3 ] ; then
+    test -e $git_code && rm -rf $git_code
+    echo "Make a clone of $git_code from repo: $git_repo ..."
+    git clone $git_repo/${git_code}.git 2> $tmpFil
+    retVal=$?
+    if test $retVal = 0 ; then
+       echo ' --> done!'
+       rm -f $tmpFil
+    else
+       echo " Error: 'git clone' returned: $retVal"
+       cat $tmpFil
+       rm -f $tmpFil
+       exit 2
+    fi
+    test -e $git_other && rm -rf $git_other
+    echo "Make a clone of $git_other from repo: $git_repo ..."
+    git clone $git_repo/${git_other}.git 2> $tmpFil
+    retVal=$?
+    if test $retVal = 0 ; then
+       echo ' --> done!'
+       rm -f $tmpFil
+    else
+       echo " Error: 'git clone' returned: $retVal"
+       cat $tmpFil
+       rm -f $tmpFil
+       exit 2
+    fi
+  else
+    echo "Updating current clone ( $git_code ) ..."
+    ( cd $git_code ; git pull )
+    retVal=$?
+    if test $retVal = 0 ; then
+       echo ' --> done!'
+    else
+       echo "git pull on '"`hostname`"' fail (return val=$retVal) => exit"
+       exit 3
+    fi
+    ( cd $git_code ; git checkout master -- . )
+    echo "Updating current clone ( $git_other ) ..."
+    ( cd $git_other ; git pull )
+    retVal=$?
+    if test $retVal = 0 ; then
+       echo ' --> done!'
+    else
+       echo "git pull on '"`hostname`"' fail (return val=$retVal) => exit"
+       exit 3
+    fi
+    ( cd $git_other ; git checkout master -- . )
+  fi
+  #---- making a new working copy: MITgcm_today
+  rsync -a $git_code/ MITgcm_today --exclude '.git'
+  if test $sepDir = 0 ; then
+    echo -n " make a local copy of $git_other in MITgcm_today ..."	| tee -a $tdir/output_$tt
+    ( cd MITgcm_today
+      rsync -a ../$git_other/ $git_other --exclude '.git' )
+    echo " done"				| tee -a $tdir/output_$tt
+  fi
+  #---- updating "other_input" dir
+  if test -d other_input ; then
+    list_dirs=`(cd other_input ; ls 2> /dev/null )`
+    echo "Updating ( $cmdCVS update -P -d ) 'other_input' extra dirs:"
+    for exd in $list_dirs ; do
+     if test -d other_input/$exd/CVS ; then echo "  $exd"
+      ( cd other_input/$exd ; $cmdCVS update -P -d )
+     fi
+    done
+    echo " <-- update of 'other_input' dirs done"
+  fi
+  #---- update date/lock-file:
+  echo $today > $updFile ; sleep 2 ; ls -l $updFile
+else
+  cd $tdir
+fi
+
+#------------------------------------------------------------------------
+
+firstTst=`echo $tst_list | awk '{print $1}'`
+last_Tst=`echo $tst_list | awk '{print $NF}'`
+for tt in $tst_list
+do
+
+  echo "================================================================"
+  typ=`echo $tt | sed 's/+rs//'`
+  #- define list of additional experiences to test:
+  addExp=''
+  if test $typ = 'mpi' ; then
+    addExp="offline_cheapaml atm_gray"
+  fi
+  if test $typ = 'gfo' -o $typ = 'ifc' ; then
+    addExp="$addExp global_oce_biogeo_bling"
+    addExp="$addExp shelfice_remeshing"
+  fi
+  if test $typ = 'mpi' ; then
+    addExp="$addExp global_ocean.gm_k3d"
+    addExp="$addExp global_oce_cs32"
+  fi
+  #- check day and time:
+  curDay=`date +%d` ; curHour=`date +%H`
+  if [ $curDay -ne $TODAY ] ; then
+    date ; echo "day is over => skip test $typ"
+    continue
+  fi
+  if [ $curHour -ge 18 ] ; then
+    date ; echo "too late to run test $typ"
+    continue
+  fi
+  if test $sepDir = 0 -a "x$option" != x -a  $tt != $last_Tst ; then
+    echo "using option='$option' prevent multi-tests => skip test $typ"
+    continue
+  fi
+  #- clean-up old output files
+  if test -d $tdir/prev ; then
+    mv -f $tdir/output_${typ}* $tdir/prev
+  else
+    rm -f $tdir/output_${typ}*
+  fi
+  touch $tdir/output_$tt
+  echo -n "-- Starting test: $tt at: "		>> $tdir/output_$tt
+  date						>> $tdir/output_$tt
+  echo " typ='$typ', addExp='$addExp'"		>> $tdir/output_$tt
+  if test $sepDir = 1 ; then
+    new_dir="MITgcm_$typ"
+    reUse=0 ; if [ $checkOut -le 0 ] ; then reUse=1 ; fi
+    if test -d $new_dir/CVS -a $reUse = 1 ; then
+      cd $tdir/$new_dir
+      if test $tt != $typ ; then
+        ( cd verification ; ../tools/do_tst_2+2 -clean )
+      fi
+    else
+      if test -d prev ; then
+      #-- save previous summary:
+        oldS=`ls -t ${new_dir}/verification/tr_${outDir}_*/summary.txt 2> /dev/null | head -1`
+        if test "x$oldS" != x ; then
+          cat $oldS | sed '/^[YN] [YN] [YN] [YN]/ s/ \. //g' > prev/tr_out.$typ
+          touch -r $oldS prev/tr_out.$typ
+        fi
+       if test $tt != $typ ; then
+        oldS=`ls -t ${new_dir}/verification/rs_${outDir}_*/summary.txt 2> /dev/null | head -1`
+        if test "x$oldS" != x ; then cp -p -f $oldS prev/rs_out.$typ ; fi
+       fi
+      fi
+      echo " remove dir: $new_dir and make new one"	>> $tdir/output_$tt
+      test -e $new_dir  &&  rm -rf $new_dir
+      mkdir $new_dir
+    #- before making a copy, check that code has been updated
+      nCount=0; today=`date +%Y%m%d`
+      updDate=0 ; test -f $updFile && updDate=`cat $updFile`
+      while [ $today -gt $updDate ] ; do
+       nCount=`expr $nCount + 1`
+       if [ $nCount -gt 40 ] ; then
+         echo " waiting too long (nCount=$nCount) for updated code"
+         echo " today=$today , updDate=$updDate "
+         ls -l $updFile
+         exit
+       fi
+       sleep 60
+       updDate=0 ; test -f $updFile && updDate=`cat $updFile`
+      done
+      ls -l $updFile					| tee -a $tdir/output_$tt
+      echo " waited nCount=$nCount for updated code ($updDate) to copy"	| tee -a $tdir/output_$tt
+    #-----------------------------
+      if test -d MITgcm_today -a -d $new_dir ; then
+        echo " copy main code from MITgcm_today to $new_dir"	| tee -a $tdir/output_$tt
+        cp -ra MITgcm_today/* $new_dir 2>&1	| tee -a $tdir/output_$tt
+      else
+        if test -d MITgcm_today ; then
+         echo " missing dir $new_dir --> end test $tt"		| tee -a $tdir/output_$tt
+        else
+         echo " missing dir MITgcm_today --> end test $tt"	| tee -a $tdir/output_$tt
+        fi
+        continue
+      fi
+      echo -n " cd $tdir/$new_dir "		| tee -a $tdir/output_$tt
+      cd $tdir/$new_dir
+      retVal=$?
+      ( echo "(retVal= $retVal )" ; pwd )	| tee -a $tdir/output_$tt
+      if test -d verification ; then
+        echo " check: dir verification exist"	| tee -a $tdir/output_$tt
+      else
+        echo " missing dir verification --> end test $tt"	| tee -a $tdir/output_$tt
+        continue
+      fi
+      if test "x$addExp" != x ; then
+        echo -n " make a local copy of $git_other ..."	| tee -a $tdir/output_$tt
+        rsync -a $tdir/$git_other/ $git_other --exclude '.git'
+        echo " done"				| tee -a $tdir/output_$tt
+      fi
+      #-- add additional experience from $git_other
+      for exp2add in $addExp ; do
+        echo "  add link: $exp2add (from $git_other )"	| tee -a $tdir/output_$tt
+        ( cd verification ;  ln -s ../$git_other/$exp2add . )
+        if test $exp2add = 'global_oce_cs32' ; then
+          echo "      link dir 'other_input/core2_cnyf' in here"	| tee -a $tdir/output_$tt
+          ( cd verification/${exp2add}
+            ln -s ../../../other_input/core2_cnyf . )
+        fi
+       #if test $exp2add = 'shelfice_remeshing' ; then
+       #  echo " link dir 'other_input/remeshing_code' to 'extra_code'"	| tee -a $tdir/output_$tt
+       #  ( cd verification/${exp2add}
+       #    ln -s ../../../other_input/remeshing_code extra_code )
+       #fi
+      done
+    fi
+  else
+    cd $tdir/MITgcm_today
+  fi
+  cd verification
+
+#-- set the testreport command:
+  comm="./testreport"
+  if test $typ = 'g7a' -o  $typ = 'adm' -o  $typ = 'mpa' ; then
+    comm="$comm -adm"
+  elif test $typ = 'oad' ; then
+    comm="$comm -oad"
+  elif test $typ = 'tlm' ; then
+    comm="$comm -tlm"
+  elif test $typ = 'mth' -o  $typ = 'mp2' ; then
+    export GOMP_STACKSIZE=400m
+    export OMP_NUM_THREADS=2
+    comm="$comm -mth"
+  else
+    comm="$comm -md cyrus-makedepend"
+  fi
+  comm="$comm -odir $outDir -a jm_c@mitgcm.org"
+#-- set the optfile (+ mpi & match-precision)
+  MPI=0
+  case $typ in
+   'g77'|'g7a')		OPTFILE='../tools/build_options/linux_amd64_g77' ;;
+   'gfo'|'adm'|'oad'|'tlm'|'mth') comm="$comm -match $MC -devel"
+			OPTFILE='../tools/build_options/linux_amd64_gfortran' ;;
+   'ifc')		comm="$comm -devel"
+			OPTFILE='../tools/build_options/linux_amd64_ifort11' ;;
+   'pgi')		OPTFILE='../tools/build_options/linux_amd64_pgf77' ;;
+   'mpa'|'mpi'|'mp2')	comm="$comm -match $MC -devel" ; MPI=8
+			OPTFILE='../tools/build_options/linux_amd64_gfortran' ;;
+       *)		OPTFILE= ;;
+  esac
+#-- set MPI command:
+  if test $MPI != 0 ; then
+    if test $typ = 'mp2' ; then MPI=3 ; fi
+    if test $typ = 'mpa' ; then
+      EXE="mpirun -np TR_NPROC ./mitgcmuv_ad"
+    else
+      EXE="mpirun -np TR_NPROC ./mitgcmuv"
+    fi
+  fi
+
+#-- set specific Env Vars:
+  if test $typ = 'oad' ; then
+    #- for some reasons, "source ScriptFile | tee -a LogFile"
+    #  does run the script but does not keep the env-var settings
+    source $HOME/mitgcm/bin/setenv_OpenAD.sh	>> $tdir/output_$tt
+  fi
+  if test $typ = 'ifc' ; then
+    source /srv/software/intel/intel-11.1.073/bin/ifortvars.sh intel64
+  fi
+  if test $typ = 'pgi' ; then
+   #listT='fizhi-cs-32x32x40 fizhi-cs-aqualev20'
+    export PGI=/srv/software/pgi/pgi-10.9
+    export PATH="$PATH:$PGI/linux86-64/10.9/bin"
+    export LM_LICENSE_FILE=$PGI/license.dat
+  fi
+
+  if test $sepDir = 0 -a "x$option" = x -a $tt = $firstTst -a $checkOut = 0 ; then
+#-- cleaning:
+    echo "======================"
+    echo "Cleaning test directories:"	| tee -a $tdir/output_$tt
+    cmdCLN="./testreport -clean"
+    echo " clean dir running: $cmdCLN"	| tee -a $tdir/output_$tt
+    $cmdCLN >> $tdir/output_$tt 2>&1
+    echo "======================"
+    echo ""				| tee -a $tdir/output_$tt
+  fi
+
+#-- run the testreport command:
+  echo -n "Running testreport using:"	| tee -a $tdir/output_$tt
+  if test "x$OPTFILE" != x ; then
+    comm="$comm -of=$OPTFILE"
+  fi
+  if test $MPI = 0 ; then  echo ''	| tee -a $tdir/output_$tt
+  else echo " (EXE='$EXE')"		| tee -a $tdir/output_$tt
+    comm="$comm -MPI $MPI -command \"\$EXE\""
+  fi
+  if test "x$option" != x ; then comm="$comm $option" ; fi
+ #if test $typ = 'pgi' ; then comm="$comm -t \"\$listT\"" ; fi
+  echo "  \"eval $comm\""		| tee -a $tdir/output_$tt
+  echo "======================"
+  eval $comm >> $tdir/output_$tt 2>&1
+  sed -n "/^An email /,/^======== End of testreport / p" $tdir/output_$tt
+  echo ""				| tee -a $tdir/output_$tt
+
+#-- also test restart (test 2+2=4)
+  if test $tt != $typ
+  then
+    echo "testing restart using:"	| tee -a $tdir/output_$tt
+    comm="../tools/do_tst_2+2 -o $outDir -a jm_c@mitgcm.org"
+    if test $MPI = 0 ; then
+      echo "  \"$comm\""		| tee -a $tdir/output_$tt
+      echo "======================"
+      $comm >> $tdir/output_$tt 2>&1
+    else
+      echo "  \"$comm -mpi -exe $EXE\""	| tee -a $tdir/output_$tt
+      echo "======================"
+      $comm -mpi -exe "$EXE" >> $tdir/output_$tt 2>&1
+    fi
+    echo ; cat tst_2+2_out.txt
+    echo
+  fi
+  export OMP_NUM_THREADS=1
+
+  if test $sepDir = 0 ; then
+#-- cleaning:
+    echo "======================"
+    echo "Cleaning test directories:"		| tee -a $tdir/output_$tt
+    if test $tt != $typ ; then
+      cmdCLN="../tools/do_tst_2+2 -clean"
+      echo " clean tst_2+2 running: $cmdCLN"	| tee -a $tdir/output_$tt
+      $cmdCLN >> $tdir/output_$tt 2>&1
+    fi
+    if test $tt != $last_Tst ; then
+      cmdCLN="./testreport -clean"
+      echo " clean dir running: $cmdCLN"	| tee -a $tdir/output_$tt
+      $cmdCLN >> $tdir/output_$tt 2>&1
+    fi
+    echo "======================"
+    echo
+  fi
+  cd $tdir
+
+done
