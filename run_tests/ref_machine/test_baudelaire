@@ -1,6 +1,6 @@
 #! /usr/bin/env bash
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/ref_machine/test_baudelaire,v 1.7 2018/10/11 19:12:07 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/ref_machine/test_baudelaire,v 1.8 2018/11/07 23:10:02 jmc Exp $
 
 #  Test script for MITgcm that should work on most of the x86_64 Linux machines.
 
@@ -199,7 +199,7 @@ do
   #- define list of additional experiences to test:
   addExp=''
   if test $typ = 'mp2' -o $typ = 'ifc' ; then
-    addExp="offline_cheapaml atm_gray"
+    addExp="offline_cheapaml atm_gray atm_strato"
   fi
   if test $typ = 'gfo' -o $typ = 'ifc' ; then
     addExp="$addExp global_oce_biogeo_bling"
