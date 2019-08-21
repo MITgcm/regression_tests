@@ -1,6 +1,6 @@
 #! /usr/bin/env bash
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/ref_machine/test_baudelaire,v 1.8 2018/11/07 23:10:02 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/ref_machine/test_baudelaire,v 1.9 2019/06/20 15:53:49 jmc Exp $
 
 #  Test script for MITgcm that should work on most of the x86_64 Linux machines.
 
@@ -201,8 +201,10 @@ do
   if test $typ = 'mp2' -o $typ = 'ifc' ; then
     addExp="offline_cheapaml atm_gray atm_strato"
   fi
-  if test $typ = 'gfo' -o $typ = 'ifc' ; then
+  if test $typ = 'gfo' -o $typ = 'ifc' -o $typ = 'adm' ; then
     addExp="$addExp global_oce_biogeo_bling"
+  fi
+  if test $typ = 'gfo' -o $typ = 'ifc' ; then
     addExp="$addExp shelfice_remeshing"
   fi
   if test $typ = 'mpi' ; then

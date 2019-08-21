@@ -1,6 +1,6 @@
 #! /usr/bin/env bash
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/ref_machine/test_batsi,v 1.1 2018/12/20 23:31:07 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/ref_machine/test_batsi,v 1.2 2019/06/20 15:54:32 jmc Exp $
 
 #  Test script for MITgcm that should work on most of the x86_64 Linux machines.
 
@@ -200,8 +200,10 @@ do
   if test $typ = 'mpi' ; then
     addExp="offline_cheapaml atm_gray atm_strato"
   fi
-  if test $typ = 'gfo' -o $typ = 'ifc' ; then
+  if test $typ = 'gfo' -o $typ = 'ifc' -o $typ = 'mpa' ; then
     addExp="$addExp global_oce_biogeo_bling"
+  fi
+  if test $typ = 'gfo' -o $typ = 'ifc' ; then
     addExp="$addExp shelfice_remeshing"
   fi
   if test $typ = 'mpi' ; then
