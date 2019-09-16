@@ -1,6 +1,6 @@
 #! /usr/bin/env bash
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/ref_machine/test_batsi,v 1.3 2019/08/21 16:05:13 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/ref_machine/test_batsi,v 1.4 2019/08/28 00:13:47 jmc Exp $
 
 #  Test script for MITgcm that should work on most of the x86_64 Linux machines.
 
@@ -34,9 +34,9 @@ ulimit -s unlimited
  #git_repo="git://github.com/$git_repo"
  #git_repo="git@github.com:$git_repo"
 
-
+#-------------------------------------------------------------------
 # checkOut=3 : clone from GitHub and make a new copy (if sepDir)
-#   =2 : update (git pull) repo  and make a new copy code  (switch to 2 if no repo)
+#   =2 : update (git pull) repo  and make a new copy code  (switch to 3 if no repo)
 #   =1 : skip update             but use a new copy  (if sepDir)
 #   =0 : use existing test code ( switch to 1 if missing test code )
 dInWeek=`date +%a`
@@ -237,7 +237,7 @@ do
   if test $sepDir = 1 ; then
     new_dir="MITgcm_$typ"
     reUse=0 ; if [ $checkOut -le 0 ] ; then reUse=1 ; fi
-    if test -d $new_dir/CVS -a $reUse = 1 ; then
+    if test -d $new_dir/doc -a $reUse = 1 ; then
       cd $tdir/$new_dir
       if test $tt != $typ ; then
         ( cd verification ; ../tools/do_tst_2+2 -clean )
