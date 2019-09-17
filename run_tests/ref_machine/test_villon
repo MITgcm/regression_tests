@@ -1,6 +1,6 @@
 #! /usr/bin/env bash
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/ref_machine/test_villon,v 1.6 2018/11/07 23:10:02 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/ref_machine/test_villon,v 1.7 2019/09/16 23:38:47 jmc Exp $
 
 #  Test script for MITgcm that should work on most of the x86_64 Linux machines.
 
@@ -53,13 +53,11 @@ option=
 
 if test $tst_grp = 'a' ; then
  checkOut=2
-#tst_list='mpa adm mpi gfo+rs mth+rs'
-#tst_list="$tst_list oad"
-#tst_list='adm gfo+rs oad'
- tst_list='adm gfo+rs'
+ tst_list='mpa mpi mp2+rs mth'
 else
  checkOut=1
- tst_list='adm g77 gfo+rs ifc'
+ tst_list='adm gfo+rs'
+#tst_list="$tst_list oad"
  if test "x$dInWeek" = xSun ; then tst_list="$tst_list tlm" ; fi
 fi
 echo " test: $outDir ; list='$tst_list'"
@@ -201,7 +199,7 @@ do
   if test $typ = 'mpi' ; then
     addExp="offline_cheapaml atm_gray atm_strato"
   fi
-  if test $typ = 'gfo' -o $typ = 'ifc' -o $typ = 'mpa' ; then
+  if test $typ = 'gfo' -o $typ = 'ifc' -o $typ = 'adm' ; then
     addExp="$addExp global_oce_biogeo_bling"
   fi
   if test $typ = 'gfo' -o $typ = 'ifc' ; then
@@ -210,6 +208,7 @@ do
   if test $typ = 'mpi' ; then
     addExp="$addExp global_ocean.gm_k3d"
     addExp="$addExp global_oce_cs32"
+    addExp="$addExp global_oce_llc90"
   fi
   #- check day and time:
   curDay=`date +%d` ; curHour=`date +%H`
