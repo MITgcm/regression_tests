@@ -1,0 +1,51 @@
+Instructions for setting up testing dir on villon.mit.edu :
+
+0) villon.mit.edu has been currently installed by Scott Blomquist (mitgcm-admin at techsquare.com)
+ as Ubuntu LTS 18 linux box with all needed Linux pkgs
+
+ need to make sure we have "staf" in the path for TAF ADM tests
+
+1) testing scripts:
+ > sentenv CVSROOT ':pserver:cvsanon@mitgcm.org:/u/gcmpack'
+ > cd ~/. ; mkdir testing
+ > cd testing ; cvs co -P -d ref_machine MITgcm_contrib/test_scripts/ref_machine
+
+ then edit crontab (crontab -e) as described in: ref_machine/crontab_jmc
+
+2) testing dirs:
+ > cd ~/. ; mkdir test_villon ; cd test_villon
+ > mkdir prev
+
+------------------------------------------------------------------------------------------
+3) to get Gael's additional experiments (global_oce_cs32 global_oce_llc90) to run:
+ > cd ~/. ; mkdir test_villon ; cd test_villon
+ > mkdir other_input
+
+#-- follow Gael instructions, but adjusted to:
+ > cd ~/test_villon/other_input
+ > setenv CVSROOT ':pserver:cvsanon@mitgcm.org:/u/gcmpack'
+ > cvs co -P -d gael_oce_llc90_gzip MITgcm_contrib/gael/verification/ECCO_v4_r2/input_fields
+ > mkdir gael_oce_llc90_input
+ >  ( cd gael_oce_llc90_input ; cp -p ../gael_oce_llc90_gzip/*.meta . ; \
+     ln -s ../gael_oce_llc90_gzip/*.gz . ; ../gael_oce_llc90_gzip/gunzip_files )
+ jmc only:
+ > ( cd gael_oce_llc90_input ; rmlnk )
+
+ Note: This dir is to be linked to "input_fields" in verification/global_oce_llc90/
+
+#-- follow Gael instructions, but adjusted to:
+  wget ftp://mit.ecco-group.org/ecco_for_las/version_4/checkpoints/global_oce_input_fields.tar.gz
+  gunzip global_oce_input_fields.tar.gz
+  tar -xf global_oce_input_fields.tar
+  \rm -f global_oce_input_fields.tar
+
+ Note: The content of this dir is to be linked inside "verification/global_oce_llc90/input_verifs/"
+
+#-- follow Gael instructions, but adjusted to:
+  wget ftp://mit.ecco-group.org/ecco_for_las/version_4/checkpoints/core2_cnyf.tar
+  tar -xf core2_cnyf.tar
+  \rm -f core2_cnyf.tar
+
+ Note: This dir is to be linked inside "verification/global_oce_llc90/input_verifs/"
+       and also inside "verification/global_oce_cs32/"
+------------------------------------------------------------------------------------------
