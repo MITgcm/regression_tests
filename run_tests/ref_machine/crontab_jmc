@@ -1,4 +1,21 @@
-# $Header: /u/gcmpack/MITgcm/tools/example_scripts/csail/crontab_jmc,v 1.10 2018/01/19 19:51:01 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/ref_machine/crontab_jmc,v 1.1 2018/02/02 19:28:01 jmc Exp $
+
+#-----------------
+#-from: jm_c@villon.mit.edu
+#  current output of "crontab -l":
+MAILTO=jmc@ocean.mit.edu
+
+57 23  * * * cd /home/jm_c/testing/ref_machine && cvs -q -d :pserver:cvsanon@mitgcm.org:/u/gcmpack update -P -d
+02 00 * * * /home/jm_c/testing/ref_machine/test_villon a
+12 00 * * * /home/jm_c/testing/ref_machine/test_villon b
+
+#-----------------
+#-from: jm_c@batsi.mit.edu
+#  current output of "crontab -l":
+MAILTO=jmc@ocean.mit.edu
+
+55 23  * * * cd /home/jm_c/testing/ref_machine && cvs -q -d :pserver:cvsanon@mitgcm.org:/u/gcmpack update -P -d
+10 00 * * * /home/jm_c/testing/ref_machine/test_batsi a
 
 #-----------------
 #-from: jmc@baudelaire.mit.edu
@@ -12,16 +29,6 @@ MAILTO=jmc@ocean.mit.edu
 # and the update of ~jmc/testing/ref_machine/ dir is part of the script
 #  mitgcm.org/scripts/daily_update run daily from cron by jmc@mitgcmcvs.mit.edu:
 30 23 * * * cd /u/jmc/testing && ./daily_update && cp -p scripts/daily_update .
-
-#=========================================================
-
-#-----------------
-#-from: jm_c@villon.mit.edu
-#  current output of "crontab -l":
-MAILTO=jmc@ocean.mit.edu
-
-55 23  * * * cd /home/jm_c/testing/ref_machine && cvs -q -d :pserver:cvsanon@mitgcm.org:/u/gcmpack update -P -d
-10 00 * * * /home/jm_c/testing/ref_machine/test_villon a
 
 #=========================================================
 
@@ -42,5 +49,4 @@ MAILTO=jmc@ocean.mit.edu
 #-from: jmc@hugo.csail.mit.edu   (down since Mar 30, 2009)
 #  current output of "crontab -l":
 #05 01 * * 1,3,6  /u/u2/jmc/testing/csail/test_hugo
-------------------------------------
-
+#------------------------------------
