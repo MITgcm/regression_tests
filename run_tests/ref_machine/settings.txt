@@ -3,7 +3,9 @@ Instructions for setting up testing dir on villon.mit.edu :
 0) villon.mit.edu has been currently installed by Scott Blomquist (mitgcm-admin at techsquare.com)
  as Ubuntu LTS 18 linux box with all needed Linux pkgs
 
- need to make sure we have "staf" in the path for TAF ADM tests
+  a) need to make sure we have "staf" in the path for TAF ADM tests
+  b) no needs for any special MPI env setting to use OpenMPI with gfortran
+   since std optfile will set MPI_INC_DIR using "pkg-config --cflags-only-I ompi"
 
 1) testing scripts:
  > sentenv CVSROOT ':pserver:cvsanon@mitgcm.org:/u/gcmpack'
