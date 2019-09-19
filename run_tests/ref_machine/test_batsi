@@ -1,6 +1,6 @@
 #! /usr/bin/env bash
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/ref_machine/test_batsi,v 1.5 2019/09/16 23:38:47 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/ref_machine/test_batsi,v 1.6 2019/09/18 16:01:21 jmc Exp $
 
 #  Test script for MITgcm that should work on most of the x86_64 Linux machines.
 
@@ -18,7 +18,7 @@ export LC_ALL="en_US.UTF-8"
 #  Turn off stack limit for FIZHI & AD-tests
 ulimit -s unlimited
 #  MPI test (for now, only with gfortran)
-# source $HOME/bin/openmpi.sh
+  source $HOME/bin/openmpi.sh
 
 #- method to access CVS:
   cmdCVS='cvs -d :pserver:cvsanon@mitgcm.org:/u/gcmpack'
