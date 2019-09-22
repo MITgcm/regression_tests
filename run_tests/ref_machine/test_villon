@@ -1,6 +1,6 @@
 #! /usr/bin/env bash
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/ref_machine/test_villon,v 1.9 2019/09/18 16:01:22 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/ref_machine/test_villon,v 1.10 2019/09/18 17:08:32 jmc Exp $
 
 #  Test script for MITgcm that should work on most of the x86_64 Linux machines.
 
@@ -54,9 +54,9 @@ if test $tst_grp = 'a' ; then
  tst_list='mpa mpi mp2+rs mth'
 else
  checkOut=1
- tst_list='adm gfo+rs'
+ tst_list='adm tlm gfo+rs'
 #tst_list="$tst_list oad"
- if test "x$dInWeek" = xSun ; then tst_list="$tst_list tlm" ; fi
+#if test "x$dInWeek" = xSun ; then tst_list="$tst_list tlm" ; fi
 fi
 echo " test: $outDir ; list='$tst_list'"
 
