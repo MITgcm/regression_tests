@@ -1,6 +1,6 @@
 #! /usr/bin/env bash
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/ref_machine/test_batsi,v 1.6 2019/09/18 16:01:21 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/ref_machine/test_batsi,v 1.7 2019/09/19 14:57:15 jmc Exp $
 
 #  Test script for MITgcm that should work on most of the x86_64 Linux machines.
 
@@ -305,7 +305,7 @@ do
         ( cd verification ;  ln -s ../$git_other/$exp2add . )
         if test $exp2add = 'global_oce_cs32' ; then
           echo "      link dir 'other_input/core2_cnyf' in here"	| tee -a $tdir/output_$tt
-          ( cd verification/${exp2add}
+          ( cd ${git_other}/${exp2add}
             ln -s ../../../other_input/core2_cnyf . )
         fi
        #if test $exp2add = 'shelfice_remeshing' ; then
