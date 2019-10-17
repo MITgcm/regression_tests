@@ -1,6 +1,6 @@
 #! /usr/bin/env bash
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/ref_machine/test_baudelaire,v 1.13 2019/09/18 16:02:32 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/ref_machine/test_baudelaire,v 1.14 2019/09/22 16:29:14 jmc Exp $
 
 #  Test script for MITgcm that should work on most of the x86_64 Linux machines.
 
@@ -47,7 +47,7 @@ dNam=`hostname -s | tr '[:upper:]' '[:lower:]'`
 #TESTDIR="$HOME/test_${dNam}"
  TESTDIR="/scratch/jmc/test_${dNam}"
  MC=13 ; outDir="${dNam}-${tst_grp}"
-#MC=11 ; outDir=$dNam
+ MC=11 ;#outDir=$dNam
 sepDir=1
 option=
 
