@@ -1,6 +1,6 @@
 #! /usr/bin/env bash
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/ref_machine/test_baudelaire,v 1.14 2019/09/22 16:29:14 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/ref_machine/test_baudelaire,v 1.15 2019/10/17 22:43:22 jmc Exp $
 
 #  Test script for MITgcm that should work on most of the x86_64 Linux machines.
 
@@ -53,13 +53,13 @@ option=
 
 if test $tst_grp = 'a' ; then
  checkOut=2
- tst_list='mpa mth mp2+rs mpi oad'
+ tst_list='mth mp2+rs mpi oad g77'
 #tst_list='mpa adm mpi gfo+rs mth+rs'
 #tst_list="$tst_list oad"
 else
  checkOut=1
- tst_list='adm g77 gfo+rs ifc'
- if test "x$dInWeek" = xSun ; then tst_list="$tst_list tlm" ; fi
+ tst_list='adm gfo+rs ifc'
+#if test "x$dInWeek" = xSun ; then tst_list="$tst_list tlm" ; fi
 fi
 echo " test: $outDir ; list='$tst_list'"
 
