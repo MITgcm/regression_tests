@@ -8,7 +8,7 @@
 #SBATCH -o /home/jm_c/test_engaging/output/ifcMp2_tst.stdout
 #SBATCH --no-requeue --constraint=centos6
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/engaging/test_engag_ifc_mp2,v 1.16 2019/06/20 15:43:19 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/engaging/test_engag_ifc_mp2,v 1.17 2019/06/27 22:26:36 jmc Exp $
 # $Name:  $
 
 if test -f /etc/profile.d/modules.sh ; then
@@ -221,7 +221,7 @@ if [ $checkOut -eq 2 ] ; then
   fi
 fi
 
-# -change dir to $gcmDIR/verification + add link for additional experiments:
+#- change dir to $gcmDIR/verification + add link for additional experiments:
 if test -e $gcmDIR/verification ; then
   if [ $checkOut -lt 2 ] ; then
     echo " dir $gcmDIR/verification exist" ; fi

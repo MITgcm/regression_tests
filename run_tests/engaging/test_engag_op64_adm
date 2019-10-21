@@ -8,7 +8,7 @@
 #SBATCH -o /home/jm_c/test_engaging/output/o64Adm_tst.stdout
 #SBATCH --no-requeue --constraint=centos6
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/engaging/test_engag_op64_adm,v 1.15 2018/11/28 19:43:16 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/engaging/test_engag_op64_adm,v 1.16 2019/06/27 22:26:36 jmc Exp $
 # $Name:  $
 
 if test -f /etc/profile.d/modules.sh ; then
@@ -30,7 +30,7 @@ TST_DIR="/pool001/jm_c/test_$dNam"
 tmpFil="/tmp/"`basename $0`".$$"
   cmdCVS='cvs -d :pserver:cvsanon@mitgcm.org:/u/gcmpack -q'
 #- which GitHub repository to use and how to access it:
-  git_repo='MITgcm';  git_code='MITgcm' ; git_other='verification_other'
+  git_repo='MITgcm'; git_code='MITgcm' ; git_other='verification_other'
  #git_repo='altMITgcm'; #git_code='MITgcm66h'
 #--
   git_repo="https://github.com/$git_repo"
@@ -140,7 +140,7 @@ if [ $checkOut -eq 1 ] ; then
       /bin/rm -f $listD
     )
   fi
-    echo "Update MITgcm code in dir $gcmDIR :"
+    echo "Update $git_code code in dir $gcmDIR :"
     ( cd $gcmDIR ; git pull ) 2>&1
     retVal=$?
     if test "x$retVal" != x0 ; then
@@ -161,13 +161,14 @@ if [ $checkOut -eq 1 ] ; then
     ( cd $gcmDIR/$git_other ; git checkout master -- . ) 2>&1
   fi
 fi
+
 if [ $checkOut -eq 2 ] ; then
   if test -e $gcmDIR ; then
     echo -n "Removing working copy: $gcmDIR ..."
     rm -rf $gcmDIR
     echo "  done"
   fi
-  echo -n "Make a clone of $git_code from repo: $git_repo ..."
+  echo "Make a clone of $git_code from repo: $git_repo ..."
   git clone $git_repo/${git_code}.git $gcmDIR 2> $tmpFil
   retVal=$?
   if test $retVal = 0 ; then
@@ -195,7 +196,7 @@ if [ $checkOut -eq 2 ] ; then
   fi
 fi
 
-#- change dir to $gcmDIR/verification dir:
+#- change dir to $gcmDIR/verification + add link for additional experiments:
 if test -e $gcmDIR/verification ; then
   if [ $checkOut -lt 2 ] ; then
     echo " dir $gcmDIR/verification exist" ; fi
