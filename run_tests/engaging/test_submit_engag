@@ -1,6 +1,6 @@
 #! /usr/bin/env bash
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/engaging/test_submit_engag,v 1.6 2018/04/03 00:29:40 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/engaging/test_submit_engag,v 1.7 2018/08/16 13:31:15 jmc Exp $
 # $Name:  $
 
 today=`date +%Y%m%d`
@@ -8,7 +8,7 @@ dInWeek=`date +%a`
 
 if test $# = 0
 then
-  TEST_LIST='o64Adm gfoTlm ifcMp2 ifcMpi'
+  TEST_LIST='o64Adm gfoAdm gfoTlm ifcMp2 ifcMpi'
  #if test "x$dInWeek" = xSun ; then TEST_LIST="$TEST_LIST iad ifc oad" ; fi
 else
   TEST_LIST=$*
@@ -54,11 +54,7 @@ module list						>> $LOG_FIL 2>&1
   NB_SUB_JOBS=0
   for i in $JOB_LIST
   do
-    case $i in
-      'o64Adm') sfx='op64_adm' ;;
-      'gfoTlm') sfx='gfo_tlm' ;;
-      *) sfx=`echo ${i} | sed '/Mp.$/s/Mp/_mp/'` ;;
-    esac
+    sfx=`echo ${i} | sed -e 's/^.../&_/' -e 's/^o64/op64/' | tr '[:upper:]' '[:lower:]'`
     BATCH_SCRIPT="test_engag_$sfx"
     if test -f $SUB_DIR/$BATCH_SCRIPT ; then
       #- job name ( $JOB ) & output-file name ( $JOB.std??? ) must match
