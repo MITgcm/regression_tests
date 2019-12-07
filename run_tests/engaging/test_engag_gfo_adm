@@ -9,7 +9,7 @@
 #SBATCH -o /home/jm_c/test_engaging/output/gfoAdm_tst.stdout
 #SBATCH --no-requeue --constraint=centos6
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/engaging/test_engag_gfo_adm,v 1.1 2019/10/22 19:03:56 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/engaging/test_engag_gfo_adm,v 1.2 2019/10/25 17:40:09 jmc Exp $
 # $Name:  $
 
 if test -f /etc/profile.d/modules.sh ; then
@@ -40,7 +40,6 @@ tmpFil="/tmp/"`basename $0`".$$"
 
 typ='' ; addExp='' ; skipExp=''
 sfx='gfoAdm'; typ='-adm'
-addExp='global_oce_biogeo_bling'
 addExp="$addExp global_oce_cs32 global_oce_llc90"
  module add slurm
  module add gcc
