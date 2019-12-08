@@ -8,7 +8,7 @@
 #SBATCH -o /home/jm_c/test_engaging/output/o64Adm_tst.stdout
 #SBATCH --no-requeue --constraint=centos6
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/engaging/test_engag_op64_adm,v 1.16 2019/06/27 22:26:36 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/engaging/test_engag_op64_adm,v 1.17 2019/10/21 23:27:16 jmc Exp $
 # $Name:  $
 
 if test -f /etc/profile.d/modules.sh ; then
@@ -45,6 +45,8 @@ sfx='o64Adm'; typ='-adm'
  OPTFILE="../tools/build_options/linux_amd64_open64"
 #options="-j 2 -devel -gsl"
  options="$typ -MPI 6"
+#- currently, no NetCDF => no pkg/profiles
+ options="$options -skd global_oce_biogeo_bling"
 #export OMP_NUM_THREADS=2
 #export OMP_SLAVE_STACK_SIZE=400m
 #export GSL_IEEE_MODE=double-precision,mask-underflow,mask-denormalized
