@@ -1,6 +1,6 @@
 #! /usr/bin/env bash
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/ref_machine/test_batsi,v 1.9 2019/10/17 22:45:03 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/ref_machine/test_batsi,v 1.10 2019/12/07 16:22:32 jmc Exp $
 
 #  Test script for MITgcm that should work on most of the x86_64 Linux machines.
 
@@ -355,6 +355,10 @@ do
     else
       EXE="mpirun -np TR_NPROC ./mitgcmuv"
     fi
+  fi
+  if test $typ = 'g7a' ; then
+    #- pkg/ecco does not compile with g77 + no NetCDF here => no pkg/profiles
+    comm="$comm -skd global_oce_biogeo_bling"
   fi
 
 #-- set specific Env Vars:
