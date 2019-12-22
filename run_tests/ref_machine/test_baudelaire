@@ -1,6 +1,6 @@
 #! /usr/bin/env bash
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/ref_machine/test_baudelaire,v 1.16 2019/10/21 23:53:20 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/ref_machine/test_baudelaire,v 1.17 2019/12/07 16:22:32 jmc Exp $
 
 #  Test script for MITgcm that should work on most of the x86_64 Linux machines.
 
@@ -339,7 +339,8 @@ do
   MPI=0
   case $typ in
    'g77'|'g7a')		OPTFILE='../tools/build_options/linux_amd64_g77' ;;
-   'gfo'|'adm'|'oad'|'tlm'|'mth') comm="$comm -match $MC -devel"
+   'gfo'|'adm'|'oad'|'tlm'|'mth') comm="$comm -devel"
+			comm="$comm -match $MC"
 			OPTFILE='../tools/build_options/linux_amd64_gfortran' ;;
    'ifc')		comm="$comm -devel"
 			OPTFILE='../tools/build_options/linux_amd64_ifort11' ;;
