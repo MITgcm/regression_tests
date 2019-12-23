@@ -1,6 +1,6 @@
 #! /usr/bin/env bash
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/ref_machine/test_villon,v 1.14 2019/12/07 16:22:33 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/ref_machine/test_villon,v 1.15 2019/12/22 17:24:42 jmc Exp $
 
 #  Test script for MITgcm that should work on most of the x86_64 Linux machines.
 
@@ -358,7 +358,8 @@ do
    'ifc')		comm="$comm -devel"
 			OPTFILE='../tools/build_options/linux_amd64_ifort11' ;;
    'pgi')		OPTFILE='../tools/build_options/linux_amd64_pgf77' ;;
-   'mpa'|'mpi'|'mp2')	comm="$comm -match $MC -devel" ; MPI=8
+   'mpa'|'mpi'|'mp2')	comm="$comm -devel" ; MPI=8
+			comm="$comm -match $MC"
 			OPTFILE='../tools/build_options/linux_amd64_gfortran' ;;
        *)		OPTFILE= ;;
   esac
