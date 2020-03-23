@@ -4,8 +4,8 @@
 # 1/ compiling on head node (tx7.awi.de), with -norun option
 # 2/ running on compute node (using PBS qsub), with -runonly option
 # 3/ evaluating result on head node with -runonly option
-# 
-# Notes: 
+#
+# Notes:
 # - step 2 leads to many error messages, because the OS on the compute
 #   nodes does not have the appropriate shell tools, modifying the
 #   runonly option to skip the evalution step would be nice but not
@@ -15,7 +15,7 @@
 #   if not, testreport will try to run the sx ace-code on the tx7 frontend
 #   which will fail inevitably and produce more errors, maybe we can
 #   have a flag that skips everything but the evaluation step to avoid this
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/sxace/mitgcmtestreport,v 1.3 2018/01/09 10:11:43 mlosch Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/sxace/mitgcmtestreport,v 1.4 2018/02/08 15:50:19 mlosch Exp $
 # $Name:  $
 
 # for some reason the module command is not available in a bash script on
@@ -96,6 +96,7 @@ fi
 
 checkOut=2
 
+gitcmd=$HOME/git/git
 tmpFil=$TDIR/error.out
 if [ $checkOut -le 1 ] ; then
   if test -e $TDIR/${gcmDIR}/doc ; then
@@ -124,7 +125,7 @@ if [ $checkOut -ge 2 ] ; then
     test -e $TDIR/${gcmDIR}  &&  rm -rf $TDIR/${gcmDIR}
     echo "  done"
     echo -n "Make a new clone of $git_code from repo: $git_repo ..."
-    git clone https://github.com/$git_repo/${git_code}.git ${gcmDIR} 2> $tmpFil
+    ${gitcmd} clone https://github.com/$git_repo/${git_code}.git ${gcmDIR} 2> $tmpFil
     retVal=$?
     if test $retVal = 0 ; then
        echo ' --> done!'
@@ -137,8 +138,16 @@ if [ $checkOut -ge 2 ] ; then
     fi
   else
     echo "Updating current clone ( $git_code ) ..."
-    ( cd ${gcmDIR}; git checkout master ; git pull )
-    echo ' --> done!'
+    ( cd ${gcmDIR}; ${gitcmd} checkout master ; ${gitcmd} pull )
+    retVal=$?
+    if test $retVal = 0 ; then
+	echo ' --> done!'
+    else
+	echo " Error: 'git pull' returned: $retVal"
+	echo " Error: 'git pull' returned: $retVal" \
+            | mail -s "Git-error on Stan" Martin.Losch@awi.de
+	exit 2
+    fi
   fi
 else
   cd $TDIR
@@ -186,7 +195,7 @@ qsub $HERE/$JOBSCRIPT
 # keep looking for the job in the job queues and wait until has disappeared
 jobruns=`qstat -n -u mlosch | grep "$JOBNAME"`
 while [ "${jobruns}"x != x ]
-do 
+do
   sleep 200
   jobruns=`qstat -n -u mlosch | grep "$JOBNAME"`
   echo "waiting for job ${jobruns%% *} ($JOBNAME) to complete"
