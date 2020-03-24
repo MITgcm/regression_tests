@@ -15,7 +15,7 @@
 #   if not, testreport will try to run the sx ace-code on the tx7 frontend
 #   which will fail inevitably and produce more errors, maybe we can
 #   have a flag that skips everything but the evaluation step to avoid this
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/sxace/mitgcmtestreport,v 1.4 2018/02/08 15:50:19 mlosch Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/sxace/mitgcmtestreport,v 1.5 2020/03/23 12:17:57 mlosch Exp $
 # $Name:  $
 
 # for some reason the module command is not available in a bash script on
@@ -32,6 +32,8 @@ module load sxf90
 module load sxc++
 module load sxmpi
 module load sxnetcdf
+#
+module load git
 #
 # make sure that we have qsub and qstat
 #export PATH=${PATH}:/usr/bin/nqsII
@@ -76,13 +78,13 @@ cat << EOF > $HERE/$JOBSCRIPT
 #
 
 cd \${PBS_O_WORKDIR}
-$RUNTESTREPORT -runonly -command "$EXE" >> $MYOUTPUT 2>&1
+$RUNTESTREPORT -runonly -command "$EXE" >> ${MYOUTPUT} 2>&1
 
 EOF
 
 # clean up old testreport output
-if [ -e $MYOUTPUT ]; then
-  rm -rf $MYOUTPUT
+if [ -e ${MYOUTPUT} ]; then
+  rm -rf ${MYOUTPUT}
 fi
 if [ -e $OUTFILE ]; then
   rm -r $OUTFILE
@@ -96,7 +98,8 @@ fi
 
 checkOut=2
 
-gitcmd=$HOME/git/git
+#gitcmd=$HOME/git/git
+gitcmd=git
 tmpFil=$TDIR/error.out
 if [ $checkOut -le 1 ] ; then
   if test -e $TDIR/${gcmDIR}/doc ; then
@@ -160,7 +163,7 @@ unset CC
 # make sure that do use the cross compiler for testreport
 #export CC=sxcc
 
-$RUNTESTREPORT  -j 8 -norun > $MYOUTPUT 2>&1
+$RUNTESTREPORT  -j 8 -norun > ${MYOUTPUT} 2>&1
 
 if [ "$?" != "0" ]
     then
@@ -174,20 +177,20 @@ if [ "$?" != "0" ]
 #  rm -rf $TDIR
 fi
 
-if [ ! -e $MYOUTPUT ]
+if [ ! -e ${MYOUTPUT} ]
     then
-    touch $MYOUTPUT
+    touch ${MYOUTPUT}
 fi
 
-echo " " >> $MYOUTPUT
-echo "***********************************************************" >> $MYOUTPUT
-echo "Submitting this job script:" >> $MYOUTPUT
-echo "***********************************************************" >> $MYOUTPUT
-cat $HERE/$JOBSCRIPT >> $MYOUTPUT
-echo "***********************************************************" >> $MYOUTPUT
-echo "end of job script" >> $MYOUTPUT
-echo "***********************************************************" >> $MYOUTPUT
-echo " " >> $MYOUTPUT
+echo " " >> ${MYOUTPUT}
+echo "***********************************************************" >>${MYOUTPUT}
+echo "Submitting this job script:" >> ${MYOUTPUT}
+echo "***********************************************************" >>${MYOUTPUT}
+cat $HERE/$JOBSCRIPT >> ${MYOUTPUT}
+echo "***********************************************************" >>${MYOUTPUT}
+echo "end of job script" >> ${MYOUTPUT}
+echo "***********************************************************" >>${MYOUTPUT}
+echo " " >> ${MYOUTPUT}
 
 # now submit the job that actually runs all the experiments in one go
 echo "qsub $HERE/$JOBSCRIPT"
@@ -199,18 +202,18 @@ do
   sleep 200
   jobruns=`qstat -n -u mlosch | grep "$JOBNAME"`
   echo "waiting for job ${jobruns%% *} ($JOBNAME) to complete"
-  currentexp=`grep Experiment $MYOUTPUT | tail -1`
+  currentexp=`grep Experiment ${MYOUTPUT} | tail -1`
   echo "currently running $currentexp"
 done
 
 # after running the experiments on the compute node run testreport
 # for a third time to evaluate results on the head node again
-echo " " >> $MYOUTPUT
-echo "now run testreport for a final time to evaluate results:" >> $MYOUTPUT
-echo "$RUNTESTREPORT -match 10 -runonly" >> $MYOUTPUT
-#$RUNTESTREPORT -match 10 -runonly >> $MYOUTPUT 2>&1
+echo " " >> ${MYOUTPUT}
+echo "now run testreport for a final time to evaluate results:" >> ${MYOUTPUT}
+echo "$RUNTESTREPORT -match 10 -runonly" >> ${MYOUTPUT}
+#$RUNTESTREPORT -match 10 -runonly >> ${MYOUTPUT} 2>&1
 $RUNTESTREPORT -match 10 -runonly \
-    -a "jm_c@mitgcm.org" >> $MYOUTPUT 2>&1
-#   -a "jm_c@mitgcm.org, Martin.Losch@awi.de" >> $MYOUTPUT 2>&1
+    -a "jm_c@mitgcm.org" >> ${MYOUTPUT} 2>&1
+#   -a "jm_c@mitgcm.org, Martin.Losch@awi.de" >> ${MYOUTPUT} 2>&1
 
 echo "end of mitgcmtestreport"
