@@ -1,0 +1,57 @@
+#! /usr/bin/env bash
+
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/other/test_local,v 1.7 2018/11/07 23:10:02 jmc Exp $
+# $Name:  $
+
+ DATE=`date +%Y%m%d`
+#DATE='20200101'
+mAddr='jm_c@mitgcm.org:testing/MITgcm-test'
+
+if test $# = 0 ; then
+  echo 'need 1 argument'
+  exit
+else
+  if test $1 = ifort ; then
+#   tst_list='iadm imp2 iur4'
+    tst_list='iad4 imp2 iur4'
+    dd1=`date +%d -d "1 day"`
+#   if test $dd1 != '01' ; then echo 'not last day of month'; exit ; fi
+  elif test $1 = gfort ; then
+    tst_list='gadm gads gad4 gmp4 gmp2 gfo gfo4 g77'
+  elif test $1 = gfor8 ; then
+#   tst_list='gadm gads gmp2 gmpi gfo g77'
+    tst_list='gadm gads gmp2 gfo'
+  elif test $1 = gfor4 ; then
+    tst_list='gad4 gmp4 gfo4 g77'
+  else
+    tst_list=$*
+  fi
+fi
+  echo "run: \""`basename $0` $*"\" on:" `date`
+  echo " tst_list='$tst_list'"
+
+nbt=0
+for tst in $tst_list
+do
+   if test -d MITgcm_${tst}/verification ; then
+     ( cd MITgcm_${tst}/verification
+       echo " In: 'MITgcm_${tst}/verification' , tar & gzip & scp to: '$mAddr'"
+     # tar -cf tr_jaures_20200401_0.tar tr_jaures_20200401_0 ; gzip tr_jaures_20200401_0.tar
+       if test -d tr_jaures_${DATE}_0 ; then
+         echo "  tr_jaures_${DATE}_0  -->  tr_jaures_${DATE}_${nbt}.tar.gz"
+         tar -cf tr_jaures_${DATE}_${nbt}.tar tr_jaures_${DATE}_0
+         gzip tr_jaures_${DATE}_${nbt}.tar
+         scp -p tr_jaures_${DATE}_${nbt}.tar.gz $mAddr
+       fi
+       if test -d rs_jaures_${DATE}_0 ; then
+         echo "  rs_jaures_${DATE}_0  -->  rs_jaures_${DATE}_${nbt}.tar.gz"
+         tar -cf rs_jaures_${DATE}_${nbt}.tar rs_jaures_${DATE}_0
+         gzip rs_jaures_${DATE}_${nbt}.tar
+         scp -p rs_jaures_${DATE}_${nbt}.tar.gz $mAddr
+       fi
+     )
+     nbt=`expr $nbt + 1`
+   else
+     echo " no dir: 'MITgcm_${tst}/verification' : skip ${tst}"
+   fi
+done
