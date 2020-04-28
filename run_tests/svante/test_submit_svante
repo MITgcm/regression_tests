@@ -1,6 +1,6 @@
 #! /usr/bin/env bash
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/svante/test_submit_svante,v 1.22 2018/11/07 23:10:03 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/svante/test_submit_svante,v 1.23 2018/11/28 19:45:22 jmc Exp $
 # $Name:  $
 
 today=`date +%Y%m%d`
@@ -8,7 +8,7 @@ dInWeek=`date +%a`
 
 if test $# = 0
 then
-  TEST_LIST='ifcMPI pgiMPI pgiAdm pgiMth'
+  TEST_LIST='ifcMPI ifcAdm pgiMPI pgiAdm pgiMth'
 else
   TEST_LIST=$*
 fi
@@ -202,9 +202,8 @@ cd $OUT_DIR
   for i in $JOB_LIST
   do
     case $i in
-      'pgiAdm') sfx='pgi_adm' ;;
       'pgiMth') sfx='pgi_mth' ;;
-             *) sfx=`echo ${i} | sed 's/MPI$/_mpi/'`  ;;
+             *) sfx=`echo ${i} | sed 's/MPI$/_mpi/' | sed 's/Adm$/_adm/'` ;;
     esac
     BATCH_SCRIPT="test_${dNam}_$sfx"
     if test -f $SUB_DIR/$BATCH_SCRIPT ; then
