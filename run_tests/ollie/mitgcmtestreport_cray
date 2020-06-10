@@ -2,18 +2,21 @@
 # new script for running testreport on ollie.awi.de
 # - compile and run on compute nodes
 # - use ssh to call mpack command from the head node ollie0
-#$Header: /u/gcmpack/MITgcm_contrib/test_scripts/ollie/mitgcmtestreport_cray,v 1.8 2018/04/03 12:58:37 mlosch Exp $
+#$Header: /u/gcmpack/MITgcm_contrib/test_scripts/ollie/mitgcmtestreport_cray,v 1.9 2018/04/16 08:35:39 mlosch Exp $
 #$Name:  $
 
 # needed for cron-job
-source /usr/Modules/3.2.10/init/bash
+#source /usr/Modules/current/init/bash
 source /etc/profile.d/cray_pe.sh
-source /etc/profile.d/AWI.sh
+# this seems to be enough to make the module cmd work
+source /etc/profile.d/modules.sh
 #
 module purge
-module load PrgEnv-cray/1.0.2_ollie
+module load PrgEnv-cray
 module load netcdf
-#export LD_LIBRARY_PATH=${CRAY_LD_LIBRARY_PATH}:${LD_LIBRARY_PATH}:
+# set the netcdf root directory here, because the definitions always
+# change with different "default" netcdf modules
+export NETCDF_ROOT=`nc-config --prefix`
 # not sure why I have to set these paths here again
 export MPI_ROOT=$(dirname $(dirname `which mpicc`))
 # $(dirname `echo $LD_LIBRARY_PATH  | awk -F: '{print $1}'`)
@@ -44,14 +47,14 @@ EXE='srun -n TR_NPROC --cpu_bind=cores ./mitgcmuv'
 
 if [ -e $TST_DIR ]; then
     echo "$TST_DIR exists"
-else 
+else
     mkdir $TST_DIR
 fi
 cd $TST_DIR
 HERE=$TST_DIR/output
 if [ -e $HERE ]; then
     echo "$HERE"
-else 
+else
     mkdir $HERE
 fi
 OUTFILE=$HERE/slurm_${sfx}.out
@@ -83,7 +86,7 @@ if [ $checkOut -le 1 ] ; then
   if test -e $TST_DIR/${gcmDIR}/doc ; then
     echo $TST_DIR/${gcmDIR}/doc 'exist'
   else
-    echo -n $TST_DIR/${gcmDIR} 'missing ; '
+    echo -n "$TST_DIR/${gcmDIR} missing ; "
     checkOut=2
     echo "will make a new copy ( checkOut=$checkOut )"
   fi
@@ -97,7 +100,7 @@ if [ $checkOut -ge 2 ] ; then
   if test -e ${gcmDIR}/.git/config ; then
     echo "${gcmDIR}/.git/config exist"
   else
-    echo -n "${gcmDIR}/.git/config 'missing "
+    echo -n "${gcmDIR}/.git/config missing ; "
     checkOut=3
     echo "will get new clone ( checkOut=$checkOut )"
   fi
@@ -118,8 +121,11 @@ if [ $checkOut -ge 2 ] ; then
        exit 2
     fi
   else
+#    echo "clean tst_2+2 + testreport output"
+    ( cd $gcmDIR/verification ; ../tools/do_tst_2+2 -clean )
+    ( cd $gcmDIR/verification ; ./testreport -clean )
     echo "Updating current clone ( $git_code ) ..."
-    ( cd ${gcmDIR}; git checkout master ; git pull )
+    ( cd ${gcmDIR}; git checkout master ; git pull ; git ls-files -d | xargs git checkout -- )
     echo ' --> done!'
   fi
 else
@@ -130,8 +136,9 @@ cd ${TST_DIR}/${gcmDIR}/verification
 
 cwd=\`pwd\`
 SENDCMD="ssh ollie0 ${TST_DIR}/${gcmDIR}/tools/mpack-1.6/mpack"
-runtestreport="./testreport $options -of $OPTFILE -command \"${EXE}\" -send \"${SENDCMD}\" -sd ${cwd}" 
+runtestreport="./testreport $options -of $OPTFILE -command \"${EXE}\" -send \"${SENDCMD}\" -sd ${cwd}"
 emailaddress="-a jm_c@mitgcm.org"
+testrestart="../tools/do_tst_2+2 -mpi -exe \"${EXE}\" -o ${dNam}-c -send \"${SENDCMD}\" -sd ${cwd}"
 
 if [ ! -e $MYOUTPUT ]
     then
@@ -153,7 +160,7 @@ cat << EOF >| $HERE/$RUNIT
 #SBATCH --time=12:00:00
 #SBATCH --ntasks=6
 
-# still need this to be able to run a few experiments: 
+# still need this to be able to run a few experiments:
 # cfc_example, fizhi, tutorial_deep_convection
 ulimit -s unlimited
 
@@ -176,9 +183,15 @@ echo "running testreport like this in \${cwd}:"
 echo "./testreport -clean"
 ./testreport -clean
 
+# Hack,hack,hack to avoid running dome:
+rm -f dome/results/output.txt
 echo "running testreport like this in \${cwd}:"
 echo "${runtestreport} -fast -match 10"
 ${runtestreport} -fast -match 10 ${emailaddress} >> $MYOUTPUT 2>&1
+
+echo "running restart test like this in \${cwd}:"
+echo "${testrestart}"
+${testrestart} ${emailaddress} >> $MYOUTPUT 2>&1
 
 EOF
 
@@ -220,8 +233,3 @@ sbatch $HERE/$RUNIT
 # rm -rf "${fn}.tar.gz"
 
 echo "end of mitgcmtestreport"
-
-
-
-
-

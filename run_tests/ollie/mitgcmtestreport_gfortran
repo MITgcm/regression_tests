@@ -2,7 +2,7 @@
 # new script for running testreport on ollie.awi.de
 # - compile and run on compute nodes
 # - use ssh to call mpack command from the head node ollie0
-#$Header: /u/gcmpack/MITgcm_contrib/test_scripts/ollie/mitgcmtestreport_ifort,v 1.8 2018/04/03 12:03:36 mlosch Exp $
+#$Header: $
 #$Name:  $
 
 # needed for cron-job
@@ -11,14 +11,11 @@
 source /etc/profile.d/modules.sh
 #
 module purge
-module load intel.compiler intel.mpi
+module load gnu.compiler
+module load intel.mpi
 module load netcdf
-# set the netcdf root directory here, because the definitions always
-# change with different "default" netcdf modules
-export NETCDF_ROOT=`nc-config --prefix`
 
 export MPI_ROOT=${I_MPI_ROOT}
-#(dirname $(dirname `which mpiifort`))
 export MPI_INC_DIR=${MPI_ROOT}/include64
 
 # there is no slurm module anymore and this is the current recommendation to
@@ -31,12 +28,13 @@ echo "start from TST_DIR='$TST_DIR' at: "`date`
 
 umask 0022
 
-sfx='ifort'
+sfx='gfortran'
 RUNIT="runit_"$sfx
 
-OPTFILE=../tools/build_options/linux_ia64_${sfx}_ollie
+#OPTFILE=../tools/build_options/linux_ia64_${sfx}_ollie
+OPTFILE=../tools/build_options/linux_amd64_gfortran
 options="-MPI 6"
-options="$options -odir ${dNam}-i"
+options="$options -odir ${dNam}-g"
 options="$options -j 6"
 #options="$options -t global_ocean.cs32x15"
 
@@ -118,7 +116,7 @@ if [ $checkOut -ge 2 ] ; then
        exit 2
     fi
   else
-    echo "clean tst_2+2 + testreport output"
+#    echo "clean tst_2+2 + testreport output"
     ( cd $gcmDIR/verification ; ../tools/do_tst_2+2 -clean )
     ( cd $gcmDIR/verification ; ./testreport -clean )
     echo "Updating current clone ( $git_code ) ..."
@@ -135,7 +133,7 @@ cwd=\`pwd\`
 SENDCMD="ssh ollie0 ${TST_DIR}/${gcmDIR}/tools/mpack-1.6/mpack"
 runtestreport="./testreport $options -of $OPTFILE -command \"${EXE}\" -send \"${SENDCMD}\" -sd ${cwd}"
 emailaddress="-a jm_c@mitgcm.org"
-testrestart="../tools/do_tst_2+2 -mpi -exe \"${EXE}\" -o ${dNam}-i -send \"${SENDCMD}\" -sd ${cwd}"
+testrestart="../tools/do_tst_2+2 -mpi -exe \"${EXE}\" -o ${dNam}-g -send \"${SENDCMD}\" -sd ${cwd}"
 
 if [ ! -e $MYOUTPUT ]
     then
@@ -165,9 +163,9 @@ ulimit -s unlimited
 export OMP_PROC_BIND=TRUE
 
 # for debugging
-export FLEXLM_DIAGNOSTICS=2
-export FNP_IP_ENV=1
-export LM_A_CONN_TIMEOUT=99
+# export FLEXLM_DIAGNOSTICS=2
+# export FNP_IP_ENV=1
+# export LM_A_CONN_TIMEOUT=99
 
 cd \${SLURM_SUBMIT_DIR}
 
@@ -187,7 +185,6 @@ ${runtestreport} -fast -match 10 ${emailaddress} >> $MYOUTPUT 2>&1
 echo "running restart test like this in \${cwd}:"
 echo "${testrestart}"
 ${testrestart} ${emailaddress} >> $MYOUTPUT 2>&1
-###${testrestart} -a Martin.Losch@awi.de >> $MYOUTPUT 2>&1
 
 EOF
 
