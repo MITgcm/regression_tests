@@ -10,7 +10,7 @@
 #SBATCH -o /home/jm_c/test_svante/output/pgiMPI_tst.stdout
 #SBATCH --no-requeue
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/svante/test_svante_pgi_mpi,v 1.16 2018/06/12 21:42:22 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/svante/test_svante_pgi_mpi,v 1.17 2020/04/28 14:33:36 jmc Exp $
 # $Name:  $
 
 if test -f /etc/profile.d/modules.sh    ; then . /etc/profile.d/modules.sh    ; fi
@@ -30,7 +30,8 @@ OUTP="$HERE/output"; SavD="$HERE/send"
 SEND="ssh $headNode $SavD/mpack"
 #TST_DISK="/net/fs09/d1/jm_c"
 TST_DISK="/scratch/jm_c"
-TST_DIR="$TST_DISK/test_${dNam}"
+#TST_DIR="$TST_DISK/test_${dNam}"
+TST_DIR="test_${dNam}"
 #- where local copy of code is (need to be consistent with "test_submit_svante"):
 #srcDIR='.'
 srcDIR=$HERE
@@ -67,20 +68,23 @@ checkOut=2 ; #options="$options -do"
 #options="$options -nc" ; checkOut=1
 #options="$options -q"  ; checkOut=0
 
-echo "cd $TST_DISK ; pwd (x2)"
+echo "cd $TST_DISK ; pwd (x1)"
 cd $TST_DISK
-pwd
+pwd ; ls -l
+if test ! -d $TST_DIR ; then sleep 5 ; pwd ; ls -l ; fi
 if test ! -d $TST_DIR ; then
    echo -n "Creating a working dir: $TST_DIR ..."
   #/bin/rm -rf $TST_DIR
    mkdir $TST_DIR
    retVal=$?
    if test "x$retVal" != x0 ; then
-      echo "Error: unable to make dir: $TST_DIR (err=$retVal ) --> Exit"
+      echo " FAIL"
+      echo "Error: unable to make dir: $TST_DIR (err=$retVal ) from $TST_DISK --> Exit"
       exit 1
+   else echo " done"
    fi
 fi
-echo "start from TST_DIR='$TST_DIR' at: "`date`
+echo "start from DIR='$TST_DISK/$TST_DIR' at: "`date`
 cd $TST_DIR
 pwd
 
