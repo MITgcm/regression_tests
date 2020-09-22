@@ -2,7 +2,7 @@
 # new script for running testreport on ollie.awi.de
 # - compile and run on compute nodes
 # - use ssh to call mpack command from the head node ollie0
-#$Header: /u/gcmpack/MITgcm_contrib/test_scripts/ollie/mitgcmtestreport_cray,v 1.9 2018/04/16 08:35:39 mlosch Exp $
+#$Header: /u/gcmpack/MITgcm_contrib/test_scripts/ollie/mitgcmtestreport_cray,v 1.10 2020/06/10 13:58:05 mlosch Exp $
 #$Name:  $
 
 # needed for cron-job
@@ -179,15 +179,20 @@ echo "running testreport like this in \${cwd}:"
 echo "${runtestreport} -devel -match 10"
 ${runtestreport} -devel -match 10 ${emailaddress} >> $MYOUTPUT 2>&1
 
+echo "running restart test like this in \${cwd}:"
+echo "${testrestart}"
+${testrestart} ${emailaddress} >> $MYOUTPUT 2>&1
+
+../tools/do_tst_2+2 -clean
+
 echo "running testreport like this in \${cwd}:"
 echo "./testreport -clean"
 ./testreport -clean
 
 # Hack,hack,hack to avoid running dome:
-rm -f dome/results/output.txt
 echo "running testreport like this in \${cwd}:"
-echo "${runtestreport} -fast -match 10"
-${runtestreport} -fast -match 10 ${emailaddress} >> $MYOUTPUT 2>&1
+echo "${runtestreport} -skipdir dome -fast -match 10"
+${runtestreport} -skipdir dome -fast -match 10 ${emailaddress} >> $MYOUTPUT 2>&1
 
 echo "running restart test like this in \${cwd}:"
 echo "${testrestart}"
