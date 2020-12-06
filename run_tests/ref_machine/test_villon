@@ -1,6 +1,6 @@
 #! /usr/bin/env bash
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/ref_machine/test_villon,v 1.15 2019/12/22 17:24:42 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/ref_machine/test_villon,v 1.16 2019/12/23 18:57:47 jmc Exp $
 
 #  Test script for MITgcm that should work on most of the x86_64 Linux machines.
 
@@ -199,6 +199,9 @@ do
     addExp="$addExp global_oce_cs32"
     addExp="$addExp global_oce_llc90"
   fi
+  if test $typ = 'mpa' ; then
+    addExp="$addExp global_oce_cs32"
+  fi
   if test $typ = 'gfo' -o $typ = 'ifc' ; then
     addExp="$addExp shelfice_remeshing"
   fi
@@ -358,21 +361,13 @@ do
    'ifc')		comm="$comm -devel"
 			OPTFILE='../tools/build_options/linux_amd64_ifort11' ;;
    'pgi')		OPTFILE='../tools/build_options/linux_amd64_pgf77' ;;
-   'mpa'|'mpi'|'mp2')	comm="$comm -devel" ; MPI=8
+   'mpa'|'mpi'|'mp2')	comm="$comm -devel"
+			if test $typ = 'mp2' ; then MPI=3 ; else MPI=8 ; fi
 			comm="$comm -match $MC"
 			OPTFILE='../tools/build_options/linux_amd64_gfortran' ;;
        *)		OPTFILE= ;;
   esac
-#-- set MPI command:
-  if test $MPI != 0 ; then
-    if test $typ = 'mp2' ; then MPI=3 ; fi
-    if test $typ = 'mpa' ; then
-      EXE="mpirun -np TR_NPROC ./mitgcmuv_ad"
-    else
-      EXE="mpirun -np TR_NPROC ./mitgcmuv"
-    fi
-  fi
-
+#-- set MPI command: Use default (Dec 2020) which is the same since testreport update on Sep 2013
 #-- set specific Env Vars:
   if test $typ = 'oad' ; then
     #- for some reasons, "source ScriptFile | tee -a LogFile"
@@ -405,10 +400,8 @@ do
   if test "x$OPTFILE" != x ; then
     comm="$comm -of=$OPTFILE"
   fi
-  if test $MPI = 0 ; then  echo ''	| tee -a $tdir/output_$tt
-  else echo " (EXE='$EXE')"		| tee -a $tdir/output_$tt
-    comm="$comm -MPI $MPI -command \"\$EXE\""
-  fi
+  echo ''				| tee -a $tdir/output_$tt
+  if test $MPI != 0 ; then comm="$comm -MPI $MPI" ; fi
   if test "x$option" != x ; then comm="$comm $option" ; fi
  #if test $typ = 'pgi' ; then comm="$comm -t \"\$listT\"" ; fi
   echo "  \"eval $comm\""		| tee -a $tdir/output_$tt
@@ -427,9 +420,9 @@ do
       echo "======================"
       $comm >> $tdir/output_$tt 2>&1
     else
-      echo "  \"$comm -mpi -exe $EXE\""	| tee -a $tdir/output_$tt
+      echo "  \"$comm -mpi\""		| tee -a $tdir/output_$tt
       echo "======================"
-      $comm -mpi -exe "$EXE" >> $tdir/output_$tt 2>&1
+      $comm -mpi >> $tdir/output_$tt 2>&1
     fi
     echo ; cat tst_2+2_out.txt
     echo
