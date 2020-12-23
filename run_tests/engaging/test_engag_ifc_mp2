@@ -6,9 +6,10 @@
 #SBATCH --tasks-per-node 10
 #SBATCH -e /home/jm_c/test_engaging/output/ifcMp2_tst.stderr
 #SBATCH -o /home/jm_c/test_engaging/output/ifcMp2_tst.stdout
-#SBATCH --no-requeue --constraint=centos6
+#SBATCH --no-requeue
+#SBATCH --constraint=centos6
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/engaging/test_engag_ifc_mp2,v 1.17 2019/06/27 22:26:36 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/engaging/test_engag_ifc_mp2,v 1.18 2019/10/21 23:27:16 jmc Exp $
 # $Name:  $
 
 if test -f /etc/profile.d/modules.sh ; then
