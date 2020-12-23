@@ -89,11 +89,11 @@ echo 'Start job '$THEDATE
 echo 'NSLOTS = '$NSLOTS
 echo '======= NODELIST ==============================================================='
 echo $SLURM_NODELIST
+cat /etc/redhat-release
 echo '======= Procs =================================================================='
 grep 'model name' /proc/cpuinfo | uniq
 echo -n ' x '
 grep -c 'model name' /proc/cpuinfo
-cat /etc/redhat-release
 echo '======= env ===================================================================='
 env | grep SLURM
 echo '======= modules ================================================================'
