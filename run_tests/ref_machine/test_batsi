@@ -1,6 +1,6 @@
 #! /usr/bin/env bash
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/ref_machine/test_batsi,v 1.13 2019/12/23 18:57:47 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/ref_machine/test_batsi,v 1.14 2020/12/06 15:43:14 jmc Exp $
 
 #  Test script for MITgcm that should work on most of the x86_64 Linux machines.
 
@@ -51,9 +51,9 @@ option=
 
 if test $tst_grp = 'a' ; then
  checkOut=2
-#tst_list='g7a mpa mth mp2+rs mpi oad'
- tst_list='mpa adm g7a mpi mth+rs gfo+rs g77'
-#tst_list="$tst_list oad"
+ tst_list=''
+ tst_list="$tst_list mpa adm mpi"
+ tst_list="$tst_list mth+rs gfo+rs"
 else
  checkOut=1
  tst_list='adm g77 gfo+rs ifc'
@@ -197,14 +197,12 @@ do
   addExp=''
   if test $typ = 'mpi' ; then
     addExp="offline_cheapaml atm_gray atm_strato"
-  fi
-  if test $typ = 'gfo' -o $typ = 'ifc' ; then
-    addExp="$addExp shelfice_remeshing"
-  fi
-  if test $typ = 'mpi' ; then
     addExp="$addExp global_ocean.gm_k3d"
     addExp="$addExp global_ocean.gm_res"
     addExp="$addExp global_oce_cs32"
+  fi
+  if test $typ = 'gfo' -o $typ = 'ifc' ; then
+    addExp="$addExp shelfice_remeshing"
   fi
   #- check day and time:
   curDay=`date +%d` ; curHour=`date +%H`
@@ -308,7 +306,7 @@ do
         fi
        #if test $exp2add = 'shelfice_remeshing' ; then
        #  echo " link dir 'other_input/remeshing_code' to 'extra_code'"	| tee -a $tdir/output_$tt
-       #  ( cd verification/${exp2add}
+       #  ( cd ${git_other}/${exp2add}
        #    ln -s ../../../other_input/remeshing_code extra_code )
        #fi
       done
