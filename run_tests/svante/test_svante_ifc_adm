@@ -10,7 +10,7 @@
 #SBATCH -o /home/jm_c/test_svante/output/ifcAdm_tst.stdout
 #SBATCH --no-requeue
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/svante/test_svante_ifc_adm,v 1.1 2020/04/28 14:34:46 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/svante/test_svante_ifc_adm,v 1.2 2020/09/21 20:34:31 jmc Exp $
 # $Name:  $
 
 if test -f /etc/profile.d/modules.sh    ; then . /etc/profile.d/modules.sh    ; fi
@@ -57,12 +57,13 @@ sfx='ifcAdm'; typ='-adm'
 #- needed for DIVA with MPI:
  export MPI_INC_DIR=$INC_MPI
  options="$typ -ncad -MPI 6"
-#options="-j 2 $options"
+#options="-j 4 $options"
 #- need this to get "staf":
  export PATH="$PATH:$HOME/bin"
 
 gcmDIR="MITgcm_$sfx"
 dAlt=`date +%d` ; dAlt=`expr $dAlt % 3`
+if [ $dAlt -eq 2 ] ; then options="$options -ur4" ; fi
 if [ $dAlt -eq 1 ] ; then options="$options -fast"
 else options="$options -devel" ; fi
 
@@ -236,7 +237,7 @@ fi
 if [ $checkOut -ge 1 ] ; then
  if [ $dAlt -eq 1 ] ; then
   echo ''
-  #- 1) just compile ("-nr"), using "-j 2" to speed up
+  #- 1) just compile ("-nr"), using "-j 4" to speed up
   echo ./testreport $options -of $OPTFILE -skd \'$skipExp\' \
     -j 4 -nr -odir ${dNam}-$sfx
   ./testreport $options -of $OPTFILE -skd "$skipExp" \
@@ -251,7 +252,7 @@ if [ $checkOut -ge 1 ] ; then
   ./testreport $options -of $OPTFILE -skd "$skipExp" \
     -j 4 -repl_mk do_make_syntax.sh -obj -dd 2>&1
   echo ''
-  #- 1) just compile ("-nr"), using "-j 2" to speed up
+  #- 1) just compile ("-nr"), using "-j 4" to speed up
   echo ./testreport $options -of $OPTFILE -skd \'$skipExp\' \
     -j 4 -nr -q -odir ${dNam}-$sfx
   ./testreport $options -of $OPTFILE -skd "$skipExp" \
@@ -261,6 +262,7 @@ if [ $checkOut -ge 1 ] ; then
  fi
 fi
 
+  if [ $dAlt -eq 2 ] ; then options="$options -match 5" ; fi
   echo ''
   #- 2) run and report results ; also finish to compile those who failed with "-j"
   echo ./testreport $options -of $OPTFILE -skd \'$skipExp\' \
