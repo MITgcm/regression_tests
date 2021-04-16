@@ -4,7 +4,7 @@
 #   sed -n '1,/^# \$Header:/ p' crontab_jmc.bak > crontab_jmc
 #   ( echo '' ; crontab -l ) >> crontab_jmc
 #-
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/nasa_ames/crontab_jmc,v 1.1 2018/01/29 19:58:45 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/nasa_ames/crontab_jmc,v 1.2 2020/11/28 20:22:49 jmc Exp $
 
 MAILTO=jmc@ocean.mit.edu
 
@@ -14,7 +14,7 @@ MAILTO=jmc@ocean.mit.edu
 #-- before Nov 28, 2020:
 # 55 23 1,16 * * cd /u/jcampin/test_pleiades/nasa_ames && cvs -q -d :pserver:cvsanon@mitgcm.org:/u/gcmpack update -P -d
 # 05 00 2,17 * * /u/jcampin/test_pleiades/nasa_ames/test_submit_pleiades
-#-- on Aug 15, commented 2 lines above ; uncommented on Aug 23
+#-- other partial test options:
 #05 12 3,18 * * /u/jcampin/test_pleiades/nasa_ames/test_clean_pleiades
 #37 10 20 * * /u/jcampin/test_pleiades/temp/test_submit_pleiades fast
 #54 12 *  * * /u/jcampin/test_pleiades/temp/test_crontab
