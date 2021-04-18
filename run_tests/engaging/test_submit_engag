@@ -1,10 +1,18 @@
 #! /usr/bin/env bash
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/engaging/test_submit_engag,v 1.7 2018/08/16 13:31:15 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/engaging/test_submit_engag,v 1.8 2019/10/22 19:03:56 jmc Exp $
 # $Name:  $
 
 today=`date +%Y%m%d`
 dInWeek=`date +%a`
+
+#- select type of BATCH_SCRIPT to submit:
+typ=''
+if [ $# -ge 1 ] ; then
+  case $1 in
+  'c6'|'c7') typ=".$1" ; shift ;;
+  esac
+fi
 
 if test $# = 0
 then
@@ -55,7 +63,7 @@ module list						>> $LOG_FIL 2>&1
   for i in $JOB_LIST
   do
     sfx=`echo ${i} | sed -e 's/^.../&_/' -e 's/^o64/op64/' | tr '[:upper:]' '[:lower:]'`
-    BATCH_SCRIPT="test_engag_$sfx"
+    BATCH_SCRIPT="test_engag_${sfx}${typ}"
     if test -f $SUB_DIR/$BATCH_SCRIPT ; then
       #- job name ( $JOB ) & output-file name ( $JOB.std??? ) must match
       #  definition within $BATCH_SCRIPT slurm script
