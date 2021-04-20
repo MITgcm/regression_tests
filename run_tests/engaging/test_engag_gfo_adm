@@ -40,8 +40,8 @@ tmpFil="/tmp/"`basename $0`".$$"
  #git_repo="git://github.com/$git_repo"
  #git_repo="git@github.com:$git_repo"
 
-typ='' ; addExp='' ; skipExp=''
-sfx='gfoAdm'; typ='-adm'
+dblTr=0 ; typ='' ; addExp='' ; skipExp=''
+sfx='gfoAdm'; typ='-adm' ; dblTr=1
 addExp="$addExp global_oce_cs32 global_oce_llc90"
  module add slurm
  module add gcc
@@ -64,7 +64,7 @@ else options="$options -devel" ; fi
 
 checkOut=1 ; #options="$options -do"
 #options="$options -nc" ; checkOut=1
-#options="$options -q"  ; checkOut=0
+#options="$options -q"  ; checkOut=0 ; dblTr=0
 
 if test -d $TST_DIR ; then
   echo "start from TST_DIR='$TST_DIR' at: "`date`
@@ -242,11 +242,18 @@ else
   exit
 fi
 
+if [ $dblTr -eq 1 ] ; then
   echo ''
-  echo ./testreport $options -of $OPTFILE \
-    -odir ${dNam}-$sfx -send \'$SEND\' -sd $SavD -a jm_c@mitgcm.org
-  ./testreport $options -of $OPTFILE \
-    -odir ${dNam}-$sfx -send "$SEND" -sd $SavD -a jm_c@mitgcm.org
+  echo ./testreport $options -of $OPTFILE -odir ${dNam}-$sfx -nr
+  ./testreport $options -of $OPTFILE -odir ${dNam}-$sfx -nr
+  options="$options -q"
+fi
+
+  echo ''
+  echo ./testreport $options -of $OPTFILE -odir ${dNam}-$sfx \
+    -send \'$SEND\' -sd $SavD -a jm_c@mitgcm.org
+  ./testreport $options -of $OPTFILE -odir ${dNam}-$sfx \
+    -send "$SEND" -sd $SavD -a jm_c@mitgcm.org
 
 # echo ''
 # echo ../tools/do_tst_2+2 -mpi \
