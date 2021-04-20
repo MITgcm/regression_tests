@@ -1,6 +1,6 @@
 #! /usr/bin/env bash
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/engaging/test_submit_engag,v 1.8 2019/10/22 19:03:56 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/engaging/test_submit_engag,v 1.9 2021/04/18 15:29:27 jmc Exp $
 # $Name:  $
 
 today=`date +%Y%m%d`
@@ -23,7 +23,7 @@ else
 fi
 
 QSUB="/usr/bin/sbatch"
-#QSTAT="/usr/bin/qstat -u $USER"
+#QLIST="/usr/bin/qstat -u $USER"
 QLIST="/usr/bin/squeue -u $USER"
 dNam='engaging'
 HERE="$HOME/test_$dNam"
@@ -69,13 +69,13 @@ module list						>> $LOG_FIL 2>&1
       #  definition within $BATCH_SCRIPT slurm script
       JOB="${i}_tst"
       sJob=`printf "%8.8s" $JOB` #- squeue truncate name to only 1rst 8c
-      #job_exist=`$QSTAT | grep $JOB | wc -l`
+      #job_exist=`$QLIST | grep $JOB | wc -l`
       job_exist=`$QLIST | grep $sJob | wc -l`
       if test "x_$job_exist" = x_0 ; then
         #-- move previous output file
         outList=`ls $JOB.std??? 2> /dev/null`
         if test "x$outList" != x ; then
-          echo -n " moving job $JOB old output files:"	| tee -a $LOG_FIL
+          echo -n " moving job "$JOB" old output files:"| tee -a $LOG_FIL
           if test -d $OUT_DIR/prev ; then
             for xx in $outList ; do
               pp=$OUT_DIR/prev/$xx ; echo -n " $xx"	| tee -a $LOG_FIL
@@ -90,12 +90,11 @@ module list						>> $LOG_FIL 2>&1
         else echo " no old output files from job '$JOB'" | tee -a $LOG_FIL
         fi
         #-- submit job
-          echo -n "--> $JOB : "				| tee -a $LOG_FIL
+          echo -n "--> $JOB : $BATCH_SCRIPT , "		| tee -a $LOG_FIL
           $QSUB $SUB_DIR/$BATCH_SCRIPT			| tee -a $LOG_FIL
           NB_SUB_JOBS=`expr $NB_SUB_JOBS + 1`
       else
           echo "--> $JOB :"				| tee -a $LOG_FIL
-          #$QSTAT | grep $JOB				| tee -a $LOG_FIL
           $QLIST | grep $sJob				| tee -a $LOG_FIL
           echo ' job already exist => skip this test'	| tee -a $LOG_FIL
       fi
@@ -103,7 +102,8 @@ module list						>> $LOG_FIL 2>&1
        echo 'no file:' $BATCH_SCRIPT 'to submit'	| tee -a $LOG_FIL
     fi
   done
-  echo "info-sub-list: NB_SUB_JOBS='$NB_SUB_JOBS'"	>> $LOG_FIL
+  #echo "info-sub-list: NB_SUB_JOBS='$NB_SUB_JOBS'"	>> $LOG_FIL
+  echo "Submitted $NB_SUB_JOBS jobs from dir: $SUB_DIR"	| tee -a $LOG_FIL
   echo -n '-- Finished at: '				| tee -a $LOG_FIL
   date							| tee -a $LOG_FIL
 
