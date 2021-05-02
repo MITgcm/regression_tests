@@ -1,6 +1,6 @@
 #! /usr/bin/env bash
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/other/test_local,v 1.7 2018/11/07 23:10:02 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/other/test_local,v 1.8 2020/08/03 14:11:49 jmc Exp $
 # $Name:  $
 
 if test $# = 0 ; then
@@ -190,6 +190,7 @@ case $tt in
   #- test restart:
   echo '' >> ../../tr_run_$tt.log 2>&1
   ../tools/do_tst_2+2 -mpi $sendCmd >> ../../tr_run_$tt.log 2>&1
+  sed -n '/^=====  Summary /,$ p' ../../tr_run_$tt.log
 ;;
 
 'iur4')
@@ -206,6 +207,7 @@ case $tt in
   #- test restart:
   echo '' >> ../../tr_run_$tt.log 2>&1
   ../tools/do_tst_2+2 -mpi $sendCmd >> ../../tr_run_$tt.log 2>&1
+  sed -n '/^=====  Summary /,$ p' ../../tr_run_$tt.log
 ;;
 
 'gadm')
@@ -245,6 +247,7 @@ case $tt in
   #- test restart:
   echo '' >> ../../tr_run_$tt.log 2>&1
   ../tools/do_tst_2+2 -mpi $sendCmd >> ../../tr_run_$tt.log 2>&1
+  sed -n '/^=====  Summary /,$ p' ../../tr_run_$tt.log
 ;;
 
 'gmpi')
@@ -257,6 +260,7 @@ case $tt in
   #- test restart:
   echo '' >> ../../tr_run_$tt.log 2>&1
   ../tools/do_tst_2+2 -mpi $sendCmd >> ../../tr_run_$tt.log 2>&1
+  sed -n '/^=====  Summary /,$ p' ../../tr_run_$tt.log
 ;;
 
 'gmp4')
@@ -269,6 +273,7 @@ case $tt in
   #- test restart:
   echo '' >> ../../tr_run_$tt.log 2>&1
   ../tools/do_tst_2+2 -mpi $sendCmd >> ../../tr_run_$tt.log 2>&1
+  sed -n '/^=====  Summary /,$ p' ../../tr_run_$tt.log
 ;;
 
 'gfo')
@@ -281,6 +286,7 @@ case $tt in
   #- test restart:
   echo '' >> ../../tr_run_$tt.log 2>&1
   ../tools/do_tst_2+2 $sendCmd >> ../../tr_run_$tt.log 2>&1
+  sed -n '/^=====  Summary /,$ p' ../../tr_run_$tt.log
 ;;
 
 'gfo4')
@@ -293,6 +299,7 @@ case $tt in
   #- test restart:
   echo '' >> ../../tr_run_$tt.log 2>&1
   ../tools/do_tst_2+2 $sendCmd >> ../../tr_run_$tt.log 2>&1
+  sed -n '/^=====  Summary /,$ p' ../../tr_run_$tt.log
 ;;
 
 'g77')
@@ -306,6 +313,7 @@ case $tt in
   #- test restart:
   echo '' >> ../../tr_run_$tt.log 2>&1
   ../tools/do_tst_2+2 $sendCmd >> ../../tr_run_$tt.log 2>&1
+  sed -n '/^=====  Summary /,$ p' ../../tr_run_$tt.log
 ;;
 
 *) echo "unrecognized test suffix '$tt' <== skipped" ;;
