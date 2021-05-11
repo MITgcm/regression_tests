@@ -1,6 +1,6 @@
 #! /usr/bin/env bash
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/svante/test_submit_svante,v 1.23 2018/11/28 19:45:22 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/svante/test_submit_svante,v 1.24 2020/04/28 14:34:46 jmc Exp $
 # $Name:  $
 
 today=`date +%Y%m%d`
@@ -15,7 +15,7 @@ fi
 
 headNode=`hostname -s`
 #QSUB="qsub"
-#QSTAT="qstat -u $USER"
+#QLIST="qstat -u $USER"
 #dNam=$headNode
 QSUB="/usr/bin/sbatch"
 QLIST="/usr/bin/squeue -u $USER"
@@ -211,7 +211,7 @@ cd $OUT_DIR
       #  definition within $BATCH_SCRIPT slurm script
       JOB="${i}_tst"
       sJob=`printf "%8.8s" $JOB` #- squeue truncate name to only 1rst 8c
-      #job_exist=`$QSTAT | grep $JOB | wc -l`
+      #job_exist=`$QLIST | grep $JOB | wc -l`
       job_exist=`$QLIST | grep $sJob | wc -l`
       if test "x_$job_exist" = x_0 ; then
         #-- move previous output file
@@ -232,13 +232,12 @@ cd $OUT_DIR
         else echo " no old output files from job '$JOB'" | tee -a $LOG_FIL
         fi
         #-- submit job
-          echo -n "--> $JOB : "				| tee -a $LOG_FIL
+          echo -n "--> $JOB : $BATCH_SCRIPT , "		| tee -a $LOG_FIL
           $QSUB $SUB_DIR/$BATCH_SCRIPT			| tee -a $LOG_FIL
           NB_SUB_JOBS=`expr $NB_SUB_JOBS + 1`
           sleep 1
       else
           echo "--> $JOB :"				| tee -a $LOG_FIL
-          #$QSTAT | grep $JOB				| tee -a $LOG_FIL
           $QLIST | grep $sJob				| tee -a $LOG_FIL
           echo ' job already exist => skip this test'	| tee -a $LOG_FIL
       fi
@@ -246,7 +245,8 @@ cd $OUT_DIR
        echo 'no file:' $BATCH_SCRIPT 'to submit'	| tee -a $LOG_FIL
     fi
   done
-  echo "info-sub-list: NB_SUB_JOBS='$NB_SUB_JOBS'"	>> $LOG_FIL
+  #echo "info-sub-list: NB_SUB_JOBS='$NB_SUB_JOBS'"	>> $LOG_FIL
+  echo "Submitted $NB_SUB_JOBS jobs from dir: $SUB_DIR"	| tee -a $LOG_FIL
   echo -n '-- Finished at: '				| tee -a $LOG_FIL
   date							| tee -a $LOG_FIL
 
