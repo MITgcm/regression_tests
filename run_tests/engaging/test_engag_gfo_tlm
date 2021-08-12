@@ -10,7 +10,7 @@
 #SBATCH --no-requeue
 #SBATCH --constraint=centos6
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/engaging/test_engag_gfo_tlm,v 1.18 2020/12/23 15:48:53 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/engaging/test_engag_gfo_tlm,v 1.20 2021/04/20 04:30:45 jmc Exp $
 # $Name:  $
 
 if test -f /etc/profile.d/modules.sh ; then
@@ -27,7 +27,7 @@ echo " running on: "`hostname`
 dNam='engaging'
 HERE="$HOME/test_$dNam"
 OUTP="$HERE/output"; SavD="$HERE/send"
-SEND="ssh eofe4 $SavD/mpack"
+SEND="ssh eofe8 $SavD/mpack"
 TST_DIR="/pool001/jm_c/test_$dNam"
 tmpFil="/tmp/"`basename $0`".$$"
   cmdCVS='cvs -d :pserver:cvsanon@mitgcm.org:/u/gcmpack -q'
