@@ -1,6 +1,6 @@
 #! /usr/bin/env bash
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/other/test_local,v 1.8 2020/08/03 14:11:49 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/other/test_local,v 1.9 2021/05/02 18:42:06 jmc Exp $
 # $Name:  $
 
 if test $# = 0 ; then
@@ -13,7 +13,7 @@ else
     dd1=`date +%d -d "1 day"`
 #   if test $dd1 != '01' ; then echo 'not last day of month'; exit ; fi
   elif test $1 = gfort ; then
-    tst_list='gadm gads gad4 gmp4 gmp2 gfo gfo4 g77'
+    tst_list='gadm gads gad4 gmp4 gmp2 gfo gfo4 g77 g7a'
   elif test $1 = gfor8 ; then
 #   tst_list='gadm gads gmp2 gmpi gfo g77'
     tst_list='gadm gads gmp2 gfo'
@@ -75,6 +75,7 @@ do
 # set -x
   rm -f tr_clean_$tt.log
   echo $tt | grep '^.ad' > /dev/null 2>&1 ; fwd=$?
+  if test $tt = g7a ; then fwd=0 ; fi
   echo " testing tt= $tt , fwd= $fwd"
  if test -e $gcmDIR/.git/config -a -d $gcmDIR/verification ; then
  #- cleaning previous testreport run and updating the code:
@@ -230,6 +231,14 @@ case $tt in
 
   ./testreport -adm -ur4 -of ../tools/build_options/linux_amd64_gfortran \
    -devel -ncad -nc -match 5 $sendCmd >> ../../tr_run_$tt.log 2>&1
+
+  sed -n "/ email /,/^======== End of testreport / p" ../../tr_run_$tt.log
+;;
+
+'g7a')
+
+  ./testreport -adm -of ../tools/build_options/linux_amd64_g77 \
+   -nc $sendCmd >> ../../tr_run_$tt.log 2>&1
 
   sed -n "/ email /,/^======== End of testreport / p" ../../tr_run_$tt.log
 ;;
