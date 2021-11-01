@@ -1,6 +1,6 @@
 #! /usr/bin/env bash
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/other/test_local,v 1.9 2021/05/02 18:42:06 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/other/test_local,v 1.10 2021/09/21 14:28:33 jmc Exp $
 # $Name:  $
 
 if test $# = 0 ; then
@@ -238,6 +238,7 @@ case $tt in
 'g7a')
 
   ./testreport -adm -of ../tools/build_options/linux_amd64_g77 \
+   -skd 'halfpipe_streamice' \
    -nc $sendCmd >> ../../tr_run_$tt.log 2>&1
 
   sed -n "/ email /,/^======== End of testreport / p" ../../tr_run_$tt.log
@@ -314,7 +315,7 @@ case $tt in
 'g77')
 
   ./testreport -of ../tools/build_options/linux_amd64_g77 \
-   -skd 'fizhi-cs-32x32x40 fizhi-cs-aqualev20' \
+   -skd 'fizhi-cs-32x32x40 fizhi-cs-aqualev20 halfpipe_streamice internal_wave tutorial_advection_in_gyre' \
    -nc $sendCmd >> ../../tr_run_$tt.log 2>&1
 
   sed -n "/ email /,/^======== End of testreport / p" ../../tr_run_$tt.log
