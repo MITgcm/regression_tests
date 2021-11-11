@@ -10,7 +10,7 @@
 #SBATCH --no-requeue
 #SBATCH --constraint=centos7
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/engaging/test_engag_ifc_mpi,v 1.17 2021/08/12 14:24:25 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/engaging/test_engag_ifc_mpi.c7,v 1.1 2021/11/11 17:18:20 jmc Exp $
 # $Name:  $
 
 if test -f /etc/profile.d/modules.sh ; then
@@ -39,8 +39,8 @@ tmpFil="/tmp/"`basename $0`".$$"
  #git_repo="git://github.com/$git_repo"
  #git_repo="git@github.com:$git_repo"
 
-typ='' ; addExp='' ; skipExp=''
-sfx='ifcMpi'
+dblTr=0 ; typ='' ; addExp='' ; skipExp=''
+sfx='ifcMpi'; dblTr=1
 addExp='global_oce_cs32 global_oce_llc90'
  module add slurm
  module add gcc
@@ -64,8 +64,8 @@ if [ $dAlt -eq 1 ] ; then options="$options -ur4 -match 5" ; fi
 options="$options -devel"
 
 checkOut=1 ; #options="$options -do"
-#options="$options -nc" ; checkOut=1
-#options="$options -q"  ; checkOut=0
+#options="$options -nc" ; checkOut=1 ; dblTr=0
+#options="$options -q"  ; checkOut=0 ; dblTr=0
 
 if test -d $TST_DIR ; then
   echo "start from TST_DIR='$TST_DIR' at: "`date`
@@ -257,7 +257,7 @@ else
   exit
 fi
 
-if [ $checkOut -ge 1 ] ; then
+if [ $dblTr -eq 1 ] ; then
   echo ''
 #- 0) just make all module header ( *__genmod.mod files) using modified Makefile
   echo ./testreport $options -of $OPTFILE \
@@ -273,16 +273,17 @@ if [ $checkOut -ge 1 ] ; then
     -j 4 -nr -q -odir ${dNam}-$sfx
   nFc=`grep -c '^Y . N N ' tr_out.txt`
   echo " <= fail to compile $nFc experiments"
+  options="$options -q"
 fi
 
   echo ''
 #- 2) run and report results ; also finish to compile those who failed with "-j"
  #echo ./testreport $options -of $OPTFILE -command \'$mpiCMD\' -mf $MPI_MFile \
   echo ./testreport $options -of $OPTFILE \
-    -q -odir ${dNam}-$sfx -send \'$SEND\' -sd $SavD -a jm_c@mitgcm.org
+    -odir ${dNam}-$sfx -send \'$SEND\' -sd $SavD -a jm_c@mitgcm.org
  #./testreport $options -of $OPTFILE -command "$mpiCMD" -mf $MPI_MFile \
   ./testreport $options -of $OPTFILE \
-    -q -odir ${dNam}-$sfx -send "$SEND" -sd $SavD -a jm_c@mitgcm.org
+    -odir ${dNam}-$sfx -send "$SEND" -sd $SavD -a jm_c@mitgcm.org
 
   echo ''
 #- 3) test restart and report results
