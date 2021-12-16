@@ -4,13 +4,13 @@
 #SBATCH --mem-per-cpu 4000
 #SBATCH -n 6
 #SBATCH -N 2
-#SBATCH -x node[360,365]
+# #SBATCH -x node[360,365]
 #SBATCH -e /home/jm_c/test_engaging/output/gfoTlm_tst.stderr
 #SBATCH -o /home/jm_c/test_engaging/output/gfoTlm_tst.stdout
 #SBATCH --no-requeue
 #SBATCH --constraint=centos6
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/engaging/test_engag_gfo_tlm,v 1.20 2021/04/20 04:30:45 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/engaging/test_engag_gfo_tlm,v 1.21 2021/08/12 14:24:25 jmc Exp $
 # $Name:  $
 
 if test -f /etc/profile.d/modules.sh ; then
