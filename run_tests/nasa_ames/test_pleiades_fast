@@ -6,7 +6,7 @@
 #PBS -e /u/jcampin/test_pleiades/output/tst_fast.stderr
 #PBS -o /u/jcampin/test_pleiades/output/tst_fast.stdout
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/nasa_ames/test_pleiades_fast,v 1.2 2018/02/11 20:02:42 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/nasa_ames/test_pleiades_fast,v 1.3 2022/01/01 00:28:08 jmc Exp $
 # $Name:  $
 
 if test -f /etc/profile.d/modules.sh ; then
@@ -47,19 +47,25 @@ fi
 echo "start from TST_DIR='$TST_DIR' at: "`date`
 cd $TST_DIR ; pwd
 
+dblTr=0 ; typ='' ; addExp='' ; skipExp=''
 #sfx='ifc'
-#sfx='ieee'
-sfx='fast'
-
- typ='' ; addExp=''
+#sfx='ieee'; dblTr=1
+ sfx='fast'; dblTr=1
 #addExp='global_ocean.gm_k3d global_ocean.gm_res'
+
  module purge
- module load comp-intel/2016.2.181 mpi-hpe/mpt.2.25
+#- using older version of Intel Compiler:
+#module load comp-intel/2016.2.181
+#- using newer version of Intel Compiler:
+ module load comp-intel/2020.4.304
+#- for MPI and NetCDF:
+ module load mpi-hpe/mpt.2.25
  module load hdf4/4.2.12 hdf5/1.8.18_mpt netcdf/4.4.1.1_mpt
  module list
 
  OPTFILE="../tools/build_options/linux_amd64_ifort+mpi_ice_nas"
- options="-j 2 $typ -MPI 6"
+ options="$typ -MPI 6"
+#options="-j 2 $options"
 #mpiCMD='mpiexec_mpt -np TR_NPROC ./mitgcmuv'
 #- need this to get "staf":
 #export PATH="$PATH:$HOME/bin"
@@ -69,8 +75,8 @@ dInWeek=`date +%a`
  if test $sfx = 'fast' ; then options="$options -fast" ; fi
 
 checkOut=2
-#options="$options -nc" ; checkOut=1
-#options="$options -q"  ; checkOut=0
+#options="$options -nc" ; checkOut=1 ; dblTr=0
+#options="$options -q"  ; checkOut=0 ; dblTr=0
 
 #- keep a copy of MPI_MFILE:
 #cp -p $PBS_NODEFILE $OUTP"/mf_"$sfx
@@ -189,28 +195,29 @@ else
   exit
 fi
 
-dInWeek='Sun'
-if test "x$dInWeek" = xSun ; then
- #options="$options -fast"
+if [ $dblTr -eq 1 ] ; then
+# echo ''
+#- 0) just make all module header ( *__genmod.mod files) using modified Makefile
+# echo ./testreport $options -of $OPTFILE -j 4 \
+#   -repl_mk do_make_syntax.sh -obj -dd
+# ./testreport $options -of $OPTFILE -j 4 \
+#   -repl_mk do_make_syntax.sh -obj -dd 2>&1
+# options="$options -q"
 
+  echo ''
+#- 1) just compile ("-nr"), using "-j 4" to speed up
+  echo ./testreport $options -of $OPTFILE -odir ${dNam}-$sfx -j 4 -nr
+  ./testreport $options -of $OPTFILE -odir ${dNam}-$sfx -j 4 -nr
+  nFc=`grep -c '^Y . N N ' tr_out.txt`
+  echo " <= fail to compile $nFc experiments"
+  options="$options -q"
+fi
+
+  echo ''
   echo ./testreport $options -of $OPTFILE -odir ${dNam}-$sfx \
     -send \"$SEND\" -sd $SavD -a $ADDR
   ./testreport $options -of $OPTFILE -odir ${dNam}-$sfx \
     -send "$SEND" -sd $SavD -a $ADDR
-else
-  options="$options -devel"
-
-  echo ./testreport $options -of $OPTFILE \
-    -repl_mk do_make_syntax.sh -obj -dd
-  ./testreport $options -of $OPTFILE \
-    -repl_mk do_make_syntax.sh -obj -dd 2>&1
-
-  echo ''
-  echo ./testreport $options -of $OPTFILE -odir ${dNam}-$sfx \
-    -q -send \"$SEND\" -sd $SavD -a $ADDR
-  ./testreport $options -of $OPTFILE -odir ${dNam}-$sfx \
-    -q -send "$SEND" -sd $SavD -a $ADDR
-fi
 
   echo ''
   echo ../tools/do_tst_2+2 -mpi -o ${dNam}-$sfx \
