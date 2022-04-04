@@ -10,7 +10,7 @@
 #SBATCH -o /home/jm_c/test_svante/output/ifcAdm_tst.stdout
 #SBATCH --no-requeue
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/svante/test_svante_ifc_adm,v 1.2 2020/09/21 20:34:31 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/svante/test_svante_ifc_adm,v 1.3 2021/03/12 15:07:18 jmc Exp $
 # $Name:  $
 
 if test -f /etc/profile.d/modules.sh    ; then . /etc/profile.d/modules.sh    ; fi
@@ -49,10 +49,10 @@ srcCode="MITgcm_today"
 
 typ='' ; addExp='' ; skipExp=''
 sfx='ifcAdm'; typ='-adm'
- module add intel/2017.0.1
+ module add intel/2021.4.0
  module add openmpi
 #module add netcdf
- OPTFILE="../tools/build_options/linux_amd64_ifort11"
+ OPTFILE="../tools/build_options/linux_amd64_ifort"
  export GENERIC='on' # <-- to prevent the use of "-xHost" option
 #- needed for DIVA with MPI:
  export MPI_INC_DIR=$INC_MPI
