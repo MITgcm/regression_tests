@@ -1,6 +1,6 @@
 #! /usr/bin/env bash
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/nasa_ames/test_submit_pleiades,v 1.2 2018/02/09 22:46:11 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/nasa_ames/test_submit_pleiades,v 1.3 2018/11/07 23:10:02 jmc Exp $
 # $Name:  $
 
 today=`date +%Y%m%d`
@@ -21,7 +21,7 @@ QSTAT="/PBS/bin/qstat -u $USER"
 #QLIST="/usr/bin/squeue -u $USER"
 dNam='pleiades'
 HERE="$HOME/test_${dNam}"
-TST_DISK="/nobackupp2/$USER"
+TST_DISK="/nobackupp17/$USER"
 TST_DIR="$TST_DISK/test_${dNam}"
 tmpFil="/tmp/"`basename $0`".$$"
 #- where local copy of code is (need to be consistent with run-job scripts):
