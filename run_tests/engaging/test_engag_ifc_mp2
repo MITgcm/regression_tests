@@ -8,9 +8,9 @@
 #SBATCH -e /home/jm_c/test_engaging/output/ifcMp2_tst.stderr
 #SBATCH -o /home/jm_c/test_engaging/output/ifcMp2_tst.stdout
 #SBATCH --no-requeue
-#SBATCH --constraint=centos6
+#SBATCH --constraint=centos7
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/engaging/test_engag_ifc_mp2,v 1.23 2021/11/11 18:03:27 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/engaging/test_engag_ifc_mp2.c7,v 1.2 2021/11/11 18:03:27 jmc Exp $
 # $Name:  $
 
 if test -f /etc/profile.d/modules.sh ; then

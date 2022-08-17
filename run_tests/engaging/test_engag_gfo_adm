@@ -5,13 +5,13 @@
 #SBATCH -N 2
 # #SBATCH --exclusive
 #SBATCH --tasks-per-node 16
-# #SBATCH -x node[360,365]
+#SBATCH -x node235
 #SBATCH -e /home/jm_c/test_engaging/output/gfoAdm_tst.stderr
 #SBATCH -o /home/jm_c/test_engaging/output/gfoAdm_tst.stdout
 #SBATCH --no-requeue
-#SBATCH --constraint=centos6
+#SBATCH --constraint=centos7
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/engaging/test_engag_gfo_adm,v 1.7 2021/08/12 14:24:25 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/engaging/test_engag_gfo_adm.c7,v 1.1 2021/11/11 17:18:20 jmc Exp $
 # $Name:  $
 
 if test -f /etc/profile.d/modules.sh ; then
