@@ -5,7 +5,7 @@
 #SBATCH --mem-per-cpu 4000
 #SBATCH -N 1
 #SBATCH --tasks-per-node 6
-#SBATCH -x larry,moe,shemp
+# #SBATCH -x curly,larry,moe,shemp
 #SBATCH -e /home/jm_c/test_svante/output/pgiAdm_tst.stderr
 #SBATCH -o /home/jm_c/test_svante/output/pgiAdm_tst.stdout
 #SBATCH --no-requeue
