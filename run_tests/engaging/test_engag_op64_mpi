@@ -1,12 +1,12 @@
 #!/bin/bash
-#SBATCH -J o64Adm_tst
+#SBATCH -J o64Mpi_tst
 #SBATCH -p sched_mit_hill
 #SBATCH --mem-per-cpu 4000
 #SBATCH -n 6
 #SBATCH -N 2
 # #SBATCH -x node[360,365]
-#SBATCH -e /home/jm_c/test_engaging/output/o64Adm_tst.stderr
-#SBATCH -o /home/jm_c/test_engaging/output/o64Adm_tst.stdout
+#SBATCH -e /home/jm_c/test_engaging/output/o64Mpi_tst.stderr
+#SBATCH -o /home/jm_c/test_engaging/output/o64Mpi_tst.stdout
 #SBATCH --no-requeue
 #SBATCH --constraint=centos7
 
@@ -40,9 +40,9 @@ tmpFil="/tmp/"`basename $0`".$$"
  #git_repo="git@github.com:$git_repo"
 
 dblTr=0 ; typ='' ; addExp='' ; skipExp=''
-sfx='o64Adm'; typ='-adm' ; dblTr=1
+sfx='o64Mpi'; dblTr=1
 #- currently, no NetCDF => no pkg/profiles
-skipExp="$skipExp global_oce_biogeo_bling"
+#skipExp="$skipExp global_oce_biogeo_bling"
  module add open64
  module add mvapich2/open64/64/2.0b
  export MPI_INC_DIR="$MPI_HOME/include"
@@ -54,7 +54,7 @@ skipExp="$skipExp global_oce_biogeo_bling"
 #export GSL_IEEE_MODE=double-precision,mask-underflow,mask-denormalized
  ulimit -s unlimited
 #- need this to get "staf":
-export PATH="$PATH:$HOME/bin"
+#export PATH="$PATH:$HOME/bin"
 
 gcmDIR="MITgcm_$sfx"
 dAlt=`date +%d` ; dAlt=`expr $dAlt % 3`
@@ -137,7 +137,7 @@ if [ $checkOut -eq 1 ] ; then
           fi
         fi
       done )
-#   ( cd $gcmDIR/verification ; ../tools/do_tst_2+2 -clean )
+    ( cd $gcmDIR/verification ; ../tools/do_tst_2+2 -clean )
     ( cd $gcmDIR/verification ; ./testreport $typ -clean )
   if test "x$addExp" != x ; then
     ( cd $gcmDIR/verification
@@ -224,32 +224,32 @@ fi
 
 if [ $dblTr -eq 1 ] ; then
   echo ''
-#- 1) just compile ("-nr")
+#- 1) just compile ("-nr"), using "-j 3" to speed up
   echo ./testreport $options -of $OPTFILE -skd \'$skipExp\' \
-    -odir ${dNam}-$sfx -nr
+    -odir ${dNam}-$sfx -j 3 -nr
   ./testreport $options -of $OPTFILE -skd "$skipExp" \
-    -odir ${dNam}-$sfx -nr
+    -odir ${dNam}-$sfx -j 3 -nr
   options="$options -q"
 fi
 
   echo ''
-#- 2) run and report results ; also finish to compile those who failed
+#- 2) run and report results ; also finish to compile those who failed with "-j"
   echo ./testreport $options -of $OPTFILE -skd \'$skipExp\' \
     -odir ${dNam}-$sfx -send \'$SEND\' -sd $SavD -a jm_c@mitgcm.org
   ./testreport $options -of $OPTFILE -skd "$skipExp" \
     -odir ${dNam}-$sfx -send "$SEND" -sd $SavD -a jm_c@mitgcm.org
 
-# echo ''
+  echo ''
 #- 3) test restart and report results
-# echo ../tools/do_tst_2+2 -mpi \
-#   -o ${dNam}-$sfx -send \'$SEND\' -sd $SavD -a jm_c@mitgcm.org
-# ../tools/do_tst_2+2 -mpi \
-#   -o ${dNam}-$sfx -send "$SEND" -sd $SavD -a jm_c@mitgcm.org
+  echo ../tools/do_tst_2+2 -mpi \
+    -o ${dNam}-$sfx -send \'$SEND\' -sd $SavD -a jm_c@mitgcm.org
+  ../tools/do_tst_2+2 -mpi \
+    -o ${dNam}-$sfx -send "$SEND" -sd $SavD -a jm_c@mitgcm.org
 
 # exit 0
-  echo -n "-- SLURM_TASKS_PER_NODE= $SLURM_TASKS_PER_NODE ; " >> ${OUTP}/tracer_adj.log
-  date >> ${OUTP}/tracer_adj.log
-  grep 'My Processor Name' tutorial_tracer_adjsens/run/STDOUT.000? \
-     | sed 's/tutorial_tracer_adjsens\//    /' >> ${OUTP}/tracer_adj.log
-  grep 'My Processor Name' tutorial_tracer_adjsens/tr_run.som81/STDOUT.000? \
-     | sed 's/tutorial_tracer_adjsens\// /'    >> ${OUTP}/tracer_adj.log
+# echo -n "-- SLURM_TASKS_PER_NODE= $SLURM_TASKS_PER_NODE ; " >> ${OUTP}/tracer_adj.log
+# date >> ${OUTP}/tracer_adj.log
+# grep 'My Processor Name' tutorial_tracer_adjsens/run/STDOUT.000? \
+#    | sed 's/tutorial_tracer_adjsens\//    /' >> ${OUTP}/tracer_adj.log
+# grep 'My Processor Name' tutorial_tracer_adjsens/tr_run.som81/STDOUT.000? \
+#    | sed 's/tutorial_tracer_adjsens\// /'    >> ${OUTP}/tracer_adj.log

@@ -1,6 +1,6 @@
 #! /usr/bin/env bash
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/engaging/test_submit_engag,v 1.9 2021/04/18 15:29:27 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/engaging/test_submit_engag,v 1.10 2021/04/20 04:31:39 jmc Exp $
 # $Name:  $
 
 today=`date +%Y%m%d`
@@ -16,7 +16,7 @@ fi
 
 if test $# = 0
 then
-  TEST_LIST='o64Adm gfoAdm gfoTlm ifcMp2 ifcMpi'
+  TEST_LIST='gfoAdm ifcMpi ifcMp2 o64Adm o64Mpi gfoTlm'
  #if test "x$dInWeek" = xSun ; then TEST_LIST="$TEST_LIST iad ifc oad" ; fi
 else
   TEST_LIST=$*
@@ -33,7 +33,7 @@ logPfix='test_submit'
 SUB_DIR="$HERE/engaging"
 OUT_DIR="$HERE/output"
 LOG_FIL="$OUT_DIR/$logPfix."`date +%m%d`".log"
-#SUB_DIR="$HERE/temp"
+#SUB_DIR="$HERE/local"
 
 #-- clean up old log files and start a new one:
 cd $OUT_DIR
