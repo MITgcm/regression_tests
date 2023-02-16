@@ -1,6 +1,6 @@
 #! /usr/bin/env bash
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/other/test_local,v 1.10 2021/09/21 14:28:33 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/other/test_local,v 1.11 2021/11/01 13:45:29 jmc Exp $
 # $Name:  $
 
 if test $# = 0 ; then
@@ -13,7 +13,8 @@ else
     dd1=`date +%d -d "1 day"`
 #   if test $dd1 != '01' ; then echo 'not last day of month'; exit ; fi
   elif test $1 = gfort ; then
-    tst_list='gadm gads gad4 gmp4 gmp2 gfo gfo4 g77 g7a'
+    tst_list='gadm gads gad4 gmp4 gmp2 gfo gfo4'
+#   tst_list="$tst_list g77 g7a"
   elif test $1 = gfor8 ; then
 #   tst_list='gadm gads gmp2 gmpi gfo g77'
     tst_list='gadm gads gmp2 gfo'
