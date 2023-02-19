@@ -10,12 +10,10 @@
 #SBATCH -o /home/jm_c/test_engaging/output/ifcMpi_tst.stdout
 #SBATCH --no-requeue
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/engaging/test_engag_ifc_mpi,v 1.20 2022/08/17 15:31:02 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/engaging/test_engag_ifc_mpi,v 1.21 2022/12/03 20:36:21 jmc Exp $
 # $Name:  $
 
-if test -f /etc/profile.d/modules.sh ; then
-    . /etc/profile.d/modules.sh
-fi
+if test -f /etc/profile.d/modules.sh ; then . /etc/profile.d/modules.sh ; fi
 # Note: added "ulimit -s unlimited" in file "~/.bashrc"
 # to pass big test (the 2 fizhi-cs-* test & adjoint tests) with MPI
 
@@ -23,11 +21,12 @@ umask 0022
 #- to get case insensitive "ls" (and order of tested experiments)
 export LC_ALL="en_US.UTF-8"
 echo " running on: "`hostname`
+headNode='eofe8'
 
 dNam='engaging'
-HERE="$HOME/test_$dNam"
+HERE="$HOME/test_${dNam}"
 OUTP="$HERE/output"; SavD="$HERE/send"
-SEND="ssh eofe8 $SavD/mpack"
+SEND="ssh $headNode $SavD/mpack"
 TST_DIR="/pool001/jm_c/test_$dNam"
 tmpFil="/tmp/"`basename $0`".$$"
   cmdCVS='cvs -d :pserver:cvsanon@mitgcm.org:/u/gcmpack -q'
@@ -62,6 +61,7 @@ gcmDIR="MITgcm_$sfx"
 dAlt=`date +%d` ; dAlt=`expr $dAlt % 3`
 if [ $dAlt -eq 1 ] ; then options="$options -ur4 -match 5" ; fi
 options="$options -devel"
+if test "x$skipExp" != x ; then skipExp=`echo $skipExp | sed 's/^ *//'` ; fi
 
 checkOut=1 ; #options="$options -do"
 #options="$options -nc" ; checkOut=1 ; dblTr=0
@@ -156,13 +156,13 @@ if [ $checkOut -eq 1 ] ; then
     ( cd $gcmDIR/verification ; ./testreport $typ -clean )
     ( cd $gcmDIR/verification ; rm -f */build/Makefile_syntax )
     ( cd $gcmDIR/verification ; rm -f */build/port_rand.i */build/ptracers_set_iolabel.i )
-  if test "x$addExp" != x ; then
-    ( cd $gcmDIR/verification
-      listD=`ls -o | grep '^l' | awk '{print $8}' 2> /dev/null`
-      echo " + remove local links: $listD"
-      /bin/rm -f $listD
-    )
-  fi
+    if test "x$addExp" != x ; then
+      ( cd $gcmDIR/verification
+        listD=`ls -o | grep '^l' | awk '{print $8}' 2> /dev/null`
+        echo " + remove local links: $listD"
+        /bin/rm -f $listD
+      )
+    fi
     echo "Update $git_code code in dir $gcmDIR :"
     ( cd $gcmDIR ; git pull ) 2>&1
     retVal=$?
@@ -260,29 +260,29 @@ fi
 if [ $dblTr -eq 1 ] ; then
   echo ''
 #- 0) just make all module header ( *__genmod.mod files) using modified Makefile
-  echo ./testreport $options -of $OPTFILE \
+  echo ./testreport $options -of $OPTFILE -skd \'$skipExp\' \
     -j 4 -nc -repl_mk do_make_syntax.sh -obj -dd
-  ./testreport $options -of $OPTFILE \
+  ./testreport $options -of $OPTFILE -skd "$skipExp" \
     -j 4 -nc -repl_mk do_make_syntax.sh -obj -dd
+  options="$options -q"
 
   echo ''
 #- 1) just compile ("-nr"), using "-j 4" to speed up
-  echo ./testreport $options -of $OPTFILE \
-    -j 4 -nr -q -odir ${dNam}-$sfx
-  ./testreport $options -of $OPTFILE \
-    -j 4 -nr -q -odir ${dNam}-$sfx
+  echo ./testreport $options -of $OPTFILE -skd \'$skipExp\' \
+    -j 4 -nr -odir ${dNam}-$sfx
+  ./testreport $options -of $OPTFILE -skd "$skipExp" \
+    -j 4 -nr -odir ${dNam}-$sfx
   nFc=`grep -c '^Y . N N ' tr_out.txt`
   echo " <= fail to compile $nFc experiments"
-  options="$options -q"
 fi
 
   echo ''
 #- 2) run and report results ; also finish to compile those who failed with "-j"
  #echo ./testreport $options -of $OPTFILE -command \'$mpiCMD\' -mf $MPI_MFile \
-  echo ./testreport $options -of $OPTFILE \
+  echo ./testreport $options -of $OPTFILE -skd \'$skipExp\' \
     -odir ${dNam}-$sfx -send \'$SEND\' -sd $SavD -a jm_c@mitgcm.org
  #./testreport $options -of $OPTFILE -command "$mpiCMD" -mf $MPI_MFile \
-  ./testreport $options -of $OPTFILE \
+  ./testreport $options -of $OPTFILE -skd "$skipExp" \
     -odir ${dNam}-$sfx -send "$SEND" -sd $SavD -a jm_c@mitgcm.org
 
   echo ''

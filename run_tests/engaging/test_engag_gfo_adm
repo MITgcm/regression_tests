@@ -11,12 +11,10 @@
 #SBATCH -o /home/jm_c/test_engaging/output/gfoAdm_tst.stdout
 #SBATCH --no-requeue
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/engaging/test_engag_gfo_adm,v 1.9 2022/08/17 15:31:01 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/engaging/test_engag_gfo_adm,v 1.10 2022/12/03 20:36:21 jmc Exp $
 # $Name:  $
 
-if test -f /etc/profile.d/modules.sh ; then
-    . /etc/profile.d/modules.sh
-fi
+if test -f /etc/profile.d/modules.sh ; then . /etc/profile.d/modules.sh ; fi
 # Note: added "ulimit -s unlimited" in file "~/.bashrc"
 # to pass big test (the 2 fizhi-cs-* test & adjoint tests) with MPI
 
@@ -24,11 +22,12 @@ umask 0022
 #- to get case insensitive "ls" (and order of tested experiments)
 export LC_ALL="en_US.UTF-8"
 echo " running on: "`hostname`
+headNode='eofe8'
 
 dNam='engaging'
-HERE="$HOME/test_$dNam"
+HERE="$HOME/test_${dNam}"
 OUTP="$HERE/output"; SavD="$HERE/send"
-SEND="ssh eofe8 $SavD/mpack"
+SEND="ssh $headNode $SavD/mpack"
 TST_DIR="/pool001/jm_c/test_$dNam"
 tmpFil="/tmp/"`basename $0`".$$"
   cmdCVS='cvs -d :pserver:cvsanon@mitgcm.org:/u/gcmpack -q'
@@ -55,12 +54,13 @@ addExp="$addExp global_oce_cs32 global_oce_llc90"
  options="$typ -MPI 32"
  ulimit -s unlimited
 #- need this to get "staf":
-export PATH="$PATH:$HOME/bin"
+ export PATH="$PATH:$HOME/bin"
 
 gcmDIR="MITgcm_$sfx"
 dAlt=`date +%d` ; dAlt=`expr $dAlt % 3`
 if [ $dAlt -eq 1 ] ; then options="$options -fast"
 else options="$options -devel" ; fi
+if test "x$skipExp" != x ; then skipExp=`echo $skipExp | sed 's/^ *//'` ; fi
 
 checkOut=1 ; #options="$options -do"
 #options="$options -nc" ; checkOut=1
@@ -95,9 +95,6 @@ env | grep SLURM
 echo '======= modules ================================================================'
 module list 2>&1
 echo '================================================================================'
-
-#- keep a copy of MPI_MFILE:
-#cp -p $PBS_NODEFILE $OUTP"/mf_"$sfx
 
 #- check for disk space: relative space (99%) or absolute (10.G):
 dsp=`df -P . | tail -1 | awk '{print $5}' | sed 's/%$//'`
@@ -138,16 +135,16 @@ if [ $checkOut -eq 1 ] ; then
         fi
       done )
     echo "clean testreport output"
-#   echo "clean tst_2+2 + testreport output (+ Makefile_syntax files)"
-#   ( cd $gcmDIR/verification ; ../tools/do_tst_2+2 -clean )
+  # echo "clean tst_2+2 + testreport output (+ Makefile_syntax files)"
+  # ( cd $gcmDIR/verification ; ../tools/do_tst_2+2 -clean )
     ( cd $gcmDIR/verification ; ./testreport $typ -clean )
-  if test "x$addExp" != x ; then
-    ( cd $gcmDIR/verification
-      listD=`ls -o | grep '^l' | awk '{print $8}' 2> /dev/null`
-      echo " + remove local links: $listD"
-      /bin/rm -f $listD
-    )
-  fi
+    if test "x$addExp" != x ; then
+      ( cd $gcmDIR/verification
+        listD=`ls -o | grep '^l' | awk '{print $8}' 2> /dev/null`
+        echo " + remove local links: $listD"
+        /bin/rm -f $listD
+      )
+    fi
     echo "Update $git_code code in dir $gcmDIR :"
     ( cd $gcmDIR ; git pull ) 2>&1
     retVal=$?
@@ -244,18 +241,23 @@ fi
 
 if [ $dblTr -eq 1 ] ; then
   echo ''
-  echo ./testreport $options -of $OPTFILE -odir ${dNam}-$sfx -nr
-  ./testreport $options -of $OPTFILE -odir ${dNam}-$sfx -nr
+#- 1) just compile ("-nr"), using "-j 4" to speed up
+  echo ./testreport $options -of $OPTFILE -skd \'$skipExp\' \
+    -j 4 -nr -odir ${dNam}-$sfx
+  ./testreport $options -of $OPTFILE -skd "$skipExp" \
+    -j 4 -nr -odir ${dNam}-$sfx
   options="$options -q"
 fi
 
   echo ''
-  echo ./testreport $options -of $OPTFILE -odir ${dNam}-$sfx \
-    -send \'$SEND\' -sd $SavD -a jm_c@mitgcm.org
-  ./testreport $options -of $OPTFILE -odir ${dNam}-$sfx \
-    -send "$SEND" -sd $SavD -a jm_c@mitgcm.org
+#- 2) run and report results ; also finish to compile those who failed with "-j"
+  echo ./testreport $options -of $OPTFILE -skd \'$skipExp\' \
+    -odir ${dNam}-$sfx -send \'$SEND\' -sd $SavD -a jm_c@mitgcm.org
+  ./testreport $options -of $OPTFILE -skd "$skipExp" \
+    -odir ${dNam}-$sfx -send "$SEND" -sd $SavD -a jm_c@mitgcm.org
 
 # echo ''
+#- 3) test restart and report results
 # echo ../tools/do_tst_2+2 -mpi \
 #   -o ${dNam}-$sfx -send \'$SEND\' -sd $SavD -a jm_c@mitgcm.org
 # ../tools/do_tst_2+2 -mpi \
