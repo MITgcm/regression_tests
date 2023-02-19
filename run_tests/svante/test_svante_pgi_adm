@@ -10,7 +10,7 @@
 #SBATCH -o /home/jm_c/test_svante/output/pgiAdm_tst.stdout
 #SBATCH --no-requeue
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/svante/test_svante_pgi_adm,v 1.13 2020/09/21 20:34:32 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/svante/test_svante_pgi_adm,v 1.15 2022/09/21 16:54:25 jmc Exp $
 # $Name:  $
 
 if test -f /etc/profile.d/modules.sh    ; then . /etc/profile.d/modules.sh    ; fi
@@ -47,7 +47,7 @@ srcCode="MITgcm_today"
  #git_repo="git://github.com/$git_repo"
  #git_repo="git@github.com:$git_repo"
 
-typ='' ; addExp='' ; skipExp=''
+dblTr=0 ; typ='' ; addExp='' ; skipExp=''
 sfx='pgiAdm'; typ='-adm'
  module add pgi/16.9
  module add openmpi
@@ -63,6 +63,7 @@ gcmDIR="MITgcm_$sfx"
 dAlt=`date +%d` ; dAlt=`expr $dAlt % 3`
 if [ $dAlt -eq 1 ] ; then options="$options -fast"
 else options="$options -devel" ; fi
+if test "x$skipExp" != x ; then skipExp=`echo $skipExp | sed 's/^ *//'` ; fi
 
 checkOut=2 ; #options="$options -do"
 #options="$options -nc" ; checkOut=1
@@ -74,15 +75,15 @@ pwd ; ls -l
 if test ! -d $TST_DIR ; then sleep 5 ; pwd ; ls -l ; fi
 if test ! -d $TST_DIR ; then
    echo -n "Creating a working dir: $TST_DIR ..."
-  #/bin/rm -rf $TST_DIR
    mkdir $TST_DIR
    retVal=$?
    if test "x$retVal" != x0 ; then
-      echo " FAIL"
-      echo "Error: unable to make dir: $TST_DIR (err=$retVal ) from $TST_DISK --> Exit"
-      exit 1
-   else echo " done"
-   fi
+      if test ! -d $TST_DIR ; then
+         echo " FAIL"
+         echo "Error: unable to make dir: $TST_DIR (err=$retVal ) from $TST_DISK --> Exit"
+         exit 1
+      else echo " FAIL but dir now exists ! -> continue" ; fi
+   else echo " done" ; fi
 fi
 echo "start from DIR='$TST_DISK/$TST_DIR' at: "`date`
 cd $TST_DIR
@@ -112,6 +113,18 @@ if [ $dsp -gt 99 ] ; then
   exit
 fi
 
+if [ $checkOut -eq 1 ] ; then
+  if test ! -e $gcmDIR/.git/config ; then
+    echo "no file: $gcmDIR/.git/config => try to download a fresh clone"
+    checkOut=2
+  fi
+  if test "x$addExp" != x ; then
+    if test ! -e $gcmDIR/$git_other/.git/config ; then
+      echo "no file: $gcmDIR/$git_other/.git/config => try a fresh clone"
+      checkOut=2
+    fi
+  fi
+fi
 if [ $checkOut -eq 1 ] ; then
     echo "cleaning output from $gcmDIR/verification :"
 #- remove previous output tar files and tar & remove previous output-dir
@@ -191,7 +204,7 @@ if [ $checkOut -eq 2 ] ; then
   else echo " dir: $srcDIR/$srcCode missing => exit" ; exit ; fi
 fi
 
-#- change dir to $gcmDIR/verification dir:
+#- change dir to $gcmDIR/verification + add link for additional experiments:
 if test -e $gcmDIR/verification ; then
   if [ $checkOut -lt 2 ] ; then
     echo " dir $gcmDIR/verification exist" ; fi
@@ -229,15 +242,27 @@ else
   exit
 fi
 
-echo ''
-echo ./testreport $options -of $OPTFILE -skd \'$skipExp\' \
-  -odir ${dNam}-$sfx -send \'$SEND\' -sd $SavD -a jm_c@mitgcm.org
-./testreport $options -of $OPTFILE -skd "$skipExp" \
-  -odir ${dNam}-$sfx -send "$SEND" -sd $SavD -a jm_c@mitgcm.org
+if [ $dblTr -eq 1 ] ; then
+  echo ''
+#- 1) just compile ("-nr"), using "-j 4" to speed up
+  echo ./testreport $options -of $OPTFILE -skd \'$skipExp\' \
+    -j 4 -nr -odir ${dNam}-$sfx
+  ./testreport $options -of $OPTFILE -skd "$skipExp" \
+    -j 4 -nr -odir ${dNam}-$sfx
+  options="$options -q"
+fi
 
-#echo ''
-#echo ../tools/do_tst_2+2 -mpi \
-#  -o ${dNam}-$sfx -send \'$SEND\' -sd $SavD -a jm_c@mitgcm.org
-#../tools/do_tst_2+2 -mpi \
-#  -o ${dNam}-$sfx -send "$SEND" -sd $SavD -a jm_c@mitgcm.org
+  echo ''
+#- 2) run and report results ; also finish to compile those who failed with "-j"
+  echo ./testreport $options -of $OPTFILE -skd \'$skipExp\' \
+    -odir ${dNam}-$sfx -send \'$SEND\' -sd $SavD -a jm_c@mitgcm.org
+  ./testreport $options -of $OPTFILE -skd "$skipExp" \
+    -odir ${dNam}-$sfx -send "$SEND" -sd $SavD -a jm_c@mitgcm.org
+
+# echo ''
+#- 3) test restart and report results
+# echo ../tools/do_tst_2+2 -mpi \
+#   -o ${dNam}-$sfx -send \'$SEND\' -sd $SavD -a jm_c@mitgcm.org
+# ../tools/do_tst_2+2 -mpi \
+#   -o ${dNam}-$sfx -send "$SEND" -sd $SavD -a jm_c@mitgcm.org
 

@@ -1,6 +1,6 @@
 #! /usr/bin/env bash
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/svante/test_submit_svante,v 1.24 2020/04/28 14:34:46 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/svante/test_submit_svante,v 1.25 2021/05/11 16:32:29 jmc Exp $
 # $Name:  $
 
 today=`date +%Y%m%d`
@@ -8,7 +8,7 @@ dInWeek=`date +%a`
 
 if test $# = 0
 then
-  TEST_LIST='ifcMPI ifcAdm pgiMPI pgiAdm pgiMth'
+  TEST_LIST='ifcMpi ifcAdm pgiMpi pgiAdm pgiMth'
 else
   TEST_LIST=$*
 fi
@@ -201,10 +201,7 @@ cd $OUT_DIR
   NB_SUB_JOBS=0
   for i in $JOB_LIST
   do
-    case $i in
-      'pgiMth') sfx='pgi_mth' ;;
-             *) sfx=`echo ${i} | sed 's/MPI$/_mpi/' | sed 's/Adm$/_adm/'` ;;
-    esac
+    sfx=`echo ${i} | sed 's/^.../&_/' | tr '[:upper:]' '[:lower:]'`
     BATCH_SCRIPT="test_${dNam}_$sfx"
     if test -f $SUB_DIR/$BATCH_SCRIPT ; then
       #- job name ( $JOB ) & output-file name ( $JOB.std??? ) must match
