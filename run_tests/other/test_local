@@ -1,8 +1,10 @@
 #! /usr/bin/env bash
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/other/test_local,v 1.11 2021/11/01 13:45:29 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/other/test_local,v 1.12 2023/02/16 21:29:01 jmc Exp $
 # $Name:  $
 
+#-------------------------------------------------------------------------------
+#-- process argument list:
 if test $# = 0 ; then
   echo 'need 1 argument'
   exit
@@ -15,6 +17,8 @@ else
   elif test $1 = gfort ; then
     tst_list='gadm gads gad4 gmp4 gmp2 gfo gfo4'
 #   tst_list="$tst_list g77 g7a"
+  elif test $1 = tap ; then
+    tst_list='tapAD tapTL'
   elif test $1 = gfor8 ; then
 #   tst_list='gadm gads gmp2 gmpi gfo g77'
     tst_list='gadm gads gmp2 gfo'
@@ -24,14 +28,10 @@ else
     tst_list=$*
   fi
 fi
-  echo "run: \""`basename $0` $*"\" on:" `date`
-  echo " tst_list='$tst_list'"
 
-#- to get ~/bin in the patch (for staf) when run on cron:
-if [ -d ~/bin ]; then
-  echo 'add ~/bin to $PATH'
-  export PATH=$PATH:~/bin
-fi
+#-------------------------------------------------------------------------------
+#-- general setting + MITgcm ref clone update:
+#
 #- to get case insensitive "ls" (and order of tested experiments)
 #export LC_ALL="en_US.UTF-8"
 #- Turn off stack limit for FIZHI & AD-tests
@@ -46,11 +46,66 @@ tmpFil="/tmp/"`basename $0`".$$"
 sendCmd='-a jm_c@mitgcm.org'
 sendCmd='-send scp -a jm_c@mitgcm.org:testing/MITgcm-test'
 
-#-- for now, cannot mix ifort/gfortran tests:
+gcmDIR="MITgcm"
+logFile='check_update.log'
+echo "-- run: \""`basename $0` $*"\" on:" `date` >> $logFile
+if test -e $gcmDIR/.git/config -a -f git_Hash ; then
+  mv git_Hash prevHash
+  ( cd $gcmDIR ; git pull > /dev/null )
+  ( cd $gcmDIR ; git rev-parse HEAD > ../git_Hash )
+else
+  echo " No current clone or missing file "git_Hash" ==> get a fresh clone" >> $logFile
+  rm -f prevHash
+  if test -d $gcmDIR ; then /bin/rm -rf $gcmDIR ; fi
+  git clone https://github.com/$git_repo/${git_code}.git $gcmDIR
+  ( cd $gcmDIR ; git rev-parse HEAD > ../git_Hash )
+fi
+
+#-------------------------------------------------------------------------------
+#-- check particular set of tests:
+if test $1 = tap ; then
+#- Only run this pair of test if MITgcm code got updated:
+  if test -f prevHash ; then
+   #ls -l prevHash  >> $logFile
+    diff -q git_Hash prevHash > /dev/null 2>&1
+    retv=$?
+    if test $retv = 0 ; then
+      echo " No update in repos since previous test ==> skip '$1' set of tests"  >> $logFile
+      exit 0
+    else
+      echo " Will run '$1' set of tests since repos has been updated" >> $logFile
+      echo -n ' prevHash: ' >> $logFile
+      cat prevHash >> $logFile
+      echo -n ' git_Hash: ' >> $logFile
+      cat git_Hash >> $logFile
+    fi
+  else
+    echo " No file 'prevHash' --> will run '$1' set of tests" >> $logFile
+  fi
+fi
+
+echo "run: \""`basename $0` $*"\" on:" `date`
+echo " tst_list='$tst_list'"
+
+#- to get ~/bin in the patch (for staf) when run on cron:
+if [ -d ~/bin ]; then
+  echo 'add ~/bin to $PATH'
+  export PATH=$PATH:~/bin
+#- and for Tapenade:
+  echo $tst_list | grep '\<tap' > /dev/null 2>&1 ; retv=$?
+  if test $retv = 0 ; then
+    source ~jmc/bin/set_tapenade.sh
+  fi
+fi
+
+#- for now, cannot mix ifort/gfortran tests:
 gfort=1
 for tt in $tst_list
 do
-  echo $tt | grep '^g' > /dev/null 2>&1 ; retv=$?
+  echo $tt | grep '^tap' > /dev/null 2>&1 ; retv=$?
+  if [ $retv -ne 0 ] ; then 
+    echo $tt | grep '^g' > /dev/null 2>&1 ; retv=$?
+  fi
   if   [ $retv -eq 0 -a $gfort -ge 1 ] ; then gfort=2
   elif [ $retv -ne 0 -a $gfort -le 1 ] ; then gfort=0
   else echo 'cannot mix ifort/gfortran' ; exit
@@ -67,23 +122,28 @@ if [ $gfort -eq 2 ] ; then
    source ~jmc/bin/openmpi.sh
 fi
 
-#--------------------------------------------------------------------
+#-------------------------------------------------------------------------------
+#-- Update & Run individual test:
 for tt in $tst_list
 do
 
+#- Clean and Update testing clone: ---------------------------------------------
   gcmDIR="MITgcm_$tt"
   echo "=========================================================================="
 # set -x
   rm -f tr_clean_$tt.log
   echo $tt | grep '^.ad' > /dev/null 2>&1 ; fwd=$?
-  if test $tt = g7a ; then fwd=0 ; fi
+  echo $tt | grep '^tap' > /dev/null 2>&1 ; tap=$?
+  if test $tt = g7a -o $tap = 0 ; then fwd=0 ; clOpt='-adm' ; fi
   echo " testing tt= $tt , fwd= $fwd"
  if test -e $gcmDIR/.git/config -a -d $gcmDIR/verification ; then
  #- cleaning previous testreport run and updating the code:
   if [ $fwd -eq 0 ] ; then
+   if test $tt = 'tapAD' ; then clOpt='-tap -adm' ; fi
+   if test $tt = 'tapTL' ; then clOpt='-tap -tlm' ; fi
    set -x
   #- cleanup previous test:
-   ( cd $gcmDIR/verification ; ./testreport -adm -clean > ../../tr_clean_$tt.log 2>&1 )
+   ( cd $gcmDIR/verification ; ./testreport $clOpt -clean > ../../tr_clean_$tt.log 2>&1 )
    set +x
   else
    set -x
@@ -150,6 +210,7 @@ do
   pwd
   test -e tr_out.txt && mv -f tr_out.txt tr_out.sav
 
+#- Run test in corresponding clone: --------------------------------------------
 case $tt in
 'iadm' )
 
@@ -232,6 +293,22 @@ case $tt in
 
   ./testreport -adm -ur4 -of ../tools/build_options/linux_amd64_gfortran \
    -devel -ncad -nc -match 5 $sendCmd >> ../../tr_run_$tt.log 2>&1
+
+  sed -n "/ email /,/^======== End of testreport / p" ../../tr_run_$tt.log
+;;
+
+'tapAD')
+
+  ./testreport -tap -adm -of ../tools/build_options/linux_amd64_gfortran \
+   $sendCmd >> ../../tr_run_$tt.log 2>&1
+
+  sed -n "/ email /,/^======== End of testreport / p" ../../tr_run_$tt.log
+;;
+
+'tapTL')
+
+  ./testreport -tap -tlm -of ../tools/build_options/linux_amd64_gfortran \
+   $sendCmd >> ../../tr_run_$tt.log 2>&1
 
   sed -n "/ email /,/^======== End of testreport / p" ../../tr_run_$tt.log
 ;;
