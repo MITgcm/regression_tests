@@ -4,12 +4,14 @@
 #   sed -n '1,/^# \$Header:/ p' crontab_jmc.bak > crontab_jmc
 #   ( echo '' ; crontab -l ) >> crontab_jmc
 #-
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/other/crontab_jmc,v 1.6 2018/01/12 13:58:54 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/other/crontab_jmc,v 1.7 2020/07/01 15:42:45 jmc Exp $
 
+#- running on "/run/media/jmc/extd/" external disk:
 #35 23 28-31 * * cd /run/media/jmc/extd/jmc/test_jaures && ./test_local ifort >& test_local.outp_0
-#02 00   01  * * cd /run/media/jmc/extd/jmc/test_jaures && ./test_local ifort >& test_local.outp_0
-#02 00   01  * * cd /run/media/jmc/extd/jmc/test_jaures && ./test_local gfort >& test_local.outp_1
 #02 00   02  * * cd /run/media/jmc/extd/jmc/test_jaures && ./test_local gfor4 >& test_local.outp_1
 #02 00   03  * * cd /run/media/jmc/extd/jmc/test_jaures && ./test_local gfor8 >& test_local.outp_2
-02 00   01  * * cd /run/media/jmc/ExtDisk/jmc/test_jaures && ./test_local gfort >& test_local.outp_1
-#50 14  * * *   cd /home/jmc/mitgcm/testing && ./test_crontab >& cron_job.outp
+#- running on "/run/media/jmc/ExtDisk/" external disk:
+12 00  *  * * cd /run/media/jmc/ExtDisk/jmc/test_jaures && ./test_local tap   >& test_local.outp_0
+02 00 01  * * cd /run/media/jmc/ExtDisk/jmc/test_jaures && ./test_local gfort >& test_local.outp_1
+#50 14  *  * * cd /home/jmc/mitgcm/testing && ./test_crontab >& cron_job.outp
+#33 10 22  * * cd /run/media/jmc/ExtDisk/jmc/test_jaures && ./test_local gfort >& test_local.outp_2
