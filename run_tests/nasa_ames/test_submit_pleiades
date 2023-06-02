@@ -1,6 +1,6 @@
 #! /usr/bin/env bash
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/nasa_ames/test_submit_pleiades,v 1.3 2018/11/07 23:10:02 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/nasa_ames/test_submit_pleiades,v 1.4 2022/05/10 18:41:31 jmc Exp $
 # $Name:  $
 
 today=`date +%Y%m%d`
@@ -8,7 +8,8 @@ dInWeek=`date +%a`
 
 if test $# = 0
 then
-  TEST_LIST='ieee fast'
+ #TEST_LIST='ieee fast'
+  TEST_LIST='ieee fast1 fast2'
 else
   TEST_LIST=$*
 fi
@@ -199,9 +200,11 @@ cd $OUT_DIR
         else echo " no old output files from job '$JOB'" | tee -a $LOG_FIL
         fi
         #-- submit job
+        if test $sfx != 'fast2' ; then
           echo -n "--> $JOB : "				| tee -a $LOG_FIL
           $QSUB $SUB_DIR/$BATCH_SCRIPT			| tee -a $LOG_FIL
           NB_SUB_JOBS=`expr $NB_SUB_JOBS + 1`
+        fi
       else
           echo "--> $JOB :"				| tee -a $LOG_FIL
           $QSTAT | grep $JOB				| tee -a $LOG_FIL
