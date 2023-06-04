@@ -1,5 +1,8 @@
 #! /usr/bin/env bash
 
+# $Header:  $
+# $Name:  $
+
 gcmDIR="MITgcm"
 CronTabFile='crontab_jmc'
 
