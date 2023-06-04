@@ -1,6 +1,6 @@
 #! /usr/bin/env bash
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/other/test_local,v 1.12 2023/02/16 21:29:01 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/other/test_local,v 1.13 2023/05/31 13:51:39 jmc Exp $
 # $Name:  $
 
 #-------------------------------------------------------------------------------
@@ -43,19 +43,14 @@ ulimit -s unlimited
  #git_repo='altMITgcm'; #git_code='MITgcm66h'
 #- other settings:
 tmpFil="/tmp/"`basename $0`".$$"
+logFile='check_update.log'
 sendCmd='-a jm_c@mitgcm.org'
 sendCmd='-send scp -a jm_c@mitgcm.org:testing/MITgcm-test'
 
-gcmDIR="MITgcm"
-logFile='check_update.log'
 echo "-- run: \""`basename $0` $*"\" on:" `date` >> $logFile
-if test -e $gcmDIR/.git/config -a -f git_Hash ; then
-  mv git_Hash prevHash
-  ( cd $gcmDIR ; git pull > /dev/null )
-  ( cd $gcmDIR ; git rev-parse HEAD > ../git_Hash )
-else
-  echo " No current clone or missing file "git_Hash" ==> get a fresh clone" >> $logFile
-  rm -f prevHash
+gcmDIR="MITgcm"
+if test -e $gcmDIR/.git/config ; then : else
+  echo " No current clone ==> get a fresh clone" >> $logFile
   if test -d $gcmDIR ; then /bin/rm -rf $gcmDIR ; fi
   git clone https://github.com/$git_repo/${git_code}.git $gcmDIR
   ( cd $gcmDIR ; git rev-parse HEAD > ../git_Hash )
@@ -82,6 +77,13 @@ if test $1 = tap ; then
   else
     echo " No file 'prevHash' --> will run '$1' set of tests" >> $logFile
   fi
+elif test $1 = gfort ; then
+  #- to force to skip "tap" test while "gfort" is running:
+  if test -f prevHash ; then
+    cp -p prevHash git_Hash
+  else
+    cp -p git_Hash prevHash
+  fi
 fi
 
 echo "run: \""`basename $0` $*"\" on:" `date`
@@ -103,7 +105,7 @@ gfort=1
 for tt in $tst_list
 do
   echo $tt | grep '^tap' > /dev/null 2>&1 ; retv=$?
-  if [ $retv -ne 0 ] ; then 
+  if [ $retv -ne 0 ] ; then
     echo $tt | grep '^g' > /dev/null 2>&1 ; retv=$?
   fi
   if   [ $retv -eq 0 -a $gfort -ge 1 ] ; then gfort=2
@@ -415,3 +417,15 @@ esac
  fi
 
 done
+
+if test $1 = gfort ; then
+  day=`date +%d`
+  echo " day in the month='${day}'"
+  if test $day = 01 -a -f git_Hash ; then
+    ls -l git_Hash
+    echo -n ' git_Hash: '
+    cat git_Hash
+    echo "Remove file 'git_Hash' to force tomorrow 'tap' testing"
+    rm -f git_Hash
+  fi
+fi
