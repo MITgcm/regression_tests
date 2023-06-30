@@ -1,0 +1,47 @@
+# $Header:  $
+# $Name:  $
+
+# Content of this dir, used to run additional experiments:
+
+# currently used for:
+#  1) addExp='global_oce_cs32 global_oce_llc90' from: https://github.com/MITgcm/verification_other
+
+1) from Gael instructions, adjusted to:
+  setenv CVSROOT ':pserver:cvsanon@mitgcm.org:/u/gcmpack'
+  cvs co -P -d gael_oce_llc90_gzip MITgcm_contrib/gael/verification/ECCO_v4_r2/input_fields
+  mkdir gael_oce_llc90_input
+   ( cd gael_oce_llc90_input ; cp -p ../gael_oce_llc90_gzip/*.meta . ; \
+     ln -s ../gael_oce_llc90_gzip/*.gz . ; ../gael_oce_llc90_gzip/gunzip_files )
+ #- jmc only:
+   ( cd gael_oce_llc90_input ; rmlnk )
+
+ #- Note: This dir is to be linked to "input_fields" in verification/global_oce_llc90/
+
+2) from (updated) Gael instructions:
+  wget https://engaging-web.mit.edu/~gforget/harbor/version_4/checkpoints/global_oce_input_fields.tar.gz
+  gunzip global_oce_input_fields.tar.gz
+  tar -xf global_oce_input_fields.tar
+  \rm -f global_oce_input_fields.tar
+
+ #- Note: The content of this dir is to be linked inside "verification/global_oce_llc90/input_verifs/"
+
+3) from (updated) Gael instructions:
+  wget https://engaging-web.mit.edu/~gforget/harbor/version_4/checkpoints/core2_cnyf.tar
+  tar -xf core2_cnyf.tar
+  \rm -f core2_cnyf.tar
+
+ #- Note: This dir is to be linked inside "verification/global_oce_llc90/input_verifs/"
+ #        and also inside "verification/global_oce_cs32/"
+
+---------------------------
+Unrelated:
+ save global monthly climatology of 3-D silicate for exp. tutorial_global_oce_biogeo (128x64x15)
+    ( from Hannahi Kleppin (@HannahKleppin), PR #620, branch "3d_silicate" )
+ into dir: dic_input , file: silicate_3D_12m.bin.gz
+
+---------------------------
+May 25, 2023 update:
+ older instructions point to these ftp locations:
+  wget ftp://mit.ecco-group.org/ecco_for_las/version_4/checkpoints/core2_cnyf.tar
+  wget ftp://mit.ecco-group.org/ecco_for_las/version_4/checkpoints/global_oce_input_fields.tar.gz
+ that got disabled early in 2023.
