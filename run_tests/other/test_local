@@ -1,6 +1,6 @@
 #! /usr/bin/env bash
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/other/test_local,v 1.14 2023/06/04 14:00:29 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/other/test_local,v 1.15 2023/06/14 04:18:20 jmc Exp $
 # $Name:  $
 
 #-------------------------------------------------------------------------------
@@ -137,13 +137,13 @@ do
   rm -f tr_clean_$tt.log
   echo $tt | grep '^.ad' > /dev/null 2>&1 ; fwd=$?
   echo $tt | grep '^tap' > /dev/null 2>&1 ; tap=$?
-  if test $tt = g7a -o $tap = 0 ; then fwd=0 ; clOpt='-adm' ; fi
-  echo " testing tt= $tt , fwd= $fwd"
+  if test $tt = g7a ; then fwd=0 ; fi
+  echo " testing tt= $tt , fwd= $fwd , tap= $tap"
  if test -e $gcmDIR/.git/config -a -d $gcmDIR/verification ; then
  #- cleaning previous testreport run and updating the code:
-  if [ $fwd -eq 0 ] ; then
-   if test $tt = 'tapAD' ; then clOpt='-tap -adm' ; fi
-   if test $tt = 'tapTL' ; then clOpt='-tap -tlm' ; fi
+  if [ $fwd -eq 0 -o $tap -eq 0 ] ; then
+   if test $tt = 'tapTL' ; then clOpt='-tlm' ; else clOpt='-adm' ; fi
+   if [ $tap -eq 0 ] ; then clOpt="-tap $clOpt" ; fi
    set -x
   #- cleanup previous test:
    ( cd $gcmDIR/verification ; ./testreport $clOpt -clean > ../../tr_clean_$tt.log 2>&1 )
