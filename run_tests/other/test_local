@@ -46,6 +46,8 @@ tmpFil="/tmp/"`basename $0`".$$"
 logFile='check_update.log'
 sendCmd='-a jm_c@mitgcm.org'
 sendCmd='-send scp -a jm_c@mitgcm.org:testing/MITgcm-test'
+#- expect higher precision if test is run on reference platform+compiler:
+MC=13
 
 echo "-- run: \""`basename $0` $*"\" on:" `date` >> $logFile
 gcmDIR="MITgcm"
@@ -135,13 +137,13 @@ do
   echo "=========================================================================="
 # set -x
   rm -f tr_clean_$tt.log
-  echo $tt | grep '^.ad' > /dev/null 2>&1 ; fwd=$?
+  echo $tt | grep '^.ad' > /dev/null 2>&1 ; taf=$?
   echo $tt | grep '^tap' > /dev/null 2>&1 ; tap=$?
-  if test $tt = g7a ; then fwd=0 ; fi
-  echo " testing tt= $tt , fwd= $fwd , tap= $tap"
+  if test $tt = g7a ; then taf=0 ; fi
+  echo " testing tt= $tt , taf= $taf , tap= $tap"
  if test -e $gcmDIR/.git/config -a -d $gcmDIR/verification ; then
  #- cleaning previous testreport run and updating the code:
-  if [ $fwd -eq 0 -o $tap -eq 0 ] ; then
+  if [ $taf -eq 0 -o $tap -eq 0 ] ; then
    if test $tt = 'tapTL' ; then clOpt='-tlm' ; else clOpt='-adm' ; fi
    if [ $tap -eq 0 ] ; then clOpt="-tap $clOpt" ; fi
    set -x
@@ -303,7 +305,7 @@ case $tt in
 'tapAD')
 
   ./testreport -tap -adm -of ../tools/build_options/linux_amd64_gfortran \
-   $sendCmd >> ../../tr_run_$tt.log 2>&1
+   -match $MC $sendCmd >> ../../tr_run_$tt.log 2>&1
 
   sed -n "/ email /,/^======== End of testreport / p" ../../tr_run_$tt.log
 ;;
@@ -311,7 +313,7 @@ case $tt in
 'tapTL')
 
   ./testreport -tap -tlm -of ../tools/build_options/linux_amd64_gfortran \
-   $sendCmd >> ../../tr_run_$tt.log 2>&1
+   -match $MC $sendCmd >> ../../tr_run_$tt.log 2>&1
 
   sed -n "/ email /,/^======== End of testreport / p" ../../tr_run_$tt.log
 ;;
