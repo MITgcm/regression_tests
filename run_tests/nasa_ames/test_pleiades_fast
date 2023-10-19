@@ -6,7 +6,7 @@
 #PBS -e /u/jcampin/test_pleiades/output/tst_fast.stderr
 #PBS -o /u/jcampin/test_pleiades/output/tst_fast.stdout
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/nasa_ames/test_pleiades_fast,v 1.5 2022/05/10 18:41:31 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/nasa_ames/test_pleiades_fast,v 1.6 2023/06/02 22:51:02 jmc Exp $
 # $Name:  $
 
 if test -f /etc/profile.d/modules.sh ; then
@@ -232,9 +232,15 @@ fi
     -send \"$SEND\" -sd $SavD -a $ADDR
   ./testreport $options -of $OPTFILE -odir ${dNam}-$sfx \
     -send "$SEND" -sd $SavD -a $ADDR
+  retVal=$?
 
+if test "x$retVal" != x0 ; then
+  echo "<== testreport returned retVal=${retVal}, expecting 0"
+  echo " -> skip restart test 'do_tst_2+2'"
+else
   echo ''
   echo ../tools/do_tst_2+2 -mpi -o ${dNam}-$sfx \
     -send \"$SEND\" -sd $SavD -a $ADDR
   ../tools/do_tst_2+2 -mpi -o ${dNam}-$sfx \
     -send "$SEND" -sd $SavD -a $ADDR
+fi
