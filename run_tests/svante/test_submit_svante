@@ -1,6 +1,6 @@
 #! /usr/bin/env bash
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/svante/test_submit_svante,v 1.25 2021/05/11 16:32:29 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/svante/test_submit_svante,v 1.26 2023/02/19 14:56:32 jmc Exp $
 # $Name:  $
 
 today=`date +%Y%m%d`
@@ -50,6 +50,17 @@ if test $n -gt 0 ; then
     ls -t  $logPfix.*.log | tail -"$n" | xargs rm -f
 fi
 
+if test -d backup ; then
+  echo ' from "backup/", remove *.tar.gz files & gzip previous *.tar files'
+  n1=`ls backup/*.tar.gz | wc -l` ; n2=`ls backup/*.tar | wc -l`
+  echo " from 'backup/', remove $n1 *.tar.gz files:"	>> $LOG_FIL 2>&1
+  ( cd backup ; rm -f ??_${dNam}*.tar.gz )		>> $LOG_FIL 2>&1
+  echo "         and gzip previous $n2 *.tar files:"	>> $LOG_FIL 2>&1
+  ( cd backup ; gzip -9 ??_${dNam}*.tar ; ls -l *.tar.gz ) >> $LOG_FIL 2>&1
+else
+  echo ' create dir "backup/" for backup tar files:'	| tee -a $LOG_FIL
+  mkdir backup
+fi
 #-------------------------------------------------------------
 # defaults
 #export PATH="$PATH:/usr/local/bin"
