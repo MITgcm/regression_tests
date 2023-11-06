@@ -1,0 +1,27 @@
+#! /usr/bin/env bash
+
+# $Header:  $
+# $Name:  $
+
+if test $# = 2 ; then
+  pFixDir=$1 ; bakDir=$2
+else
+  echo 'Usage: '`basename $0`' {pFixDir} {bakDir}'
+  echo ' Make a tar file of testreport/restart output dir, named with prefix "{pFixDir}"'
+  echo '  and save it to existing dir "{bakDir}"'
+  echo ' Note: to use where testreport/restart is run (i.e., in verification/)'
+  exit 1
+fi
+
+dOutp=`ls -t ${pFixDir}_20*/summary.txt | head -n 1 | sed 's/\/summary.txt//'`
+if test "x$dOutp" != x -a -d $bakDir ; then
+  echo " - saving tar file of output-dir '${dOutp}' in '${bakDir}'"
+  tar -cf $dOutp.tar $dOutp ; mv $dOutp.tar $bakDir
+else
+  if test "x$dOutp" = x ; then
+    echo " - no output-dir to save"
+  else
+    echo " - backup-dir '${bakDir}' not found"
+  fi
+  exit 2
+fi

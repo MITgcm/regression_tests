@@ -10,7 +10,7 @@
 #SBATCH -o /home/jm_c/test_svante/output/pgiMth_tst.stdout
 #SBATCH --no-requeue
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/svante/test_svante_pgi_mth,v 1.13 2023/02/19 14:56:33 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/svante/test_svante_pgi_mth,v 1.14 2023/10/19 14:38:38 jmc Exp $
 # $Name:  $
 
 if test -f /etc/profile.d/modules.sh    ; then . /etc/profile.d/modules.sh    ; fi
@@ -262,6 +262,7 @@ fi
   ./testreport $options -of $OPTFILE -skd "$skipExp" \
     -odir ${dNam}-$sfx -send "$SEND" -sd $SavD -a jm_c@mitgcm.org
   retVal=$?
+  $HERE/${dNam}/backup_outp tr_${dNam}-${sfx} $OUTP/backup
 
 if test "x$retVal" != x0 ; then
   echo "<== testreport returned retVal=${retVal}, expecting 0"
@@ -273,4 +274,5 @@ else
     -o ${dNam}-$sfx -send \'$SEND\' -sd $SavD -a jm_c@mitgcm.org
   ../tools/do_tst_2+2 \
     -o ${dNam}-$sfx -send "$SEND" -sd $SavD -a jm_c@mitgcm.org
+  $HERE/${dNam}/backup_outp rs_${dNam}-${sfx} $OUTP/backup
 fi
