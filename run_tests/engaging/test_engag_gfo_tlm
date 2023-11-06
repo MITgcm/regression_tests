@@ -10,7 +10,7 @@
 #SBATCH -o /home/jm_c/test_engaging/output/gfoTlm_tst.stdout
 #SBATCH --no-requeue
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/engaging/test_engag_gfo_tlm,v 1.25 2023/02/19 15:02:22 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/engaging/test_engag_gfo_tlm,v 1.26 2023/10/19 14:43:00 jmc Exp $
 # $Name:  $
 
 if test -f /etc/profile.d/modules.sh ; then . /etc/profile.d/modules.sh ; fi
@@ -63,6 +63,7 @@ if test "x$skipExp" != x ; then skipExp=`echo $skipExp | sed 's/^ *//'` ; fi
 checkOut=1 ; #options="$options -do"
 #options="$options -nc" ; checkOut=1
 #options="$options -q"  ; checkOut=0 ; dblTr=0
+# dblTr=-1 #- skip testreport completely (only run "do_tst_2+2")
 
 if test -d $TST_DIR ; then
   echo "start from TST_DIR='$TST_DIR' at: "`date`
@@ -229,6 +230,7 @@ if [ $dblTr -eq 1 ] ; then
   options="$options -q"
 fi
 
+if [ $dblTr -ge 0 ] ; then
   echo ''
 #- 2) run and report results ; also finish to compile those who failed with "-j"
   echo ./testreport $options -of $OPTFILE -skd \'$skipExp\' \
@@ -236,6 +238,7 @@ fi
   ./testreport $options -of $OPTFILE -skd "$skipExp" \
     -odir ${dNam}-$sfx -send "$SEND" -sd $SavD -a jm_c@mitgcm.org
   retVal=$?
+else retVal=0 ; fi
 
 if test "x$retVal" != x0 ; then
   echo "<== testreport returned retVal=${retVal}, expecting 0"
