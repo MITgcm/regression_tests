@@ -1,6 +1,6 @@
 #! /usr/bin/env bash
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/ref_machine/test_batsi,v 1.14 2020/12/06 15:43:14 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/ref_machine/test_batsi,v 1.15 2021/02/17 16:51:57 jmc Exp $
 
 #  Test script for MITgcm that should work on most of the x86_64 Linux machines.
 
@@ -319,7 +319,8 @@ do
 #-- set the testreport command:
   comm="./testreport"
   if test $typ = 'g7a' -o  $typ = 'adm' -o  $typ = 'mpa' ; then
-    comm="$comm -adm"
+   #comm="$comm -adm"
+    comm="$comm -adm -ncad"
   elif test $typ = 'oad' ; then
     comm="$comm -oad"
   elif test $typ = 'tlm' ; then
