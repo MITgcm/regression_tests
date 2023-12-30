@@ -10,7 +10,7 @@
 #SBATCH -o /home/jm_c/test_engaging/output/o64Adm_tst.stdout
 #SBATCH --no-requeue
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/engaging/test_engag_op64_adm,v 1.28 2023/10/19 14:43:00 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/engaging/test_engag_op64_adm,v 1.29 2023/11/06 14:23:01 jmc Exp $
 # $Name:  $
 
 if test -f /etc/profile.d/modules.sh ; then . /etc/profile.d/modules.sh ; fi
@@ -118,7 +118,7 @@ if [ $checkOut -eq 1 ] ; then
   fi
 fi
 if [ $checkOut -eq 1 ] ; then
-    echo "cleaning output from $gcmDIR/verification :"
+    echo "cleaning output from $gcmDIR/verification @ "`date +"%H:%M:%S"`" :"
 #- remove previous output tar files and tar & remove previous output-dir
     /bin/rm -f $gcmDIR/verification/??_${dNam}-${sfx}_????????_?.tar.gz
     ( cd $gcmDIR/verification
@@ -144,24 +144,24 @@ if [ $checkOut -eq 1 ] ; then
         /bin/rm -f $listD
       )
     fi
-    echo "Update $git_code code in dir $gcmDIR :"
+    echo "Update $git_code code in dir $gcmDIR @ "`date +"%H:%M:%S"`" :"
     ( cd $gcmDIR ; git pull ) 2>&1
     retVal=$?
     if test "x$retVal" != x0 ; then
        echo "git pull on '"`hostname`"' fail (return val=$retVal) => exit"
        exit
     fi
-    echo "  and checkout master:"
+    echo "  and checkout master @ "`date +"%H:%M:%S"`" :"
     ( cd $gcmDIR ; git checkout master -- . ) 2>&1
   if test "x$addExp" != x ; then
-    echo "Update $git_other code in dir $gcmDIR/$git_other :"
+    echo "Update $git_other code in dir $gcmDIR/$git_other @ "`date +"%H:%M:%S"`" :"
     ( cd $gcmDIR/$git_other ; git pull ) 2>&1
     retVal=$?
     if test "x$retVal" != x0 ; then
        echo "git pull on '"`hostname`"' fail (return val=$retVal) => exit"
        exit
     fi
-    echo "  and checkout master:"
+    echo "  and checkout master @ "`date +"%H:%M:%S"`" :"
     ( cd $gcmDIR/$git_other ; git checkout master -- . ) 2>&1
   fi
 fi
