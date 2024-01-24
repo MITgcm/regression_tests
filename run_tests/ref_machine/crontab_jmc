@@ -1,4 +1,4 @@
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/ref_machine/crontab_jmc,v 1.1 2018/02/02 19:28:01 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/ref_machine/crontab_jmc,v 1.2 2019/09/17 22:43:54 jmc Exp $
 
 #-----------------
 #-from: jm_c@villon.mit.edu
@@ -15,10 +15,16 @@ MAILTO=jmc@ocean.mit.edu
 MAILTO=jmc@ocean.mit.edu
 
 55 23  * * * cd /home/jm_c/testing/ref_machine && cvs -q -d :pserver:cvsanon@mitgcm.org:/u/gcmpack update -P -d
-10 00 * * * /home/jm_c/testing/ref_machine/test_batsi a
+#10 00 * * * /home/jm_c/testing/ref_machine/test_batsi a
+#- try to start 6:30 h later:
+40 06 * * * /home/jm_c/testing/ref_machine/test_batsi a
+
+#=========================================================
 
 #-----------------
-#-from: jmc@baudelaire.mit.edu
+# older cron-jobs:
+#-----------------
+#-from: jmc@baudelaire.mit.edu (down since Feb 21, 2020)
 #  current output of "crontab -l":
 MAILTO=jmc@ocean.mit.edu
 
@@ -30,10 +36,6 @@ MAILTO=jmc@ocean.mit.edu
 #  mitgcm.org/scripts/daily_update run daily from cron by jmc@mitgcmcvs.mit.edu:
 30 23 * * * cd /u/jmc/testing && ./daily_update && cp -p scripts/daily_update .
 
-#=========================================================
-
-#-----------------
-# older cron-jobs:
 #-----------------
 #-from: jmc@dickens.csail.mit.edu (unavailable since Oct 11, 2013)
 #  current output of "crontab -l":
