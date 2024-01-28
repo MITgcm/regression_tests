@@ -1,6 +1,6 @@
 #! /usr/bin/env bash
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/ref_machine/test_batsi,v 1.15 2021/02/17 16:51:57 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/ref_machine/test_batsi,v 1.16 2023/12/24 18:00:27 jmc Exp $
 
 #  Test script for MITgcm that should work on most of the x86_64 Linux machines.
 
@@ -210,7 +210,7 @@ do
     date ; echo "day is over => skip test $typ"
     continue
   fi
-  if [ $curHour -ge 18 ] ; then
+  if [ $curHour -ge 22 ] ; then
     date ; echo "too late to run test $typ"
     continue
   fi
