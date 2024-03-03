@@ -1,17 +1,22 @@
 #! /usr/bin/env bash
 
-# $Header:  $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/other/test_update_local,v 1.2 2023/06/04 14:04:15 jmc Exp $
 # $Name:  $
 
 gcmDIR="MITgcm"
+logFile='check_update.log'
 CronTabFile='crontab_jmc'
 
-rm -f prevHash
+if test -f git_Hash ; then mv git_Hash prevHash ; fi
 if test -e $gcmDIR/.git/config ; then
-  if test -f git_Hash ; then mv git_Hash prevHash ; fi
   ( cd $gcmDIR ; git checkout master > /dev/null 2>&1 )
-  ( cd $gcmDIR ; git pull > /dev/null )
-  ( cd $gcmDIR ; git rev-parse HEAD > ../git_Hash )
+  ( cd $gcmDIR ; git pull > /dev/null ) ; retv=$?
+  if  test $retv = 0 ; then
+    ( cd $gcmDIR ; git rev-parse HEAD > ../git_Hash )
+  else
+    echo "== running: \""`basename $0`"\" on:" `date` >> $logFile
+    echo "  'git pull' in $gcmDIR fail (return val=$retv) => no new 'git_Hash'" >> $logFile
+  fi
 fi
 
 cronStuff=`grep -v '^#' $CronTabFile | grep 'test_local .*>' | sed 's/^.*test_local //' | sed 's/>*\&//'`

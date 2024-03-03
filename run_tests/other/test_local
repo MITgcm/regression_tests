@@ -1,6 +1,6 @@
 #! /usr/bin/env bash
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/other/test_local,v 1.17 2023/10/02 13:02:27 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/other/test_local,v 1.18 2024/02/03 16:43:07 jmc Exp $
 # $Name:  $
 
 #-------------------------------------------------------------------------------
@@ -43,37 +43,47 @@ ulimit -s unlimited
  #git_repo='altMITgcm'; #git_code='MITgcm66h'
 #- other settings:
 tmpFil="/tmp/"`basename $0`".$$"
-logFile='check_update.log'
 sendCmd='-a jm_c@mitgcm.org'
 sendCmd='-send scp -a jm_c@mitgcm.org:testing/MITgcm-test'
 #- expect higher precision if test is run on reference platform+compiler:
 MC=13
 
-echo "-- run: \""`basename $0` $*"\" on:" `date` >> $logFile
-gcmDIR="MITgcm"
-if test -e $gcmDIR/.git/config ; then
-  if test ! -f git_Hash ; then
-    echo " Missing file "git_Hash" ==> make one from clone '${gcmDIR}'" >> $logFile
-    ( cd $gcmDIR ; git rev-parse HEAD > ../git_Hash )
-  fi
-else
-    echo " No current clone ==> get a fresh clone" >> $logFile
-    #rm -f git_Hash prevHash
-    if test -d $gcmDIR ; then /bin/rm -rf $gcmDIR ; fi
-    git clone https://github.com/$git_repo/${git_code}.git $gcmDIR
-    ( cd $gcmDIR ; git rev-parse HEAD > ../git_Hash )
-fi
-
 #-------------------------------------------------------------------------------
-#-- check particular set of tests:
+#-- check particular set of tests (+ status of "git_Hash"):
+gcmDIR="MITgcm"
+logFile='check_update.log'
+echo "-- run: \""`basename $0` $*"\" on:" `date` >> $logFile
+
 if test $1 = tap ; then
 #- Only run this pair of test if MITgcm code got updated:
+
+  if test ! -e $gcmDIR/.git/config ; then
+    echo " No current clone '${gcmDIR}' ==> get a fresh clone" >> $logFile
+    #rm -f git_Hash prevHash
+    if test -d $gcmDIR ; then /bin/rm -rf $gcmDIR ; fi
+    git clone https://github.com/$git_repo/${git_code}.git $gcmDIR ; retv=$?
+    if test $retv != 0 ; then
+      echo "  <== Failed to get clone '${gcmDIR}' ==> skip '$1' set of tests" >> $logFile
+      exit 0
+    fi
+  fi
+  if test ! -f git_Hash ; then
+    ( cd $gcmDIR ; git pull > /dev/null ) ; retv=$?
+    if test $retv = 0 ; then
+      echo " Missing file "git_Hash" ==> make one from clone '${gcmDIR}'" >> $logFile
+      ( cd $gcmDIR ; git rev-parse HEAD > ../git_Hash )
+    else
+      echo " Failed to get updated "git_Hash" ==> skip '$1' set of tests" >> $logFile
+      exit 0
+    fi
+  fi
+
   if test -f git_Hash -a -f prevHash ; then
    #ls -l prevHash  >> $logFile
     diff -q git_Hash prevHash > /dev/null 2>&1
     retv=$?
     if test $retv = 0 ; then
-      echo " No update in repos since previous test ==> skip '$1' set of tests"  >> $logFile
+      echo " No update in repos since previous test ==> skip '$1' set of tests" >> $logFile
       exit 0
     else
       echo " Will run '$1' set of tests since repos has been updated" >> $logFile
@@ -82,17 +92,24 @@ if test $1 = tap ; then
       echo -n ' git_Hash: ' >> $logFile
       cat git_Hash >> $logFile
     fi
-  else
+  elif test -f git_Hash ; then
     echo " No file 'prevHash' --> will run '$1' set of tests" >> $logFile
+  else
+    echo " Should never get here ==> skip '$1' set of tests" >> $logFile
+    ls -l prevHash git_Hash $gcmDIR/.git/config >> $logFile
+    exit 0
   fi
+
 elif test $1 = gfort ; then
   #- to force to skip "tap" test while "gfort" is running:
   if test -f prevHash ; then
     cp -p prevHash git_Hash
   else
+    if test ! -f git_Hash ; then date > git_Hash ; fi
     cp -p git_Hash prevHash
   fi
 fi
+#-------------------------------------------------------------------------------
 
 echo "run: \""`basename $0` $*"\" on:" `date`
 echo " tst_list='$tst_list'"
@@ -433,7 +450,9 @@ if test $1 = gfort ; then
     ls -l git_Hash
     echo -n ' git_Hash: '
     cat git_Hash
-    echo "Remove file 'git_Hash' to force tomorrow 'tap' testing"
-    rm -f git_Hash
+    echo "Make a fake 'git_Hash' to force tomorrow 'tap' testing"
+    date > git_Hash
+    echo -n ' git_Hash: '
+    cat git_Hash
   fi
 fi
