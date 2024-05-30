@@ -5,13 +5,12 @@
 #SBATCH --mem-per-cpu 4000
 #SBATCH -n 6
 #SBATCH -N 2
-#SBATCH -x node122
-# #SBATCH -x node[360,365]
+#SBATCH -x node[122,175,176,235]
 #SBATCH -e /home/jm_c/test_engaging/output/o64Mpi_tst.stderr
 #SBATCH -o /home/jm_c/test_engaging/output/o64Mpi_tst.stdout
 #SBATCH --no-requeue
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/engaging/test_engag_op64_mpi,v 1.5 2023/11/06 14:23:01 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/engaging/test_engag_op64_mpi,v 1.6 2023/12/30 16:55:12 jmc Exp $
 # $Name:  $
 
 if test -f /etc/profile.d/modules.sh ; then . /etc/profile.d/modules.sh ; fi
@@ -254,9 +253,11 @@ else
 fi
 
 # exit 0
-# echo -n "-- SLURM_TASKS_PER_NODE= $SLURM_TASKS_PER_NODE ; " >> ${OUTP}/tracer_adj.log
-# date >> ${OUTP}/tracer_adj.log
-# grep 'My Processor Name' tutorial_tracer_adjsens/run/STDOUT.000? \
-#    | sed 's/tutorial_tracer_adjsens\//    /' >> ${OUTP}/tracer_adj.log
-# grep 'My Processor Name' tutorial_tracer_adjsens/tr_run.som81/STDOUT.000? \
-#    | sed 's/tutorial_tracer_adjsens\// /'    >> ${OUTP}/tracer_adj.log
+  logFile=${OUTP}/glb_oce_ebm.yearly.log
+  echo -n "-- SLURM_TASKS_PER_NODE= $SLURM_TASKS_PER_NODE ; " >> $logFile
+  date >> $logFile
+# grep 'My Processor Name' global_ocean_ebm/run/STDOUT.000? \
+#    | sed 's/global_ocean_ebm\//    /' >> $logFile
+  grep 'My Processor Name' global_ocean_ebm/tr_run.yearly/STDOUT.000? \
+     | sed 's/global_ocean_ebm\// /'    >> $logFile
+
