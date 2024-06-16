@@ -10,7 +10,7 @@
 #SBATCH -o /home/jm_c/test_engaging/output/o64Adm_tst.stdout
 #SBATCH --no-requeue
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/engaging/test_engag_op64_adm,v 1.30 2023/12/30 16:55:12 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/engaging/test_engag_op64_adm,v 1.31 2024/05/30 16:58:05 jmc Exp $
 # $Name:  $
 
 if test -f /etc/profile.d/modules.sh ; then . /etc/profile.d/modules.sh ; fi
@@ -240,6 +240,15 @@ if [ $dblTr -ge 0 ] ; then
   retVal=$?
 else retVal=0 ; fi
 
+# exit 0
+  logFile=${OUTP}/tut_tracer_adj.som.log
+  echo -n "-- SLURM_TASKS_PER_NODE= $SLURM_TASKS_PER_NODE ; " >> $logFile
+  date >> $logFile
+# grep 'My Processor Name' tutorial_tracer_adjsens/run/STDOUT.000? \
+#    | sed 's/tutorial_tracer_adjsens\//    /' >> $logFile
+  grep 'My Processor Name' tutorial_tracer_adjsens/tr_run.som81/STDOUT.000? \
+     | sed 's/tutorial_tracer_adjsens\// /'    >> $logFile
+
 if test "x$retVal" != x0 ; then
   echo "<== testreport returned retVal=${retVal}, expecting 0"
 # echo " -> skip restart test 'do_tst_2+2'"
@@ -251,12 +260,3 @@ if test "x$retVal" != x0 ; then
 # ../tools/do_tst_2+2 -mpi \
 #   -o ${dNam}-$sfx -send "$SEND" -sd $SavD -a jm_c@mitgcm.org
 fi
-
-# exit 0
-  logFile=${OUTP}/tut_tracer_adj.som.log
-  echo -n "-- SLURM_TASKS_PER_NODE= $SLURM_TASKS_PER_NODE ; " >> $logFile
-  date >> $logFile
-# grep 'My Processor Name' tutorial_tracer_adjsens/run/STDOUT.000? \
-#    | sed 's/tutorial_tracer_adjsens\//    /' >> $logFile
-  grep 'My Processor Name' tutorial_tracer_adjsens/tr_run.som81/STDOUT.000? \
-     | sed 's/tutorial_tracer_adjsens\// /'    >> $logFile
