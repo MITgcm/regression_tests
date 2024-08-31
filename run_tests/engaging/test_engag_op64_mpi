@@ -10,7 +10,7 @@
 #SBATCH -o /home/jm_c/test_engaging/output/o64Mpi_tst.stdout
 #SBATCH --no-requeue
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/engaging/test_engag_op64_mpi,v 1.7 2024/05/30 16:58:04 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/engaging/test_engag_op64_mpi,v 1.8 2024/06/16 16:21:19 jmc Exp $
 # $Name:  $
 
 if test -f /etc/profile.d/modules.sh ; then . /etc/profile.d/modules.sh ; fi
@@ -240,14 +240,11 @@ if [ $dblTr -ge 0 ] ; then
   retVal=$?
 else retVal=0 ; fi
 
-# exit 0
-  logFile=${OUTP}/glb_oce_ebm.yearly.log
-  echo -n "-- SLURM_TASKS_PER_NODE= $SLURM_TASKS_PER_NODE ; " >> $logFile
-  date >> $logFile
-# grep 'My Processor Name' global_ocean_ebm/run/STDOUT.000? \
-#    | sed 's/global_ocean_ebm\//    /' >> $logFile
-  grep 'My Processor Name' global_ocean_ebm/tr_run.yearly/STDOUT.000? \
-     | sed 's/global_ocean_ebm\// /'    >> $logFile
+# logFile=${OUTP}/glb_oce_ebm.yearly.log
+# echo -n "-- SLURM_TASKS_PER_NODE= $SLURM_TASKS_PER_NODE ; " >> $logFile
+# date >> $logFile
+# grep 'My Processor Name' global_ocean_ebm/tr_run.yearly/STDOUT.000? \
+#    | sed 's/global_ocean_ebm\// /'    >> $logFile
 
 if test "x$retVal" != x0 ; then
   echo "<== testreport returned retVal=${retVal}, expecting 0"
