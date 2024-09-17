@@ -1,6 +1,6 @@
 #! /usr/bin/env bash
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/nasa_ames/test_submit_pleiades,v 1.4 2022/05/10 18:41:31 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/nasa_ames/test_submit_pleiades,v 1.5 2023/06/02 22:51:03 jmc Exp $
 # $Name:  $
 
 today=`date +%Y%m%d`
@@ -74,6 +74,7 @@ cmdCVS='cvs -d :pserver:cvsanon@mitgcm.org:/u/gcmpack -q'
 checkOut=1
 addExp=''
 updFile='updated_code'
+#checkOut=0
 
 #---+----1----+----2----+----3----+----4----+----5----+----6----+----7-|--+----|
 if [ $checkOut -ge 1 ] ; then
@@ -202,8 +203,18 @@ cd $OUT_DIR
         #-- submit job
         if test $sfx != 'fast2' ; then
           echo -n "--> $JOB : "				| tee -a $LOG_FIL
-          $QSUB $SUB_DIR/$BATCH_SCRIPT			| tee -a $LOG_FIL
-          NB_SUB_JOBS=`expr $NB_SUB_JOBS + 1`
+          # $QSUB $SUB_DIR/$BATCH_SCRIPT 2>&1		| tee -a $LOG_FIL
+          ( $QSUB $SUB_DIR/$BATCH_SCRIPT 2>&1 ; retVal=$?
+            #echo "[dBug 1 --> retVal= $retVal <-- dBug]"
+            if test "x$retVal" != x0 ; then
+              echo "Error: $QSUB failed to submit job $JOB (retVal: $retVal )"
+            fi
+          )						| tee -a $LOG_FIL
+          retVal=`tail -n 1 $LOG_FIL | grep -c '^Error'`
+          #echo "[dBug 2 --> retVal= $retVal <-- dBug]"	| tee -a $LOG_FIL
+          if test "x$retVal" = x0 ; then
+            NB_SUB_JOBS=`expr $NB_SUB_JOBS + 1`
+          fi
         fi
       else
           echo "--> $JOB :"				| tee -a $LOG_FIL
