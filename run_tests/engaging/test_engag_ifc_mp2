@@ -10,7 +10,7 @@
 #SBATCH -o /home/jm_c/test_engaging/output/ifcMp2_tst.stdout
 #SBATCH --no-requeue
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/engaging/test_engag_ifc_mp2,v 1.29 2023/11/06 14:23:01 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/engaging/test_engag_ifc_mp2,v 1.30 2023/12/30 16:55:12 jmc Exp $
 # $Name:  $
 
 if test -f /etc/profile.d/modules.sh ; then . /etc/profile.d/modules.sh ; fi
@@ -40,7 +40,7 @@ tmpFil="/tmp/"`basename $0`".$$"
 
 dblTr=0 ; typ='' ; addExp='' ; skipExp=''
 sfx='ifcMp2'; dblTr=1
-addExp='atm_gray atm_strato offline_cheapaml'
+addExp='atm_strato offline_cheapaml'
  module add slurm
  module add gcc
  module add engaging/intel/2013.1.046

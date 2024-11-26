@@ -1,6 +1,6 @@
 #! /usr/bin/env bash
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/ref_machine/test_villon,v 1.16 2019/12/23 18:57:47 jmc Exp $
+# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/ref_machine/test_villon,v 1.17 2020/12/06 15:43:14 jmc Exp $
 
 #  Test script for MITgcm that should work on most of the x86_64 Linux machines.
 
@@ -195,7 +195,7 @@ do
   #- define list of additional experiences to test:
   addExp=''
   if test $typ = 'mpi' ; then
-    addExp="offline_cheapaml atm_gray atm_strato"
+    addExp="offline_cheapaml atm_strato"
     addExp="$addExp global_oce_cs32"
     addExp="$addExp global_oce_llc90"
   fi
