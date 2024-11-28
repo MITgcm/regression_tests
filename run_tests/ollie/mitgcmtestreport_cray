@@ -2,8 +2,6 @@
 # new script for running testreport on ollie.awi.de
 # - compile and run on compute nodes
 # - use ssh to call mpack command from the head node ollie0
-#$Header: /u/gcmpack/MITgcm_contrib/test_scripts/ollie/mitgcmtestreport_cray,v 1.10 2020/06/10 13:58:05 mlosch Exp $
-#$Name:  $
 
 # needed for cron-job
 #source /usr/Modules/current/init/bash

@@ -1,7 +1,5 @@
 #! /usr/bin/env bash
 
-# $Header: /u/gcmpack/mitgcm.org/scripts/testing_score,v 1.4 2023/05/30 17:51:36 jmc Exp $
-#
 #  The purpose of this script is to print the testing score of all testreport results
 #  stored in the monthly archive dir, either from few selected platform or from all platform
 

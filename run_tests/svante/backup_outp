@@ -1,8 +1,5 @@
 #! /usr/bin/env bash
 
-# $Header:  $
-# $Name:  $
-
 if test $# = 2 ; then
   pFixDir=$1 ; bakDir=$2
 else

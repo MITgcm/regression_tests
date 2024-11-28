@@ -1,7 +1,5 @@
 #! /usr/bin/env bash
 
-# $Header: /u/gcmpack/mitgcm.org/scripts/check_outp,v 1.17 2009/07/12 16:29:42 jmc Exp $
-#
 #  The purpose of this script is to clean-up (relatively) old monthly
 #  collection of testreport results: 
 #  will replace all experiment sub-dir (in each testreport output dir)

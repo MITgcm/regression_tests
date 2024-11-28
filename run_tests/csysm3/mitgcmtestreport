@@ -1,6 +1,4 @@
 #!/bin/csh -x
-#$Header: $
-#$Name: $
 # script to run testreport on csysm3.dmawi.de, without access to sendmail
 # which requires a hack
 setenv CVS_RSH ssh

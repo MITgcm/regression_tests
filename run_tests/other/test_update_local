@@ -1,8 +1,5 @@
 #! /usr/bin/env bash
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/other/test_update_local,v 1.2 2023/06/04 14:04:15 jmc Exp $
-# $Name:  $
-
 gcmDIR="MITgcm"
 logFile='check_update.log'
 CronTabFile='crontab_jmc'

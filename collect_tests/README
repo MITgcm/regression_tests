@@ -1,5 +1,3 @@
-# $Header:  $
-
 On mitgcmcvs.mit.edu , as jm_c :
 1) in /home/jm_c/testing :
  with: CVS_RSH=ssh

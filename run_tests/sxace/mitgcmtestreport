@@ -15,8 +15,6 @@
 #   if not, testreport will try to run the sx ace-code on the tx7 frontend
 #   which will fail inevitably and produce more errors, maybe we can
 #   have a flag that skips everything but the evaluation step to avoid this
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/sxace/mitgcmtestreport,v 1.5 2020/03/23 12:17:57 mlosch Exp $
-# $Name:  $
 
 # for some reason the module command is not available in a bash script on
 # this computer so we have to create it here

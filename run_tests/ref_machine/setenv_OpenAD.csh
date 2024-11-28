@@ -1,7 +1,4 @@
 #!/bin/csh
-#
-#  $Header: /u/gcmpack/MITgcm/tools/example_scripts/ref_machine/setenv_OpenAD.csh,v 1.1 2017/05/09 00:56:08 jmc Exp $
-#  $Name:  $
 
 ##########################################################
 # This file is part of OpenAD released under the LGPL.   #

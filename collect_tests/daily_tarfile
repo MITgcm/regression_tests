@@ -1,7 +1,5 @@
 #! /usr/bin/env bash
 
-# $Header: /u/gcmpack/mitgcm.org/scripts/daily_tarfile,v 1.6 2016/12/08 14:35:27 jmc Exp $
-
 # download the source code and make a tar file
 
 #export CVSROOT=/u/gcmpack

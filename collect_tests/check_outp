@@ -1,7 +1,5 @@
 #! /usr/bin/env bash
 
-# $Header: /u/gcmpack/mitgcm.org/scripts/check_outp,v 1.58 2024/01/03 00:40:41 jmc Exp $
-#
 #  The purpose of this script is to compare
 #  the latest output with the previous one (from the same platform with
 #    same optfile)

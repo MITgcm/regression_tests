@@ -1,8 +1,5 @@
 #! /usr/bin/env bash
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/other/test_local,v 1.7 2018/11/07 23:10:02 jmc Exp $
-# $Name:  $
-
  DATE=`date +%Y%m%d`
 #DATE='20200101'
 mAddr='jm_c@mitgcm.org:testing/MITgcm-test'

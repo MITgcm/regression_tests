@@ -12,9 +12,6 @@
 #SBATCH -o /home/jm_c/test_engaging/output/gfoAdm_tst.stdout
 #SBATCH --no-requeue
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/engaging/test_engag_gfo_adm,v 1.13 2023/11/06 14:23:01 jmc Exp $
-# $Name:  $
-
 if test -f /etc/profile.d/modules.sh ; then . /etc/profile.d/modules.sh ; fi
 # Note: added "ulimit -s unlimited" in file "~/.bashrc"
 # to pass big test (the 2 fizhi-cs-* test & adjoint tests) with MPI

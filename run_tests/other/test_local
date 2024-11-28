@@ -1,8 +1,5 @@
 #! /usr/bin/env bash
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/other/test_local,v 1.18 2024/02/03 16:43:07 jmc Exp $
-# $Name:  $
-
 #-------------------------------------------------------------------------------
 #-- process argument list:
 if test $# = 0 ; then

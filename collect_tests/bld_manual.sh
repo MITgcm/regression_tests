@@ -1,7 +1,5 @@
 #! /usr/bin/env bash
 
-# $Header: /u/gcmpack/mitgcm.org/scripts/bld_manual.sh,v 1.3 2008/03/05 00:56:11 jmc Exp $
-
 #BLDDIR='/u/u0/httpd/html/build_manual'
 #cd $BLDDIR
 #retval=$?

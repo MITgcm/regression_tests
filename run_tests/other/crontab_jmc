@@ -4,7 +4,6 @@
 #   sed -n '1,/^# \$Header:/ p' crontab_jmc.bak > crontab_jmc
 #   ( echo '' ; crontab -l ) >> crontab_jmc
 #-
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/other/crontab_jmc,v 1.8 2023/05/31 14:02:19 jmc Exp $
 
 #- running on "/run/media/jmc/extd/" external disk:
 #35 23 28-31 * * cd /run/media/jmc/extd/jmc/test_jaures && ./test_local ifort >& test_local.outp_0

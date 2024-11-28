@@ -1,5 +1,3 @@
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/ref_machine/crontab_jmc,v 1.2 2019/09/17 22:43:54 jmc Exp $
-
 #-----------------
 #-from: jm_c@villon.mit.edu
 #  current output of "crontab -l":

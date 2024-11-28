@@ -1,7 +1,5 @@
 #! /usr/bin/env bash
 
-# $Header: /u/gcmpack/mitgcm.org/scripts/prc_tr_emails,v 1.5 2018/01/12 15:51:57 jmc Exp $
-
 #cat <<EOF
 #==========================================================
 #Parsing MITgcm testing emails :

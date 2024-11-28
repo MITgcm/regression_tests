@@ -2,8 +2,6 @@
 # new script for running testreport on ollie.awi.de
 # - compile and run on compute nodes
 # - use ssh to call mpack command from the head node ollie0
-#$Header: $
-#$Name:  $
 
 # needed for cron-job
 #source /usr/Modules/current/init/bash

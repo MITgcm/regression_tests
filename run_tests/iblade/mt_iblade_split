@@ -14,8 +14,6 @@
 # *************************
 # Unfortunately the "TR_NPROC" trick does not work and until we find a fix
 # I am using 2 processors
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/iblade/mt_iblade_split,v 1.1 2015/03/02 14:29:12 mlosch Exp $
-# $Name:  $
 
 set VENDOR=mpxlf95
 set RUNIT="runtestreport_"$VENDOR

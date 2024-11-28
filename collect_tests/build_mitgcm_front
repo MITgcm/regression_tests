@@ -1,7 +1,5 @@
 #! /usr/bin/env bash
 
-# $Header: /u/gcmpack/mitgcm.org/scripts/build_mitgcm_front,v 1.5 2018/01/12 21:45:14 jmc Exp $
-
 #-- create a daily log file (if not already there)
 cd $HOME/testing/logs
 logpfx="bld_front_" ; sfx=`date +%m%d`

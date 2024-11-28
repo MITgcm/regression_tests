@@ -10,9 +10,6 @@
 #SBATCH -o /home/jm_c/test_svante/output/pgiMpi_tst.stdout
 #SBATCH --no-requeue
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/svante/test_svante_pgi_mpi,v 1.22 2023/10/19 14:38:38 jmc Exp $
-# $Name:  $
-
 if test -f /etc/profile.d/modules.sh    ; then . /etc/profile.d/modules.sh    ; fi
 if test -f /etc/profile.d/zz_modules.sh ; then . /etc/profile.d/zz_modules.sh ; fi
 # Note: added "ulimit -s unlimited" in file "~/.bashrc"

@@ -1,7 +1,5 @@
 #! /usr/bin/env bash
 
-#  $Id$
-
 #  Download and run the MITgcm model verification suite on
 #  bluesky.ucar.edu with load leveler but without using MPI.
 

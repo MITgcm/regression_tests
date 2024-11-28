@@ -1,7 +1,5 @@
 #! /usr/bin/env bash
 
-# $Header: /u/u3/gcmpack/MITgcm_contrib/test_scripts/halem/test_halem_auden,v 1.1 2003/12/04 20:30:17 edhill Exp $
-
 #  Ed Hill
 
 #  Testing script designed to be run on halem.  Note that halem

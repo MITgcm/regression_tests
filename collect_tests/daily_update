@@ -1,7 +1,5 @@
 #! /usr/bin/env bash
 
-# $Header: /u/gcmpack/mitgcm.org/scripts/daily_update,v 1.5 2018/01/29 20:36:59 jmc Exp $
-
 # Run in: ~/testing/ to update several dir. which are used for:
 # - front_page building
 # - processing testing emails (-> testing page, part of front_page building)

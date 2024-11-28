@@ -1,7 +1,5 @@
 #! /usr/bin/env bash
 
-# $Header: /u/gcmpack/MITgcm_contrib/test_scripts/ref_machine/test_villon,v 1.17 2020/12/06 15:43:14 jmc Exp $
-
 #  Test script for MITgcm that should work on most of the x86_64 Linux machines.
 
 tst_grp=0 ; if test $# = 1 ; then tst_grp=$1 ; fi
