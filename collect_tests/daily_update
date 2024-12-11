@@ -20,7 +20,7 @@ tmpFil="/tmp/"`basename $0`".$$"
  #git_repo="git@github.com:$git_repo"
 
 #-- created empty dirs here if not already there:
-listD='logs MITgcm-test fail2process postponed'
+listD='MITgcm-test logs prc_msg_dir postponed fail2process'
 for dd in $listD ; do
   if test ! -d $dd ; then
     if test -e $dd ; then /bin/rm -rf $dd ; fi
