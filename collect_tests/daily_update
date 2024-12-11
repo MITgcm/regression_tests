@@ -53,7 +53,7 @@ if [ $checkOut -eq 2 ] ; then
     rm -rf $git_code
     echo "  done"
   fi
-  echo -n "Make a clone of $git_code from repo: $git_repo ..."
+  echo -n "Make a clone of $git_code from repo: $git_repo ... "
   git clone $git_repo/${git_code}.git 2> $tmpFil
   retVal=$?
   if test $retVal = 0 ; then
@@ -74,7 +74,7 @@ if [ $checkOut -eq 1 ] ; then
        echo "'git pull' on '"`hostname`"' fail (return val=$retVal) => exit"
        exit 3
   else echo "  done"
-    ( cd $git_code ; git checkout master ; git checkout -- . )
+    ( cd $git_code ; git checkout master ; git checkout -- . ) > /dev/null 2>&1
   fi
 fi
 if [ $checkOut -ge 1 ] ; then
@@ -135,7 +135,7 @@ if [ $checkOut -eq 2 ] ; then
     rm -rf $git_other
     echo "  done"
   fi
-  echo -n "Make a clone of $git_other from repo: $git_repo ..."
+  echo -n "Make a clone of $git_other from repo: $git_repo ... "
   git clone $git_repo/${git_other}.git 2> $tmpFil
   retVal=$?
   if test $retVal = 0 ; then
@@ -156,7 +156,7 @@ if [ $checkOut -eq 1 ] ; then
        echo "'git pull' on '"`hostname`"' fail (return val=$retVal) => exit"
        exit 5
   else echo "  done"
-    ( cd $git_other ; git checkout master ; git checkout -- . )
+    ( cd $git_other ; git checkout master ; git checkout -- . ) > /dev/null 2>&1
   fi
 fi
 if [ $checkOut -ge 1 ] ; then
