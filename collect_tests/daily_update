@@ -66,19 +66,22 @@ if [ $checkOut -eq 2 ] ; then
   fi
 fi
 if [ $checkOut -eq 1 ] ; then
-  echo -n "Updating current clone ( $git_code ) ..."
+  echo -n "Updating current clone ( $git_code ) ... "
   #echo '' >> $LOG_FIL
   ( cd $git_code ; git pull )
   retVal=$?
   if test "x$retVal" != x0 ; then echo ''
        echo "'git pull' on '"`hostname`"' fail (return val=$retVal) => exit"
-       exit
+       exit 3
   else echo "  done"
+    ( cd $git_code ; git checkout master ; git checkout -- . )
   fi
 fi
 if [ $checkOut -ge 1 ] ; then
-  echo "  and checkout $code_branch:"
-  ( cd $git_code ; git checkout $code_branch -- . )
+  if test $code_branch != 'master' ; then
+    echo "  and checkout $code_branch:"
+    ( cd $git_code ; git checkout $code_branch )
+  fi
 fi
 
 #-- symbolic-link as short-cut
@@ -141,23 +144,26 @@ if [ $checkOut -eq 2 ] ; then
   else echo ''
      echo " Error: 'git clone' returned: $retVal"
      cat $tmpFil ; rm -f $tmpFil
-     exit 2
+     exit 4
   fi
 fi
 if [ $checkOut -eq 1 ] ; then
-  echo -n "Updating current clone ( $git_other ) ..."
+  echo -n "Updating current clone ( $git_other ) ... "
   #echo '' >> $LOG_FIL
   ( cd $git_other ; git pull )
   retVal=$?
   if test "x$retVal" != x0 ; then echo ''
        echo "'git pull' on '"`hostname`"' fail (return val=$retVal) => exit"
-       exit
+       exit 5
   else echo "  done"
+    ( cd $git_other ; git checkout master ; git checkout -- . )
   fi
 fi
 if [ $checkOut -ge 1 ] ; then
-  echo "  and checkout $other_branch:"
-  ( cd $git_code ; git checkout $other_branch -- . )
+  if test $other_branch != 'master' ; then
+    echo "  and checkout $other_branch:"
+    ( cd $git_other ; git checkout $other_branch )
+  fi
 fi
 
 #---+----1----+----2----+----3----+----4----+----5----+----6----+----7-|--+----|
