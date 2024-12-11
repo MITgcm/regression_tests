@@ -7,7 +7,7 @@
 
 tmpFil="/tmp/"`basename $0`".$$"
 #- which GitHub repository to use and how to access it:
-  git_repo='MITgcm';  git_code='regression_tests' 
+  git_repo='MITgcm';  git_code='regression_tests'
  #git_repo='altMITgcm'; #git_code='MITgcm66h'
   code_branch='master'
   code_branch='from_new_repos'
@@ -75,6 +75,8 @@ if [ $checkOut -eq 1 ] ; then
        exit
   else echo "  done"
   fi
+fi
+if [ $checkOut -ge 1 ] ; then
   echo "  and checkout $code_branch:"
   ( cd $git_code ; git checkout $code_branch -- . )
 fi
@@ -152,6 +154,8 @@ if [ $checkOut -eq 1 ] ; then
        exit
   else echo "  done"
   fi
+fi
+if [ $checkOut -ge 1 ] ; then
   echo "  and checkout $other_branch:"
   ( cd $git_code ; git checkout $other_branch -- . )
 fi
