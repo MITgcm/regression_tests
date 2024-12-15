@@ -19,7 +19,7 @@ echo " running on: "`hostname`
 
 dNam='pleiades'
 HERE="$HOME/test_$dNam"
-SubD="$HERE/nasa_ames" ; OUTP="$HERE/output" ; SavD="$HERE/send"
+SubD="$HERE/$dNam" ; OUTP="$HERE/output" ; SavD="$HERE/send"
 SEND="ssh pfe $SavD/mpack"
 ADDR='jm_c@mitgcm.org'
 TST_DISK="/nobackupp17/jcampin"
