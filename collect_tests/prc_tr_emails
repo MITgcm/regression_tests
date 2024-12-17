@@ -38,5 +38,6 @@ else
 fi
 
 #-- get and parse emails :
-cd $HOME/testing/front_content && ./get+parse_msg -u $unpck -a jmc@ocean.mit.edu >> $logfile 2>&1
+#cd $HOME/testing/front_content && ./get+parse_msg -u $unpck -a jmc@ocean.mit.edu >> $logfile 2>&1
+cd $HOME/testing/prc_msg_dir && ../bin_sh/get+parse_msg -u $unpck -a jmc@ocean.mit.edu >> $logfile 2>&1
 #cd $HOME/testing/temp && ./get+parse_msg -u $unpck -a jmc@ocean.mit.edu >> $logfile 2>&1

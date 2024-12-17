@@ -1,5 +1,8 @@
 #! /usr/bin/env bash
 
+BLD_WEB_SRC="$HOME/testing/website_legacy/front_content"
+HTLM_OUTDIR='/u/u0/httpd/html/public/'
+
 #-- create a daily log file (if not already there)
 cd $HOME/testing/logs
 logpfx="bld_front_" ; sfx=`date +%m%d`
@@ -19,17 +22,44 @@ fi
 
 echo '' >> $logfile
 date >> $logfile
+if test ! -d $BLD_WEB_SRC ; then
+  echo "ERROR: missing dir '$BLD_WEB_SRC'"
+  echo "ERROR: --> skip update of web-page testing summary"
+  exit 1
+fi
 cat >> $logfile <<EOF
 ==================================================================
-Building the mitgcm.org front pages on: `hostname` as: $USER
+Building MITgcm old web-site pages on: `hostname` as: $USER
 ==================================================================
 EOF
-#export CVSROOT='/u/gcmpack'
-#cd $HOME/testing/front_content && cvs -q update -P -d
-#-----------
-echo "run 'make install' in ~testing/front_content/ :" >> $logfile
-cd $HOME/testing/front_content && make install >> $logfile 2>&1
-retval=$?
-if test "x$retval" != x0 ; then
-  echo "'make install' return with ERROR $retval"
+
+#  cd $BLD_WEB_SRC && make install
+#- instead, run directly the few commands from previous "make install" target:
+echo "-> run 'make_summary' in $BLD_WEB_SRC :" >> $logfile
+( cd $BLD_WEB_SRC ; /bin/rm -rf html ; ./make_summary ) >> $logfile 2>&1
+retVal=$?
+if test "x$retVal" != x0 ; then
+  echo "'make_summary' return with ERROR $retVal"
+  exit 2
 fi
+
+echo "-> run './Assemble.pl' in $BLD_WEB_SRC :" >> $logfile
+( cd $BLD_WEB_SRC ; ./Assemble.pl ) >> $logfile 2>&1
+retVal=$?
+if test "x$retVal" != x0 ; then
+  echo "'Assemble.pl' return with ERROR $retVal"
+  exit 3
+fi
+
+echo "-> export 'html' files to $HTLM_OUTDIR :" >> $logfile
+( cd $BLD_WEB_SRC
+  chmod 664 html/*.html
+  /bin/cp -f html/*.html $HTLM_OUTDIR
+) >> $logfile 2>&1
+retVal=$?
+if test "x$retVal" != x0 ; then
+  echo "copy of 'html' files to '$HTLM_OUTDIR' return with ERROR $retVal"
+  exit 4
+fi
+echo -n '-> done at: ' >> $logfile
+date >> $logfile
