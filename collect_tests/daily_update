@@ -5,20 +5,99 @@
 # - processing testing emails (-> testing page, part of front_page building)
 # - making a daily tar file of source code
 
-export CVS_RSH=ssh
-export CVSROOT=':ext:jmc@mitgcm.org:/u/gcmpack'
+tmpFil="/tmp/"`basename $0`".$$"
+#- which GitHub repository to use and how to access it:
+  git_repo='MITgcm';  git_code='regression_tests'
+ #git_repo='altMITgcm'; #git_code='MITgcm66h'
+  code_branch='master'
+ #code_branch='from_new_repos'
+#--
+  git_other='website_legacy'
+  other_branch='master'
+#--
+  git_repo="https://github.com/$git_repo"
+ #git_repo="git://github.com/$git_repo"
+ #git_repo="git@github.com:$git_repo"
 
-#- update scripts dir:
-if test -d scripts ; then
- echo -n 'Update dir: '
- ( cd scripts && pwd && cvs -q update -P -d )
+#-- created empty dirs here if not already there:
+listD='MITgcm-test logs prc_msg_dir postponed fail2process'
+for dd in $listD ; do
+  if test ! -d $dd ; then
+    if test -e $dd ; then /bin/rm -rf $dd ; fi
+    mkdir $dd
+    retVal=$?
+    if test $retVal != 0 ; then
+       echo " Error: 'mkdir $dd' returned: $retVal"
+       exit 1
+    fi
+  fi
+done
+
+#---+----1----+----2----+----3----+----4----+----5----+----6----+----7-|--+----|
+# #- update scripts dir:
+# if test -d scripts ; then
+#  echo -n 'Update dir: '
+#  ( cd scripts && pwd && cvs -q update -P -d )
+# fi
+#- update clone $git_code :
+checkOut=1
+if [ $checkOut -eq 1 ] ; then
+  if test ! -e $git_code/.git/config ; then
+    echo "no file: $git_code/.git/config => try a new clone"
+    checkOut=2
+  fi
+fi
+if [ $checkOut -eq 2 ] ; then
+  if test -e $git_code ; then
+    echo -n " removing dir: $git_code ..."
+    rm -rf $git_code
+    echo "  done"
+  fi
+  echo -n "Make a clone of $git_code from repo: $git_repo ... "
+  git clone $git_repo/${git_code}.git 2> $tmpFil
+  retVal=$?
+  if test $retVal = 0 ; then
+     echo ' --> done!'
+     rm -f $tmpFil
+  else echo ''
+     echo " Error: 'git clone' returned: $retVal"
+     cat $tmpFil ; rm -f $tmpFil
+     exit 2
+  fi
+fi
+if [ $checkOut -eq 1 ] ; then
+  echo -n "Updating current clone ( $git_code ) ... "
+  #echo '' >> $LOG_FIL
+  ( cd $git_code ; git pull )
+  retVal=$?
+  if test "x$retVal" != x0 ; then echo ''
+       echo "'git pull' on '"`hostname`"' fail (return val=$retVal) => exit"
+       exit 3
+  else echo "  done"
+    ( cd $git_code ; git checkout master ; git checkout -- . ) > /dev/null 2>&1
+  fi
+fi
+if [ $checkOut -ge 1 ] ; then
+  if test $code_branch != 'master' ; then
+    echo "  and checkout $code_branch:"
+    ( cd $git_code ; git checkout $code_branch )
+  fi
 fi
 
-#- update ref_machine testing scripts:
-if test -d ref_machine ; then
- echo -n 'Update dir: '
- ( cd ref_machine && pwd && cvs -q update -P -d )
+#-- symbolic-link as short-cut
+if test ! -e bin_sh/daily_update ; then
+  if test -d $git_code/collect_tests ; then
+    echo "  link '$git_code/collect_tests' to 'bin_sh'"
+    ln -s $git_code/collect_tests bin_sh
+  fi
 fi
+#-----
+
+# #- update ref_machine testing scripts:
+# if test -d ref_machine ; then
+#  echo -n 'Update dir: '
+#  ( cd ref_machine && pwd && cvs -q update -P -d )
+# fi
 
 #-- update tools/mpack-1.6 dir:
 # if test -d tools_mpack ; then
@@ -36,12 +115,58 @@ fi
 #  )
 # fi
 
-#- update front-page building dir:
-if test -d front_content ; then
- echo -n 'Update dir: '
- ( cd front_content && pwd && cvs -q update -P -d )
+#---+----1----+----2----+----3----+----4----+----5----+----6----+----7-|--+----|
+# #- update front-page building dir:
+# if test -d front_content ; then
+#  echo -n 'Update dir: '
+#  ( cd front_content && pwd && cvs -q update -P -d )
+# fi
+#- update clone $git_other :
+checkOut=1
+if [ $checkOut -eq 1 ] ; then
+  if test ! -e $git_other/.git/config ; then
+    echo "no file: $git_other/.git/config => try a new clone"
+    checkOut=2
+  fi
+fi
+if [ $checkOut -eq 2 ] ; then
+  if test -e $git_other ; then
+    echo -n " removing dir: $git_other ..."
+    rm -rf $git_other
+    echo "  done"
+  fi
+  echo -n "Make a clone of $git_other from repo: $git_repo ... "
+  git clone $git_repo/${git_other}.git 2> $tmpFil
+  retVal=$?
+  if test $retVal = 0 ; then
+     echo ' --> done!'
+     rm -f $tmpFil
+  else echo ''
+     echo " Error: 'git clone' returned: $retVal"
+     cat $tmpFil ; rm -f $tmpFil
+     exit 4
+  fi
+fi
+if [ $checkOut -eq 1 ] ; then
+  echo -n "Updating current clone ( $git_other ) ... "
+  #echo '' >> $LOG_FIL
+  ( cd $git_other ; git pull )
+  retVal=$?
+  if test "x$retVal" != x0 ; then echo ''
+       echo "'git pull' on '"`hostname`"' fail (return val=$retVal) => exit"
+       exit 5
+  else echo "  done"
+    ( cd $git_other ; git checkout master ; git checkout -- . ) > /dev/null 2>&1
+  fi
+fi
+if [ $checkOut -ge 1 ] ; then
+  if test $other_branch != 'master' ; then
+    echo "  and checkout $other_branch:"
+    ( cd $git_other ; git checkout $other_branch )
+  fi
 fi
 
+#---+----1----+----2----+----3----+----4----+----5----+----6----+----7-|--+----|
 #-- clean-up old log files:
 cd logs
 n=$(( `ls bld_manual.* 2>/dev/null | wc -l` - 10 ))

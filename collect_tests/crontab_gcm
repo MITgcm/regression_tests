@@ -3,18 +3,18 @@
 #  current output of "crontab -l":
 MAILTO=jmc@ocean.mit.edu
 
-15,45 * * * * /home/jm_c/testing/scripts/prc_tr_emails
-55  * * * * /home/jm_c/testing/scripts/build_mitgcm_front
-35 23 * * * cd /home/jm_c/testing && ./daily_update && cp -p scripts/daily_update .
-35 01 * * * /home/jm_c/testing/scripts/mk_git_tarfile
-#38 10 * * * cd /home/jm_c/testing/front_content && ./make_summary -d 2023_11
+15,45 * * * * /home/jm_c/testing/bin_sh/prc_tr_emails
+55  * * * * /home/jm_c/testing/bin_sh/build_mitgcm_front
+35 23 * * * cd /home/jm_c/testing && ./daily_update && cp -p bin_sh/daily_update .
+35 01 * * * /home/jm_c/testing/bin_sh/mk_git_tarfile
+#38 10 * * * cd /home/jm_c/testing/website_legacy/front_content && ./make_summary -d 2023_11
 
-16 07  * * *  cd /home/jm_c/testing/logs && ../scripts/check_outp -t -a 'jmc@mit.edu Martin.Losch@awi.de' > chk_outp.stdout
-16 09,11  * * *  cd /home/jm_c/testing/logs && ../scripts/check_outp -t -a jmc@mit.edu > chk_outp.stdout
+16 07  * * *  cd /home/jm_c/testing/logs && ../bin_sh/check_outp -t -a 'jmc@mit.edu Martin.Losch@awi.de' > chk_outp.stdout
+16 09,11  * * *  cd /home/jm_c/testing/logs && ../bin_sh/check_outp -t -a jmc@mit.edu > chk_outp.stdout
 
-#16 07,09,11  * * *  cd /home/jm_c/testing/logs && ../scripts/check_outp -t -a jmc@mit.edu > chk_outp.stdout
-46 12,14,16,18 * * *  cd /home/jm_c/testing/logs && ../scripts/check_outp -t -a jmc@mit.edu > chk_outp.stdout
-31 09 * * * cd /home/jm_c/testing/logs && ../scripts/check_outp -d yesterday -a jmc@mit.edu > chk_outp.stdout
+#16 07,09,11  * * *  cd /home/jm_c/testing/logs && ../bin_sh/check_outp -t -a jmc@mit.edu > chk_outp.stdout
+46 12,14,16,18 * * *  cd /home/jm_c/testing/logs && ../bin_sh/check_outp -t -a jmc@mit.edu > chk_outp.stdout
+31 09 * * * cd /home/jm_c/testing/logs && ../bin_sh/check_outp -d yesterday -a jmc@mit.edu > chk_outp.stdout
 
 #- Note: testreport output emails sent to: "jm_c@mitgcm.org" are put in
 #        ~/Mail/MITgcm-test on: jm_c@mitgcm-mm.mit.edu by procmail, using:
