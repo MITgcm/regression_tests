@@ -1,0 +1,95 @@
+#! /usr/bin/env bash
+
+# Run in: ~/test_[thisComputer]/ to update [scrDirNam] (see below) testing scripts
+
+#-- Setting internal variables/parameters:
+thisFile=`basename $0`
+thisComputer=`hostname -s | tr '[:upper:]' '[:lower:]'`
+dNam=$thisComputer
+
+#- where scripts are kept in ${git_test} repos:
+#scrDirNam="run_tests/$dNam"
+scrDirNam="run_tests/ref_machine"
+
+tmpFil="/tmp/"`basename $0`".$$"
+#- which GitHub repository to use and how to access it:
+  git_repo='MITgcm';  git_test='regression_tests'
+ #git_repo='altMITgcm';
+  code_branch='master'
+  code_branch='get_tst_scripts_from_git'
+#--
+  git_repo="https://github.com/$git_repo"
+ #git_repo="git://github.com/$git_repo"
+ #git_repo="git@github.com:$git_repo"
+
+#-- created empty dirs here if not already there:
+listD='prev'
+for dd in $listD ; do
+  if test ! -d $dd ; then
+    # if test -e $dd ; then /bin/rm -rf $dd ; fi
+    mkdir $dd
+    retVal=$?
+    if test $retVal != 0 ; then
+       echo " Error: 'mkdir $dd' returned: $retVal"
+       exit 1
+    fi
+  fi
+done
+
+#---+----1----+----2----+----3----+----4----+----5----+----6----+----7-|--+----|
+#- update clone $git_test :
+updateTst=1
+if [ $updateTst -eq 1 ] ; then
+  if test ! -e $git_test/.git/config ; then
+    echo "no file: $git_test/.git/config => try a new clone"
+    updateTst=2
+  fi
+fi
+if [ $updateTst -eq 2 ] ; then
+  if test -e $git_test ; then
+    echo -n " removing dir: $git_test ..."
+    rm -rf $git_test
+    echo "  done"
+  fi
+  echo -n "Make a clone of $git_test from repo: $git_repo ... "
+  git clone $git_repo/${git_test}.git 2> $tmpFil
+  retVal=$?
+  if test $retVal = 0 ; then
+     echo ' --> done!'
+     rm -f $tmpFil
+  else echo ''
+     echo " Error: 'git clone' returned: $retVal"
+     cat $tmpFil ; rm -f $tmpFil
+     exit 2
+  fi
+fi
+if [ $updateTst -eq 1 ] ; then
+  echo -n "Updating current clone ( $git_test ) ... "
+  #echo '' >> $LOG_FIL
+  ( cd $git_test ; git pull )
+  retVal=$?
+  if test "x$retVal" != x0 ; then echo ''
+       echo "'git pull' on '"`hostname`"' fail (return val=$retVal) => exit"
+       exit 3
+  else echo "  done"
+    ( cd $git_test ; git checkout master ; git checkout -- . ) > /dev/null 2>&1
+  fi
+fi
+if [ $updateTst -ge 1 ] ; then
+  if test $code_branch != 'master' ; then
+    echo "  and checkout $code_branch:"
+    ( cd $git_test ; git checkout $code_branch )
+  fi
+fi
+
+#-- symbolic-link as short-cut
+if test ! -e $dNam ; then
+  if test -d $git_test/$scrDirNam ; then
+    echo "  link '$git_test/$scrDirNam' to '$dNam'"
+    ln -s $git_test/$scrDirNam $dNam
+  fi
+fi
+
+#---+----1----+----2----+----3----+----4----+----5----+----6----+----7-|--+----|
+#-- clean-up old log files:
+exit 0

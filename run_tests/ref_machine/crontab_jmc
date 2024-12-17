@@ -1,52 +1,20 @@
-#-----------------
+#-----------------------------------------------------------
 #-from: jm_c@villon.mit.edu
 #  current output of "crontab -l":
 MAILTO=jmc@ocean.mit.edu
 
-57 23  * * * cd /home/jm_c/testing/ref_machine && cvs -q -d :pserver:cvsanon@mitgcm.org:/u/gcmpack update -P -d
-02 00 * * * /home/jm_c/testing/ref_machine/test_villon a
-12 00 * * * /home/jm_c/testing/ref_machine/test_villon b
+57 23  * * * cd /home/jm_c/test_villon && ./update_scripts && cp -p villon/update_scripts .
+02 00 * * * /home/jm_c/test_villon/villon/test_villon a
+12 00 * * * /home/jm_c/test_villon/villon/test_villon b
 
-#-----------------
+#-----------------------------------------------------------
 #-from: jm_c@batsi.mit.edu
 #  current output of "crontab -l":
 MAILTO=jmc@ocean.mit.edu
 
-55 23  * * * cd /home/jm_c/testing/ref_machine && cvs -q -d :pserver:cvsanon@mitgcm.org:/u/gcmpack update -P -d
-#10 00 * * * /home/jm_c/testing/ref_machine/test_batsi a
+55 23  * * * cd /home/jm_c/test_batsi && ./update_scripts && cp -p batsi/update_scripts .
+#10 00 * * * /home/jm_c/test_batsi/batsi/test_batsi a
 #- try to start 6:30 h later:
-40 06 * * * /home/jm_c/testing/ref_machine/test_batsi a
+40 06 * * * /home/jm_c/test_batsi/batsi/test_batsi a
 
-#=========================================================
-
-#-----------------
-# older cron-jobs:
-#-----------------
-#-from: jmc@baudelaire.mit.edu (down since Feb 21, 2020)
-#  current output of "crontab -l":
-MAILTO=jmc@ocean.mit.edu
-
-05 00 * * * /u/jmc/testing/ref_machine/test_baudelaire a
-15 00 * * * /u/jmc/testing/ref_machine/test_baudelaire b
-
-#-----------------
-# and the update of ~jmc/testing/ref_machine/ dir is part of the script
-#  mitgcm.org/scripts/daily_update run daily from cron by jmc@mitgcmcvs.mit.edu:
-30 23 * * * cd /u/jmc/testing && ./daily_update && cp -p scripts/daily_update .
-
-#-----------------
-#-from: jmc@dickens.csail.mit.edu (unavailable since Oct 11, 2013)
-#  current output of "crontab -l":
-#MAILTO=jmc@ocean.mit.edu
-#15 00 * * *  /u/u2/jmc/testing/csail/test_dickens
-#------------------
-#-from: jmc@faulks.csail.mit.edu (down since Jan 01, 2012)
-#  current output of "crontab -l":
-#MAILTO=jmc@ocean.mit.edu
-##30 23 * * * /u/u2/jmc/testing/scripts/daily_update
-#05 00 * * *  /u/u2/jmc/testing/csail/test_faulks
-#
-#-from: jmc@hugo.csail.mit.edu   (down since Mar 30, 2009)
-#  current output of "crontab -l":
-#05 01 * * 1,3,6  /u/u2/jmc/testing/csail/test_hugo
-#------------------------------------
+#===========================================================

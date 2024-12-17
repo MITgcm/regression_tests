@@ -7,9 +7,8 @@
 
 MAILTO=jmc@ocean.mit.edu
 
-#-- using scripts and putting log files in HOME dir:
-04 00 * * * cd /home/jm_c/test_engaging/engaging && cvs -q -d :pserver:cvsanon@mitgcm.org:/u/gcmpack update -P -d
-12 00 * * * /home/jm_c/test_engaging/engaging/test_submit_engag
+#-- using scripts and putting log files in HOME/test_engaging dir:
+12 00 * * * cd /home/jm_c/test_engaging && ./test_submit_engag && cp -p engaging/test_submit_engag .
 #12 00 * * * /home/jm_c/test_engaging/local/test_submit_engag c7
 
 #12 00 * * * /home/jm_c/test_engaging/local/test_submit_engag c7 'o64Adm gfoAdm gfoTlm'

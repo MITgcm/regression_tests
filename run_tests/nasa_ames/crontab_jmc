@@ -7,13 +7,19 @@
 
 MAILTO=jmc@ocean.mit.edu
 
-01 00 1,16 * * cd /u/jcampin/test_pleiades/nasa_ames && cvs -q -d :pserver:cvsanon@mitgcm.org:/u/gcmpack update -P -d
-11 00 1,16 * * /u/jcampin/test_pleiades/nasa_ames/test_submit_pleiades
+11 00 1,16 * * cd /u/jcampin/test_pleiades && ./test_submit_pleiades && cp -p pleiades/test_submit_pleiades .
+#11 00 1,16 * * cd /u/jcampin/test_pleiades && ./test_submit_pleiades
 
+#-- before Dec 14, 2024:
+#01 00 1,16 * * cd /u/jcampin/test_pleiades/nasa_ames && cvs -q -d :pserver:cvsanon@mitgcm.org:/u/gcmpack update -P -d
+#11 00 1,16 * * /u/jcampin/test_pleiades/nasa_ames/test_submit_pleiades
 #-- before Nov 28, 2020:
 # 55 23 1,16 * * cd /u/jcampin/test_pleiades/nasa_ames && cvs -q -d :pserver:cvsanon@mitgcm.org:/u/gcmpack update -P -d
 # 05 00 2,17 * * /u/jcampin/test_pleiades/nasa_ames/test_submit_pleiades
+
 #-- other partial test options:
 #05 12 3,18 * * /u/jcampin/test_pleiades/nasa_ames/test_clean_pleiades
 #37 10 20 * * /u/jcampin/test_pleiades/temp/test_submit_pleiades fast
 #54 12 *  * * /u/jcampin/test_pleiades/temp/test_crontab
+
+#41 00 * * * cd /u/jcampin/test_pleiades && ./test_submit_pleiades -updTst
