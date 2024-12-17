@@ -10,7 +10,7 @@ tmpFil="/tmp/"`basename $0`".$$"
   git_repo='MITgcm';  git_code='regression_tests'
  #git_repo='altMITgcm'; #git_code='MITgcm66h'
   code_branch='master'
-  code_branch='from_new_repos'
+ #code_branch='from_new_repos'
 #--
   git_other='website_legacy'
   other_branch='master'
