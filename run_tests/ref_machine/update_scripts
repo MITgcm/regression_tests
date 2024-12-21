@@ -15,8 +15,8 @@ tmpFil="/tmp/"`basename $0`".$$"
 #- which GitHub repository to use and how to access it:
   git_repo='MITgcm';  git_test='regression_tests'
  #git_repo='altMITgcm';
-  code_branch='master'
-  code_branch='get_tst_scripts_from_git'
+  test_branch='master'
+  test_branch='get_tst_scripts_from_git'
 #--
   git_repo="https://github.com/$git_repo"
  #git_repo="git://github.com/$git_repo"
@@ -64,6 +64,13 @@ if [ $updateTst -eq 2 ] ; then
   fi
 fi
 if [ $updateTst -eq 1 ] ; then
+  loc_branch=`(cd $git_test ; git rev-parse --abbrev-ref HEAD 2> /dev/null )`
+  if test $test_branch != $loc_branch ; then
+    echo "In clone ( $git_test ), switching from '$loc_branch' to '$test_branch' :"
+    ( cd $git_test ; git fetch )
+    echo "  and checkout $test_branch:"
+    ( cd $git_test ; git checkout $test_branch )
+  fi
   echo -n "Updating current clone ( $git_test ) ... "
   #echo '' >> $LOG_FIL
   ( cd $git_test ; git pull )
@@ -72,13 +79,7 @@ if [ $updateTst -eq 1 ] ; then
        echo "'git pull' on '"`hostname`"' fail (return val=$retVal) => exit"
        exit 3
   else echo "  done"
-    ( cd $git_test ; git checkout master ; git checkout -- . ) > /dev/null 2>&1
-  fi
-fi
-if [ $updateTst -ge 1 ] ; then
-  if test $code_branch != 'master' ; then
-    echo "  and checkout $code_branch:"
-    ( cd $git_test ; git checkout $code_branch )
+    ( cd $git_test ; git checkout -- . ) > /dev/null 2>&1
   fi
 fi
 
