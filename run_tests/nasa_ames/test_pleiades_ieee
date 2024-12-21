@@ -20,8 +20,8 @@ echo " running on: "`hostname`
 dNam='pleiades'
 HERE="$HOME/test_$dNam"
 SubD="$HERE/$dNam" ; OUTP="$HERE/output" ; SavD="$HERE/send"
-SEND="ssh pfe $SavD/mpack"
-ADDR='jm_c@mitgcm.org'
+#SEND="ssh pfe $SavD/mpack" ; ADDR='jm_c@mitgcm.org'
+ SEND="ssh pfe scp" ; ADDR='jm_c@mitgcm.org:testing/MITgcm-test'
 TST_DISK="/nobackupp17/jcampin"
 TST_DIR="$TST_DISK/test_${dNam}"
 #- where local copy of code is (need to be consistent with "test_submit_pleiades"):
@@ -223,7 +223,7 @@ if [ $dblTr -ge 1 ] ; then
   echo " <= fail to compile $nFc experiments"
   options="$options -q"
   if [ $dblTr -eq 2 ] ; then
-    echo -n "Submit second job:" $SubD/test_${dNam}_${sfx}2
+    echo -n "Submit second job: $SubD/test_${dNam}_${sfx}2 , "
     qsub $SubD/test_${dNam}_${sfx}2
     exit 0
   fi
