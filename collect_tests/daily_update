@@ -10,7 +10,7 @@ tmpFil="/tmp/"`basename $0`".$$"
   git_repo='MITgcm';  git_code='regression_tests'
  #git_repo='altMITgcm'; #git_code='MITgcm66h'
   code_branch='master'
- #code_branch='from_new_repos'
+  code_branch='get_tst_scripts_from_git'
 #--
   git_other='website_legacy'
   other_branch='master'
@@ -66,6 +66,13 @@ if [ $checkOut -eq 2 ] ; then
   fi
 fi
 if [ $checkOut -eq 1 ] ; then
+  loc_branch=`(cd $git_code ; git rev-parse --abbrev-ref HEAD 2> /dev/null )`
+  if test $code_branch != $loc_branch ; then
+    echo "In clone ( $git_code ), switching from '$loc_branch' to '$code_branch' :"
+    ( cd $git_code ; git fetch )
+    echo "  and checkout $code_branch:"
+    ( cd $git_code ; git checkout $code_branch )
+  fi
   echo -n "Updating current clone ( $git_code ) ... "
   #echo '' >> $LOG_FIL
   ( cd $git_code ; git pull )
@@ -74,13 +81,7 @@ if [ $checkOut -eq 1 ] ; then
        echo "'git pull' on '"`hostname`"' fail (return val=$retVal) => exit"
        exit 3
   else echo "  done"
-    ( cd $git_code ; git checkout master ; git checkout -- . ) > /dev/null 2>&1
-  fi
-fi
-if [ $checkOut -ge 1 ] ; then
-  if test $code_branch != 'master' ; then
-    echo "  and checkout $code_branch:"
-    ( cd $git_code ; git checkout $code_branch )
+    ( cd $git_code ; git checkout -- . ) > /dev/null 2>&1
   fi
 fi
 
@@ -148,6 +149,13 @@ if [ $checkOut -eq 2 ] ; then
   fi
 fi
 if [ $checkOut -eq 1 ] ; then
+  loc_branch=`(cd $git_other ; git rev-parse --abbrev-ref HEAD 2> /dev/null )`
+  if test $other_branch != $loc_branch ; then
+    echo "In clone ( $git_other ), switching from '$loc_branch' to '$other_branch' :"
+    ( cd $git_other ; git fetch )
+    echo "  and checkout $other_branch:"
+    ( cd $git_other ; git checkout $other_branch )
+  fi
   echo -n "Updating current clone ( $git_other ) ... "
   #echo '' >> $LOG_FIL
   ( cd $git_other ; git pull )
@@ -156,13 +164,7 @@ if [ $checkOut -eq 1 ] ; then
        echo "'git pull' on '"`hostname`"' fail (return val=$retVal) => exit"
        exit 5
   else echo "  done"
-    ( cd $git_other ; git checkout master ; git checkout -- . ) > /dev/null 2>&1
-  fi
-fi
-if [ $checkOut -ge 1 ] ; then
-  if test $other_branch != 'master' ; then
-    echo "  and checkout $other_branch:"
-    ( cd $git_other ; git checkout $other_branch )
+    ( cd $git_other ; git checkout -- . ) > /dev/null 2>&1
   fi
 fi
 
