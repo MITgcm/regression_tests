@@ -177,7 +177,8 @@ if [ $updateTst -ge 1 ] ; then
       echo "'git pull' on '"`hostname`"' fail (return val=$retVal) => exit" | tee -a $LOG_FIL
       exit 3
     fi
-    ( cd $git_test ; git checkout master ; git checkout -- . )	| tee -a $LOG_FIL
+    echo "  and checkout for missing files:"			>> $LOG_FIL
+    ( cd $git_test ; git checkout -- . )			>> $LOG_FIL 2>&1
   fi
   #-- symbolic-link as short-cut
   if test ! -e $dNam ; then
@@ -250,8 +251,8 @@ if [ $updateSrc -ge 1 ] ; then
        exit 7
     else echo "  done"					| tee -a $LOG_FIL
     fi
-    echo "  and checkout master:"			| tee -a $LOG_FIL
-    ( cd $git_code ; git checkout master ; git checkout -- . )		| tee -a $LOG_FIL
+    echo "  and checkout for missing files:"		>> $LOG_FIL
+    ( cd $git_code ; git checkout -- . )		>> $LOG_FIL 2>&1
   fi
   #---- making a new working copy: MITgcm_today
   rsync -a $git_code/ $srcCode --exclude '.git'
