@@ -7,11 +7,10 @@
 
 MAILTO=jmc@ocean.mit.edu
 
-05 00 * * *   cd /home/jm_c/test_svante/svante && cvs -q -d :pserver:cvsanon@mitgcm.org:/u/gcmpack update -P -d
-20 00 * * *   /home/jm_c/test_svante/svante/test_submit_svante
-#50 00 * * *   /home/jm_c/test_svante/svante/test_comp_pgiAdm.sh
-#09 11 * * *   /home/jm_c/test_svante/temp/test_crontab
-#50 16 * * *   /home/jm_c/test_svante/temp/test_submit_svante
+20 00 * * *  cd /home/jm_c/test_svante && ./test_submit_svante && cp -p svante/test_submit_svante .
+#50 00 * * *  /home/jm_c/test_svante/svante/test_comp_pgiAdm.sh
+#09 11 * * *  /home/jm_c/test_svante/temp/test_crontab
+#50 16 * * *  /home/jm_c/test_svante/temp/test_submit_svante
 
 #-- on old head-node (svante.mit.edu):
 #55 00 * * 0,6 /home/jm_c/test_svante/svante/test_comp_ifc.sh

@@ -3,58 +3,131 @@
 today=`date +%Y%m%d`
 dInWeek=`date +%a`
 
-if test $# = 0
-then
+#- select which part to do:
+# cleanLog   # clean log files & saved backup (=0 : no cleaning ; =1 : remove old ones )
+# updateSrc  # update MITgcm src code       (=0 : no update ; =1 : update ; =2 download from Git)
+# updateTst  # update batch testing scripts (=0 : no update ; =1 : update ; =2 download from Git)
+# submitJob  # submit batch jobs            (=0 : none ;      =1 : submit $TEST_LIST jobs)
+# sfxTyp     # select sufix type of BATCH_SCRIPT to submit   # <== Disabled here
+
+#-- process arguments:
+TEST_LIST='unset' ; sfxTyp=''
+if test $# = 0 ; then
+  #- default: to do all of them
+  cleanLog=1 ; updateSrc=1 ; updateTst=1 ; submitJob=1
+else
+  cleanLog=0 ; updateSrc=0 ; updateTst=0 ; submitJob=0
+  while [ $# -ge 1 ] ; do
+    case $1 in
+      '-clnLog') cleanLog=1 ; shift ;;
+      '-updSrc') updateSrc=1 ; shift ;;
+      '-updTst') updateTst=1 ; shift ;;
+      '-subJob') submitJob=1 ; shift ;;
+#     'c6'|'c7') sfxTyp=".$1" ; submitJob=1 ; shift ;;
+      *) if test $TEST_LIST = 'unset' ; then TEST_LIST=$1
+         else TEST_LIST="$TEST_LIST $1" ; fi ; shift ;;
+    esac
+  done
+fi
+#- default is to submit all of the bacth-scripts:
+if test $submitJob = 1 -a $TEST_LIST = 'unset' ; then
  #TEST_LIST='ieee fast'
   TEST_LIST='ieee fast1 fast2'
-else
-  TEST_LIST=$*
 fi
 
+#-- Setting internal variables/parameters:
+
+thisFile=`basename $0`
 headNode=`hostname -s`
-QSUB="/PBS/bin/qsub"
-QSTAT="/PBS/bin/qstat -u $USER"
 #dNam=$headNode
-#QSUB="/usr/bin/sbatch"
-#QLIST="/usr/bin/squeue -u $USER"
 dNam='pleiades'
 HERE="$HOME/test_${dNam}"
 TST_DISK="/nobackupp17/$USER"
 TST_DIR="$TST_DISK/test_${dNam}"
-tmpFil="/tmp/"`basename $0`".$$"
-#- where local copy of code is (need to be consistent with run-job scripts):
-srcDIR=$TST_DIR
-srcCode="MITgcm_today"
-
 logPfix='test_submit'
-SUB_DIR="$HERE/nasa_ames"
-OUT_DIR="$HERE/output"
-LOG_FIL="$OUT_DIR/$logPfix."`date +%m%d`".log"
+
+#- Batch related setting
+ QSUB="/PBS/bin/qsub"
+ QLIST="/PBS/bin/qstat -u $USER"
+#QSUB="/usr/bin/sbatch"
+#QLIST="/usr/bin/squeue -u $USER"
+#- and batch scripts:
+ scrDirNam="run_tests/nasa_ames"
+ SUB_DIR="$HERE/$dNam"
+ OUT_DIR="$HERE/output"
+ LOG_FIL="$OUT_DIR/$logPfix."`date +%m%d`".log"
 #SUB_DIR="$HERE/temp"
 
-#-- clean up old log files and start a new one:
+#- where local copy of code is (need to be consistent with run-job scripts):
+ srcDIR=$TST_DIR
+#srcDIR=$HERE
+ srcCode="MITgcm_today"
+ updFile='updated_code'
+
+ tmpFil="/tmp/$thisFile.$$"
+#-- to get the updated MITgcm code from the day
+#- which GitHub repository to use and how to access it:
+  git_repo='MITgcm';  git_code='MITgcm' ; git_other='verification_other'
+ #git_repo='altMITgcm'; #git_code='MITgcm66h'
+#-- to get the updated testing scripts (with same "git_repo"):
+  git_test='regression_tests'
+#--
+  git_repo="https://github.com/$git_repo"
+ #git_repo="git://github.com/$git_repo"
+ #git_repo="git@github.com:$git_repo"
+
+#-------------------------------------------------------------
+#-- create a log file:
+dd=$OUT_DIR
+if test ! -d $dd ; then
+  # if test -e $dd ; then /bin/rm -rf $dd ; fi
+  echo " create dir '$dd/' for output files:"
+  mkdir $dd
+  retVal=$?
+  if test $retVal != 0 ; then
+    echo " Error: 'mkdir $dd' returned: $retVal"
+    exit 1
+  fi
+fi
 cd $OUT_DIR
 
 rm -f $logPfix.*.log_bak
 if test -f $LOG_FIL ; then mv -f $LOG_FIL ${LOG_FIL}_bak ; fi
 echo -n '-- Starting: '					| tee -a $LOG_FIL
 date							| tee -a $LOG_FIL
+echo -n " cleanLog='$cleanLog' ; updateSrc='$updateSrc' ;"	| tee -a $LOG_FIL
+echo -n " updateTst='$updateTst' ; submitJob='$submitJob' ;"	| tee -a $LOG_FIL
+echo    " TEST_LIST='$TEST_LIST' ; sfxTyp='$sfxTyp'"		| tee -a $LOG_FIL
 
-n=$(( `ls $logPfix.*.log | wc -l` - 10 ))
-if test $n -gt 0 ; then
-  echo ' remove old log files:'				| tee -a $LOG_FIL
-    ls -lt $logPfix.*.log | tail -"$n"			| tee -a $LOG_FIL
-    ls -t  $logPfix.*.log | tail -"$n" | xargs rm -f
+dd=prev
+if test ! -d $dd ; then
+  # if test -e $dd ; then /bin/rm -rf $dd ; fi
+  echo " create dir '$dd/' for previous output files:"	| tee -a $LOG_FIL
+  mkdir $dd
+  retVal=$?
+  if test $retVal != 0 ; then
+    echo " Error: 'mkdir $dd' returned: $retVal"
+    exit 9
+  fi
+fi
+
+if [ $cleanLog -ge 1 ] ; then
+#-  clean up old log files:
+  n=$(( `ls $logPfix.*.log | wc -l` - 10 ))
+  if test $n -gt 0 ; then
+    echo ' remove old log files:'			| tee -a $LOG_FIL
+      ls -lt $logPfix.*.log | tail -"$n"		| tee -a $LOG_FIL
+      ls -t  $logPfix.*.log | tail -"$n" | xargs rm -f
+  fi
 fi
 
 #-------------------------------------------------------------
-# defaults
+#-- additional Env.Var. settings
+
 #export PATH="$PATH:/usr/local/bin"
 if [ -d ~/bin ]; then export PATH=$PATH:~/bin ; fi
 #- to get case insensitive "ls" (and order of tested experiments)
 export LC_ALL="en_US.UTF-8"
-#  Turn off stack limit for FIZHI & AD-tests
-#ulimit -s unlimited
 
 if test -f /etc/profile.d/modules.sh    ; then . /etc/profile.d/modules.sh    ; fi
 #- load standard modules:
@@ -62,19 +135,63 @@ if test -f /etc/profile.d/modules.sh    ; then . /etc/profile.d/modules.sh    ; 
 #module add slurm
 module list 						>> $LOG_FIL 2>&1
 
-#- method to acces CVS:
-cmdCVS='cvs -d :pserver:cvsanon@mitgcm.org:/u/gcmpack -q'
-#- and which GitHub repository to use:
-  git_repo='MITgcm';  git_code='MITgcm'
- #git_repo='altMITgcm'; #git_code='MITgcm66h'
+#---+----1----+----2----+----3----+----4----+----5----+----6----+----7-|--+----|
 
-checkOut=1
-addExp=''
-updFile='updated_code'
-#checkOut=0
+if [ $updateTst -ge 1 ] ; then
+  cd $HERE
+#-- Download/Update batch testing scripts:
+  if [ $updateTst -eq 1 ] ; then
+    if test ! -e $git_test/.git/config ; then
+      echo "no file: $git_test/.git/config => try a new clone"	| tee -a $LOG_FIL
+      updateTst=2
+    fi
+  fi
+  #--
+  if [ $updateTst -eq 2 ] ; then
+    if test -e $git_test ; then
+      echo -n " removing dir: $git_test ..."			| tee -a $LOG_FIL
+      /bin/rm -rf $git_test
+      echo "  done"						| tee -a $LOG_FIL
+    fi
+    echo -n "Make a clone of $git_test from repo: $git_repo ... " | tee -a $LOG_FIL
+    git clone $git_repo/${git_test}.git 2> $tmpFil
+    retVal=$?
+    if test $retVal = 0 ; then
+      echo ' --> done!'						| tee -a $LOG_FIL
+      rm -f $tmpFil
+    else echo ''						| tee -a $LOG_FIL
+      echo " Error: 'git clone' returned: $retVal"		| tee -a $LOG_FIL
+      cat $tmpFil ; rm -f $tmpFil
+      exit 2
+    fi
+  fi
+  #--
+  if [ $updateTst -eq 1 ] ; then
+    echo -n "Updating current clone ( $git_test ) ..."		| tee -a $LOG_FIL
+    echo '' >> $LOG_FIL
+    ( cd $git_test; git pull )					>> $LOG_FIL 2>&1
+    retVal=$?
+    if test $retVal = 0 ; then
+      echo "  done"						| tee -a $LOG_FIL
+    else
+      echo "'git pull' on '"`hostname`"' fail (return val=$retVal) => exit" | tee -a $LOG_FIL
+      exit 3
+    fi
+    echo "  and checkout for missing files:"			>> $LOG_FIL
+    ( cd $git_test ; git checkout -- . )			>> $LOG_FIL 2>&1
+  fi
+  #-- symbolic-link as short-cut
+  if test ! -e $dNam ; then
+    if test -d $git_test/$scrDirNam ; then
+      echo "  link '$git_test/$scrDirNam' to '$dNam'"		| tee -a $LOG_FIL
+      ln -s $git_test/$scrDirNam $dNam
+    fi
+  fi
+fi #-- Done with Download/Update of testing scripts
 
 #---+----1----+----2----+----3----+----4----+----5----+----6----+----7-|--+----|
-if [ $checkOut -ge 1 ] ; then
+
+if [ $updateSrc -ge 1 ] ; then
 #-- Download/Update reference version of MITgcm code:
 
   if test $srcDIR = $TST_DIR ; then
@@ -89,7 +206,7 @@ if [ $checkOut -ge 1 ] ; then
      retVal=$?
      if test "x$retVal" != x0 ; then
        echo "Error: unable to make dir: $srcDIR (err=$retVal ) --> Exit" | tee -a $LOG_FIL
-       exit 1
+       exit 4
      fi
   fi
   cd $srcDIR
@@ -99,32 +216,20 @@ if [ $checkOut -ge 1 ] ; then
   if test -f $updFile ; then rm -f $updFile ; sleep 2 ; fi
   test -e $srcCode && rm -rf $srcCode
 
-  if [ $checkOut -eq 1 ] ; then
-    if test -e $git_code/.git/config ; then
-      echo -n "Updating current clone ( $git_code ) ..."	| tee -a $LOG_FIL
-      echo '' >> $LOG_FIL
-      ( cd $git_code ; git pull )				>> $LOG_FIL 2>&1
-      retVal=$?
-      if test "x$retVal" != x0 ; then echo ''
-         echo "'git pull' on '"`hostname`"' fail (return val=$retVal) => exit" | tee -a $LOG_FIL
-         exit
-      else echo "  done"					| tee -a $LOG_FIL
-      fi
-      echo "  and checkout master:"				| tee -a $LOG_FIL
-      ( cd $git_code ; git checkout master -- . )		| tee -a $LOG_FIL
-    else
-      echo "missing file: $git_code/.git/config => try a new clone"	| tee -a $LOG_FIL
-      checkOut=2
+  if [ $updateSrc -eq 1 ] ; then
+    if test ! -e $git_code/.git/config ; then
+      echo "no file: $git_code/.git/config => try a new clone"	| tee -a $LOG_FIL
+      updateSrc=2
     fi
   fi
-  if [ $checkOut -eq 2 ] ; then
+  if [ $updateSrc -eq 2 ] ; then
     if test -e $git_code ; then
        echo -n " removing dir: $git_code ..."		| tee -a $LOG_FIL
        rm -rf $git_code
        echo "  done"					| tee -a $LOG_FIL
     fi
     echo -n "Make a clone of $git_code from repo: $git_repo ..."	| tee -a $LOG_FIL
-    git clone https://github.com/$git_repo/${git_code}.git 2> $tmpFil
+    git clone $git_repo/${git_code}.git 2> $tmpFil
     retVal=$?
     if test $retVal = 0 ; then
        echo ' --> done!'				| tee -a $LOG_FIL
@@ -132,19 +237,26 @@ if [ $checkOut -ge 1 ] ; then
     else echo ''					| tee -a $LOG_FIL
        echo " Error: 'git clone' returned: $retVal"	| tee -a $LOG_FIL
        cat $tmpFil ; rm -f $tmpFil
-       exit 2
+       exit 5
     fi
+  fi
+  #--
+  if [ $updateSrc -eq 1 ] ; then
+    echo -n "Updating current clone ( $git_code ) ..."	| tee -a $LOG_FIL
+    echo '' >> $LOG_FIL
+    ( cd $git_code ; git pull )				>> $LOG_FIL 2>&1
+    retVal=$?
+    if test "x$retVal" != x0 ; then echo ''
+       echo "'git pull' on '"`hostname`"' fail (return val=$retVal) => exit" | tee -a $LOG_FIL
+       exit 7
+    else echo "  done"					| tee -a $LOG_FIL
+    fi
+    echo "  and checkout for missing files:"		>> $LOG_FIL
+    ( cd $git_code ; git checkout -- . )		>> $LOG_FIL 2>&1
   fi
   #---- making a new working copy: MITgcm_today
   rsync -a $git_code/ $srcCode --exclude '.git'
   ls -ld $srcCode					| tee -a $LOG_FIL
-  if test -d $srcCode/verification ; then
-    for exp2add in $addExp ; do
-      echo " add dir: $exp2add (from Contrib:verification_other)" | tee -a $LOG_FIL
-      ( cd $srcCode/verification ; $cmdCVS co -P -d $exp2add \
-                    MITgcm_contrib/verification_other/$exp2add > /dev/null )
-    done
-  fi
   /usr/bin/find $srcCode -type d | xargs chmod g+rxs
   /usr/bin/find $srcCode -type f | xargs chmod g+r
   #- update date/lock-file:
@@ -154,36 +266,33 @@ if [ $checkOut -ge 1 ] ; then
     echo ''						| tee -a $LOG_FIL
   fi
 
-#-- Done with Download/Update of MITgcm code
-fi
+fi #-- Done with Download/Update of MITgcm code
+
 #---+----1----+----2----+----3----+----4----+----5----+----6----+----7-|--+----|
 
-#-- leave srcDIR and go back to output dir
-cd $OUT_DIR
-#-- now really do something:
+if [ $submitJob -ge 1 ] ; then
+#-- Submit batch test-scripts jobs : leave srcDIR and go back to output dir
+  cd $OUT_DIR
+  #-- start job submission process
 
   JOB_LIST=$TEST_LIST
   NB_SUB_JOBS=0
   for i in $JOB_LIST
   do
-    case $i in
-      'pgiAdm') sfx='pgi_adm' ;;
-      'pgiMth') sfx='pgi_mth' ;;
-             *) sfx=`echo ${i} | sed 's/MPI$/_mpi/'`  ;;
-    esac
+    sfx=$i
+    #sfx=`echo ${i} | sed 's/^.../&_/' | tr '[:upper:]' '[:lower:]'`
     BATCH_SCRIPT="test_${dNam}_$sfx"
     if test -f $SUB_DIR/$BATCH_SCRIPT ; then
       #- job name ( $JOB ) & output-file name ( $JOB.std??? ) must match
       #  definition within $BATCH_SCRIPT slurm script
-      JOB="tst_${i}"
-      job_exist=`$QSTAT | grep $JOB | wc -l`
+      JOB="tst_${i}" ; sJob=$JOB
       #sJob=`printf "%8.8s" $JOB` #- squeue truncate name to only 1rst 8c
-      #job_exist=`$QLIST | grep $sJob | wc -l`
+      job_exist=`$QLIST | grep $sJob | wc -l`
       if test "x_$job_exist" = x_0 ; then
         #-- move previous output file
         outList=`ls $JOB.std??? 2> /dev/null`
         if test "x$outList" != x ; then
-          echo -n " moving job $JOB old output files:"	| tee -a $LOG_FIL
+          echo -n " moving job '$JOB' old output files:"| tee -a $LOG_FIL
           if test -d $OUT_DIR/prev ; then
             for xx in $outList ; do
               pp=$OUT_DIR/prev/$xx ; echo -n " $xx"	| tee -a $LOG_FIL
@@ -195,11 +304,11 @@ cd $OUT_DIR
           else
             echo " <-- missing dir $OUT_DIR/prev"	| tee -a $LOG_FIL
           fi
-        else echo " no old output files from job '$JOB'" | tee -a $LOG_FIL
+        else echo " no old output files from job '$JOB'"| tee -a $LOG_FIL
         fi
         #-- submit job
         if test $sfx != 'fast2' ; then
-          echo -n "--> $JOB : "				| tee -a $LOG_FIL
+          echo -n "--> $JOB : $BATCH_SCRIPT , "		| tee -a $LOG_FIL
           # $QSUB $SUB_DIR/$BATCH_SCRIPT 2>&1		| tee -a $LOG_FIL
           ( $QSUB $SUB_DIR/$BATCH_SCRIPT 2>&1 ; retVal=$?
             #echo "[dBug 1 --> retVal= $retVal <-- dBug]"
@@ -215,17 +324,19 @@ cd $OUT_DIR
         fi
       else
           echo "--> $JOB :"				| tee -a $LOG_FIL
-          $QSTAT | grep $JOB				| tee -a $LOG_FIL
-          #$QLIST | grep $sJob				| tee -a $LOG_FIL
+          $QLIST | grep $sJob				| tee -a $LOG_FIL
           echo ' job already exist => skip this test'	| tee -a $LOG_FIL
       fi
     else
        echo 'no file:' $BATCH_SCRIPT 'to submit'	| tee -a $LOG_FIL
     fi
   done
-  echo "info-sub-list: NB_SUB_JOBS='$NB_SUB_JOBS'"	>> $LOG_FIL
-  echo -n '-- Finished at: '				| tee -a $LOG_FIL
-  date							| tee -a $LOG_FIL
+  echo "Submitted $NB_SUB_JOBS jobs from dir: $SUB_DIR"	| tee -a $LOG_FIL
+
+fi #-- Done with submitting jobs
 
 #---+----1----+----2----+----3----+----4----+----5----+----6----+----7-|--+----|
+
+echo -n '-- Finished at: '				| tee -a $LOG_FIL
+date							| tee -a $LOG_FIL
 exit 0

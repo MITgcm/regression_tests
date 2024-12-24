@@ -7,10 +7,10 @@
 
 tmpFil="/tmp/"`basename $0`".$$"
 #- which GitHub repository to use and how to access it:
-  git_repo='MITgcm';  git_code='regression_tests'
- #git_repo='altMITgcm'; #git_code='MITgcm66h'
-  code_branch='master'
- #code_branch='from_new_repos'
+  git_repo='MITgcm';  git_test='regression_tests'
+ #git_repo='altMITgcm'; #git_test='MITgcm66h'
+  test_branch='master'
+ #test_branch='get_tst_scripts_from_git'
 #--
   git_other='website_legacy'
   other_branch='master'
@@ -39,22 +39,22 @@ done
 #  echo -n 'Update dir: '
 #  ( cd scripts && pwd && cvs -q update -P -d )
 # fi
-#- update clone $git_code :
+#- update clone $git_test :
 checkOut=1
 if [ $checkOut -eq 1 ] ; then
-  if test ! -e $git_code/.git/config ; then
-    echo "no file: $git_code/.git/config => try a new clone"
+  if test ! -e $git_test/.git/config ; then
+    echo "no file: $git_test/.git/config => try a new clone"
     checkOut=2
   fi
 fi
 if [ $checkOut -eq 2 ] ; then
-  if test -e $git_code ; then
-    echo -n " removing dir: $git_code ..."
-    rm -rf $git_code
+  if test -e $git_test ; then
+    echo -n " removing dir: $git_test ..."
+    rm -rf $git_test
     echo "  done"
   fi
-  echo -n "Make a clone of $git_code from repo: $git_repo ... "
-  git clone $git_repo/${git_code}.git 2> $tmpFil
+  echo -n "Make a clone of $git_test from repo: $git_repo ... "
+  git clone $git_repo/${git_test}.git 2> $tmpFil
   retVal=$?
   if test $retVal = 0 ; then
      echo ' --> done!'
@@ -66,29 +66,31 @@ if [ $checkOut -eq 2 ] ; then
   fi
 fi
 if [ $checkOut -eq 1 ] ; then
-  echo -n "Updating current clone ( $git_code ) ... "
+  loc_branch=`(cd $git_test ; git rev-parse --abbrev-ref HEAD 2> /dev/null )`
+  if test $test_branch != $loc_branch ; then
+    echo "In clone ( $git_test ), switching from '$loc_branch' to '$test_branch' :"
+    ( cd $git_test ; git fetch )
+    echo "  and checkout $test_branch :"
+    ( cd $git_test ; git checkout $test_branch )
+  fi
+  echo -n "Updating current clone ( $git_test ) ... "
   #echo '' >> $LOG_FIL
-  ( cd $git_code ; git pull )
+  ( cd $git_test ; git pull )
   retVal=$?
   if test "x$retVal" != x0 ; then echo ''
        echo "'git pull' on '"`hostname`"' fail (return val=$retVal) => exit"
        exit 3
   else echo "  done"
-    ( cd $git_code ; git checkout master ; git checkout -- . ) > /dev/null 2>&1
-  fi
-fi
-if [ $checkOut -ge 1 ] ; then
-  if test $code_branch != 'master' ; then
-    echo "  and checkout $code_branch:"
-    ( cd $git_code ; git checkout $code_branch )
+    #-  checkout for missing files:
+    ( cd $git_test ; git checkout -- . ) > /dev/null 2>&1
   fi
 fi
 
 #-- symbolic-link as short-cut
 if test ! -e bin_sh/daily_update ; then
-  if test -d $git_code/collect_tests ; then
-    echo "  link '$git_code/collect_tests' to 'bin_sh'"
-    ln -s $git_code/collect_tests bin_sh
+  if test -d $git_test/collect_tests ; then
+    echo "  link '$git_test/collect_tests' to 'bin_sh'"
+    ln -s $git_test/collect_tests bin_sh
   fi
 fi
 #-----
@@ -148,6 +150,13 @@ if [ $checkOut -eq 2 ] ; then
   fi
 fi
 if [ $checkOut -eq 1 ] ; then
+  loc_branch=`(cd $git_other ; git rev-parse --abbrev-ref HEAD 2> /dev/null )`
+  if test $other_branch != $loc_branch ; then
+    echo "In clone ( $git_other ), switching from '$loc_branch' to '$other_branch' :"
+    ( cd $git_other ; git fetch )
+    echo "  and checkout $other_branch :"
+    ( cd $git_other ; git checkout $other_branch )
+  fi
   echo -n "Updating current clone ( $git_other ) ... "
   #echo '' >> $LOG_FIL
   ( cd $git_other ; git pull )
@@ -156,13 +165,8 @@ if [ $checkOut -eq 1 ] ; then
        echo "'git pull' on '"`hostname`"' fail (return val=$retVal) => exit"
        exit 5
   else echo "  done"
-    ( cd $git_other ; git checkout master ; git checkout -- . ) > /dev/null 2>&1
-  fi
-fi
-if [ $checkOut -ge 1 ] ; then
-  if test $other_branch != 'master' ; then
-    echo "  and checkout $other_branch:"
-    ( cd $git_other ; git checkout $other_branch )
+    #-  checkout for missing files:
+    ( cd $git_other ; git checkout -- . ) > /dev/null 2>&1
   fi
 fi
 

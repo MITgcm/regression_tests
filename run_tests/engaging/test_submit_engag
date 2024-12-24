@@ -3,49 +3,126 @@
 today=`date +%Y%m%d`
 dInWeek=`date +%a`
 
-#- select type of BATCH_SCRIPT to submit:
-typ=''
-if [ $# -ge 1 ] ; then
-  case $1 in
-  'c6'|'c7') typ=".$1" ; shift ;;
-  esac
-fi
+#- select which part to do:
+# cleanLog   # clean log files & saved backup (=0 : no cleaning ; =1 : remove old ones )
+# updateSrc  # update MITgcm src code             # <== Not used her (and Disabled)
+# updateTst  # update batch testing scripts (=0 : no update ; =1 : update ; =2 download from Git)
+# submitJob  # submit batch jobs            (=0 : none ;      =1 : submit $TEST_LIST jobs)
+# sfxTyp     # select sufix type of BATCH_SCRIPT to submit
 
-if test $# = 0
-then
+#-- process arguments:
+TEST_LIST='unset' ; sfxTyp=''
+if test $# = 0 ; then
+  #- default: to do all of them
+  cleanLog=1 ; updateSrc=1 ; updateTst=1 ; submitJob=1
+  updateSrc=0 ; # Not used anyway
+else
+  cleanLog=0 ; updateSrc=0 ; updateTst=0 ; submitJob=0
+  while [ $# -ge 1 ] ; do
+    case $1 in
+      '-clnLog') cleanLog=1 ; shift ;;
+#     '-updSrc') updateSrc=1 ; shift ;;
+      '-updTst') updateTst=1 ; shift ;;
+      '-subJob') submitJob=1 ; shift ;;
+      'c6'|'c7') sfxTyp=".$1" ; submitJob=1 ; shift ;;
+      *) if test $TEST_LIST = 'unset' ; then TEST_LIST=$1
+         else TEST_LIST="$TEST_LIST $1" ; fi ; shift ;;
+    esac
+  done
+fi
+#- default is to submit all of the bacth-scripts:
+if test $submitJob = 1 -a $TEST_LIST = 'unset' ; then
   TEST_LIST='gfoAdm ifcMpi ifcMp2 o64Adm o64Mpi gfoTlm'
  #if test "x$dInWeek" = xSun ; then TEST_LIST="$TEST_LIST iad ifc oad" ; fi
-else
-  TEST_LIST=$*
 fi
 
-QSUB="/usr/bin/sbatch"
-#QLIST="/usr/bin/qstat -u $USER"
-QLIST="/usr/bin/squeue -u $USER"
+#-- Setting internal variables/parameters:
+
+thisFile=`basename $0`
+headNode=`hostname -s`
+#dNam=$headNode
 dNam='engaging'
 HERE="$HOME/test_$dNam"
 TST_DIR="/pool001/jm_c/test_$dNam"
 logPfix='test_submit'
 
-SUB_DIR="$HERE/engaging"
-OUT_DIR="$HERE/output"
-LOG_FIL="$OUT_DIR/$logPfix."`date +%m%d`".log"
+#- Batch related setting
+#QSUB="qsub"
+#QLIST="/usr/bin/qstat -u $USER"
+ QSUB="/usr/bin/sbatch"
+ QLIST="/usr/bin/squeue -u $USER"
+#- and batch scripts:
+ scrDirNam="run_tests/$dNam"
+ SUB_DIR="$HERE/$dNam"
+ OUT_DIR="$HERE/output"
+ LOG_FIL="$OUT_DIR/$logPfix."`date +%m%d`".log"
 #SUB_DIR="$HERE/local"
 
-#-- clean up old log files and start a new one:
+#- where local copy of code is (need to be consistent with run-job scripts):
+#srcDIR=$TST_DIR
+#srcDIR=$HERE
+#srcCode="MITgcm_today"
+#updFile='updated_code'
+
+ tmpFil="/tmp/$thisFile.$$"
+#-- to get the updated MITgcm code from the day
+#- which GitHub repository to use and how to access it:
+  git_repo='MITgcm'; #git_code='MITgcm' ; git_other='verification_other'
+ #git_repo='altMITgcm'; #git_code='MITgcm66h'
+#-- to get the updated testing scripts (with same "git_repo"):
+  git_test='regression_tests'
+#--
+  git_repo="https://github.com/$git_repo"
+ #git_repo="git://github.com/$git_repo"
+ #git_repo="git@github.com:$git_repo"
+
+#-------------------------------------------------------------
+#-- create a log file:
+dd=$OUT_DIR
+if test ! -d $dd ; then
+  # if test -e $dd ; then /bin/rm -rf $dd ; fi
+  echo " create dir '$dd/' for output files:"
+  mkdir $dd
+  retVal=$?
+  if test $retVal != 0 ; then
+    echo " Error: 'mkdir $dd' returned: $retVal"
+    exit 1
+  fi
+fi
 cd $OUT_DIR
 
 rm -f $logPfix.*.log_bak
 if test -f $LOG_FIL ; then mv -f $LOG_FIL ${LOG_FIL}_bak ; fi
 echo -n '-- Starting: '					| tee -a $LOG_FIL
 date							| tee -a $LOG_FIL
+echo -n " cleanLog='$cleanLog' ; updateSrc='$updateSrc' ;"	| tee -a $LOG_FIL
+echo -n " updateTst='$updateTst' ; submitJob='$submitJob' ;"	| tee -a $LOG_FIL
+echo    " TEST_LIST='$TEST_LIST' ; sfxTyp='$sfxTyp'"		| tee -a $LOG_FIL
 
-n=$(( `ls $logPfix.*.log | wc -l` - 10 ))
-if test $n -gt 0 ; then
-  echo ' remove old log files:'				| tee -a $LOG_FIL
-    ls -lt $logPfix.*.log | tail -"$n"			| tee -a $LOG_FIL
-    ls -t  $logPfix.*.log | tail -"$n" | xargs rm -f
+dd=prev
+if test ! -d $dd ; then
+  # if test -e $dd ; then /bin/rm -rf $dd ; fi
+  echo " create dir '$dd/' for previous output files:"	| tee -a $LOG_FIL
+  mkdir $dd
+  retVal=$?
+  if test $retVal != 0 ; then
+    echo " Error: 'mkdir $dd' returned: $retVal"
+    exit 9
+  fi
 fi
+
+if [ $cleanLog -ge 1 ] ; then
+#-  clean up old log files:
+  n=$(( `ls $logPfix.*.log | wc -l` - 10 ))
+  if test $n -gt 0 ; then
+    echo ' remove old log files:'			| tee -a $LOG_FIL
+      ls -lt $logPfix.*.log | tail -"$n"		| tee -a $LOG_FIL
+      ls -t  $logPfix.*.log | tail -"$n" | xargs rm -f
+  fi
+fi
+
+#-------------------------------------------------------------
+#-- additional Env.Var. settings
 
 if test -f /etc/profile.d/modules.sh ; then
   . /etc/profile.d/modules.sh
@@ -53,26 +130,83 @@ fi
 module list						>> $LOG_FIL 2>&1
 
 #---+----1----+----2----+----3----+----4----+----5----+----6----+----7-|--+----|
-#-- now really do something:
+
+if [ $updateTst -ge 1 ] ; then
+  cd $HERE
+#-- Download/Update batch testing scripts:
+  if [ $updateTst -eq 1 ] ; then
+    if test ! -e $git_test/.git/config ; then
+      echo "no file: $git_test/.git/config => try a new clone"	| tee -a $LOG_FIL
+      updateTst=2
+    fi
+  fi
+  #--
+  if [ $updateTst -eq 2 ] ; then
+    if test -e $git_test ; then
+      echo -n " removing dir: $git_test ..."			| tee -a $LOG_FIL
+      /bin/rm -rf $git_test
+      echo "  done"						| tee -a $LOG_FIL
+    fi
+    echo -n "Make a clone of $git_test from repo: $git_repo ... " | tee -a $LOG_FIL
+    git clone $git_repo/${git_test}.git 2> $tmpFil
+    retVal=$?
+    if test $retVal = 0 ; then
+      echo ' --> done!'						| tee -a $LOG_FIL
+      rm -f $tmpFil
+    else echo ''						| tee -a $LOG_FIL
+      echo " Error: 'git clone' returned: $retVal"		| tee -a $LOG_FIL
+      cat $tmpFil ; rm -f $tmpFil
+      exit 2
+    fi
+  fi
+  #--
+  if [ $updateTst -eq 1 ] ; then
+    echo -n "Updating current clone ( $git_test ) ..."		| tee -a $LOG_FIL
+    echo '' >> $LOG_FIL
+    ( cd $git_test; git pull )					>> $LOG_FIL 2>&1
+    retVal=$?
+    if test $retVal = 0 ; then
+      echo "  done"						| tee -a $LOG_FIL
+    else
+      echo "'git pull' on '"`hostname`"' fail (return val=$retVal) => exit" | tee -a $LOG_FIL
+      exit 3
+    fi
+    echo "  and checkout for missing files:"			>> $LOG_FIL
+    ( cd $git_test ; git checkout -- . )			>> $LOG_FIL 2>&1
+  fi
+  #-- symbolic-link as short-cut
+  if test ! -e $dNam ; then
+    if test -d $git_test/$scrDirNam ; then
+      echo "  link '$git_test/$scrDirNam' to '$dNam'"		| tee -a $LOG_FIL
+      ln -s $git_test/$scrDirNam $dNam
+    fi
+  fi
+fi #-- Done with Download/Update of testing scripts
+
+#---+----1----+----2----+----3----+----4----+----5----+----6----+----7-|--+----|
+
+if [ $submitJob -ge 1 ] ; then
+#-- Submit batch test-scripts jobs : leave srcDIR and go back to output dir
+  cd $OUT_DIR
+  #-- start job submission process
 
   JOB_LIST=$TEST_LIST
   NB_SUB_JOBS=0
   for i in $JOB_LIST
   do
     sfx=`echo ${i} | sed -e 's/^.../&_/' -e 's/^o64/op64/' | tr '[:upper:]' '[:lower:]'`
-    BATCH_SCRIPT="test_engag_${sfx}${typ}"
+    BATCH_SCRIPT="test_engag_${sfx}${sfxTyp}"
     if test -f $SUB_DIR/$BATCH_SCRIPT ; then
       #- job name ( $JOB ) & output-file name ( $JOB.std??? ) must match
       #  definition within $BATCH_SCRIPT slurm script
-      JOB="${i}_tst"
+      JOB="${i}_tst" ; sJob=$JOB
       sJob=`printf "%8.8s" $JOB` #- squeue truncate name to only 1rst 8c
-      #job_exist=`$QLIST | grep $JOB | wc -l`
       job_exist=`$QLIST | grep $sJob | wc -l`
       if test "x_$job_exist" = x_0 ; then
         #-- move previous output file
         outList=`ls $JOB.std??? 2> /dev/null`
         if test "x$outList" != x ; then
-          echo -n " moving job "$JOB" old output files:"| tee -a $LOG_FIL
+          echo -n " moving job '$JOB' old output files:"| tee -a $LOG_FIL
           if test -d $OUT_DIR/prev ; then
             for xx in $outList ; do
               pp=$OUT_DIR/prev/$xx ; echo -n " $xx"	| tee -a $LOG_FIL
@@ -84,7 +218,7 @@ module list						>> $LOG_FIL 2>&1
           else
             echo " <-- missing dir $OUT_DIR/prev"	| tee -a $LOG_FIL
           fi
-        else echo " no old output files from job '$JOB'" | tee -a $LOG_FIL
+        else echo " no old output files from job '$JOB'"| tee -a $LOG_FIL
         fi
         #-- submit job
           echo -n "--> $JOB : $BATCH_SCRIPT , "		| tee -a $LOG_FIL
@@ -99,10 +233,12 @@ module list						>> $LOG_FIL 2>&1
        echo 'no file:' $BATCH_SCRIPT 'to submit'	| tee -a $LOG_FIL
     fi
   done
-  #echo "info-sub-list: NB_SUB_JOBS='$NB_SUB_JOBS'"	>> $LOG_FIL
   echo "Submitted $NB_SUB_JOBS jobs from dir: $SUB_DIR"	| tee -a $LOG_FIL
-  echo -n '-- Finished at: '				| tee -a $LOG_FIL
-  date							| tee -a $LOG_FIL
+
+fi #-- Done with submitting jobs
 
 #---+----1----+----2----+----3----+----4----+----5----+----6----+----7-|--+----|
+
+echo -n '-- Finished at: '				| tee -a $LOG_FIL
+date							| tee -a $LOG_FIL
 exit 0
