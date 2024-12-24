@@ -16,7 +16,7 @@ tmpFil="/tmp/"`basename $0`".$$"
   git_repo='MITgcm';  git_test='regression_tests'
  #git_repo='altMITgcm';
   test_branch='master'
-  test_branch='get_tst_scripts_from_git'
+ #test_branch='get_tst_scripts_from_git'
 #--
   git_repo="https://github.com/$git_repo"
  #git_repo="git://github.com/$git_repo"
@@ -68,7 +68,7 @@ if [ $updateTst -eq 1 ] ; then
   if test $test_branch != $loc_branch ; then
     echo "In clone ( $git_test ), switching from '$loc_branch' to '$test_branch' :"
     ( cd $git_test ; git fetch )
-    echo "  and checkout $test_branch:"
+    echo "  and checkout $test_branch :"
     ( cd $git_test ; git checkout $test_branch )
   fi
   echo -n "Updating current clone ( $git_test ) ... "
@@ -79,6 +79,7 @@ if [ $updateTst -eq 1 ] ; then
        echo "'git pull' on '"`hostname`"' fail (return val=$retVal) => exit"
        exit 3
   else echo "  done"
+    #-  checkout for missing files:
     ( cd $git_test ; git checkout -- . ) > /dev/null 2>&1
   fi
 fi
