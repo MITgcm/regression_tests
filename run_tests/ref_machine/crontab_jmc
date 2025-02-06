@@ -5,7 +5,7 @@ MAILTO=jmc@ocean.mit.edu
 
 57 23  * * * cd /home/jm_c/test_villon && ./update_scripts && cp -p villon/update_scripts .
 02 00 * * * /home/jm_c/test_villon/villon/test_villon a
-12 00 * * * /home/jm_c/test_villon/villon/test_villon b
+12 02 * * * /home/jm_c/test_villon/villon/test_villon b
 
 #-----------------------------------------------------------
 #-from: jm_c@batsi.mit.edu
@@ -14,7 +14,7 @@ MAILTO=jmc@ocean.mit.edu
 
 55 23  * * * cd /home/jm_c/test_batsi && ./update_scripts && cp -p batsi/update_scripts .
 #10 00 * * * /home/jm_c/test_batsi/batsi/test_batsi a
-#- try to start 6:30 h later:
-40 06 * * * /home/jm_c/test_batsi/batsi/test_batsi a
+#- new ordering, start 5:45 h later:
+55 05 * * * /home/jm_c/test_batsi/batsi/test_batsi a
 
 #===========================================================
