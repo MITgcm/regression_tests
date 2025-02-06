@@ -5,7 +5,7 @@
 #SBATCH --mem-per-cpu 4000
 #SBATCH -N 1
 #SBATCH --tasks-per-node 10
-# #SBATCH -x node[360,365]
+# #SBATCH -x node[073,122,124,235,335]
 #SBATCH -e /home/jm_c/test_engaging/output/ifcMp2_tst.stderr
 #SBATCH -o /home/jm_c/test_engaging/output/ifcMp2_tst.stdout
 #SBATCH --no-requeue
@@ -37,7 +37,7 @@ tmpFil="/tmp/"`basename $0`".$$"
 
 dblTr=0 ; typ='' ; addExp='' ; skipExp=''
 sfx='ifcMp2'; dblTr=1
-addExp='atm_strato offline_cheapaml'
+addExp='atm_gray_ll atm_strato offline_cheapaml'
  module add slurm
  module add gcc
  module add engaging/intel/2013.1.046

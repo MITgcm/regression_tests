@@ -49,7 +49,8 @@ option=
 
 if test $tst_grp = 'a' ; then
  checkOut=2
- tst_list='mpa mpi mp2+rs mth'
+#tst_list='mpa mpi mp2+rs mth'
+ tst_list='mpi mpa mp2+rs mth'
 else
  checkOut=1
  tst_list='adm tlm gfo+rs'
@@ -193,7 +194,7 @@ do
   #- define list of additional experiences to test:
   addExp=''
   if test $typ = 'mpi' ; then
-    addExp="offline_cheapaml atm_strato"
+    addExp="offline_cheapaml atm_gray_ll atm_strato"
     addExp="$addExp global_oce_cs32"
     addExp="$addExp global_oce_llc90"
   fi
