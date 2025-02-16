@@ -20,7 +20,7 @@ umask 0022
 #- to get case insensitive "ls" (and order of tested experiments)
 export LC_ALL="en_US.UTF-8"
 echo " running on: "`hostname`
-headNode='eofe8'
+headNode='vlogin003'
 
 dNam='engaging'
 HERE="$HOME/test_${dNam}"
