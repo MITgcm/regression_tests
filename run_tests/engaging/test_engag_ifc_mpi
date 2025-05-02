@@ -5,8 +5,8 @@
 #SBATCH --mem-per-cpu 4000
 #SBATCH -N 2
 #SBATCH --tasks-per-node 4
-# #SBATCH -x node122
-# #SBATCH -x node[051,052,065,066]
+# #SBATCH -x node[073,122,124,235,335]
+#SBATCH -x node[173,235,335]
 #SBATCH -e /home/jm_c/test_engaging/output/ifcMpi_tst.stderr
 #SBATCH -o /home/jm_c/test_engaging/output/ifcMpi_tst.stdout
 #SBATCH --no-requeue
@@ -36,6 +36,7 @@ tmpFil="/tmp/"`basename $0`".$$"
  #git_repo="git://github.com/$git_repo"
  #git_repo="git@github.com:$git_repo"
 
+TR_Script='./testreport' ; RS_Script='../tools/do_tst_2+2'
 dblTr=0 ; typ='' ; addExp='' ; skipExp=''
 sfx='ifcMpi'; dblTr=1
 addExp='global_oce_cs32 global_oce_llc90'
@@ -65,6 +66,10 @@ checkOut=1 ; #options="$options -do"
 #options="$options -nc" ; checkOut=1 ; dblTr=0
 #options="$options -q"  ; checkOut=0 ; dblTr=0
 # dblTr=-1 #- skip testreport completely (only run "do_tst_2+2")
+
+#- to use a local version:
+# TR_Script="$HERE/local/testreport"
+# RS_Script="$HERE/local/do_tst_2+2"
 
 if test -d $TST_DIR ; then
   echo "start from TST_DIR='$TST_DIR' at: "`date`
@@ -97,16 +102,16 @@ module list 2>&1
 echo '================================================================================'
 
 #-
- MPI_MFile="${OUTP}/mf_${sfx}"   #- currently not used
+ MPI_mFile="${OUTP}/mf_${sfx}"   #- currently not used
 #mpiCMD="mpirun -hostfile TR_MFILE -n TR_NPROC ./mitgcmuv"
 #- make the testreport MPI_MFILE:
  listNODES=`echo $SLURM_NODELIST | sed -e 's/\[/ /' -e 's/\]//' -e 's/,/ /' -e 's/-/ /'`
 # duplicate the 2 listed nodes into a 6 list file:
- /bin/rm -f $MPI_MFile ; touch $MPI_MFile
+ /bin/rm -f $MPI_mFile ; touch $MPI_mFile
  for nc in `seq 1 4` ; do pfx=''
   for nd in $listNODES ; do
    if test "x$pfx" = x ; then pfx=$nd ; else
-     echo "${pfx}${nd}" >> $MPI_MFile
+     echo "${pfx}${nd}" >> $MPI_mFile
    fi
   done
  done
@@ -151,8 +156,8 @@ if [ $checkOut -eq 1 ] ; then
         fi
       done )
     echo "clean tst_2+2 + testreport output (+ Makefile_syntax files)"
-    ( cd $gcmDIR/verification ; ../tools/do_tst_2+2 -clean )
-    ( cd $gcmDIR/verification ; ./testreport $typ -clean )
+    ( cd $gcmDIR/verification ; $RS_Script -clean )
+    ( cd $gcmDIR/verification ; $TR_Script $typ -clean )
     ( cd $gcmDIR/verification ; rm -f */build/Makefile_syntax )
     ( cd $gcmDIR/verification ; rm -f */build/port_rand.i */build/ptracers_set_iolabel.i )
     if test "x$addExp" != x ; then
@@ -259,17 +264,17 @@ fi
 if [ $dblTr -eq 1 ] ; then
   echo ''
 #- 0) just make all module header ( *__genmod.mod files) using modified Makefile
-  echo ./testreport $options -of $OPTFILE -skd \'$skipExp\' \
+  echo $TR_Script $options -of $OPTFILE -skd \'$skipExp\' \
     -j 4 -nc -repl_mk do_make_syntax.sh -obj -dd
-  ./testreport $options -of $OPTFILE -skd "$skipExp" \
+  $TR_Script $options -of $OPTFILE -skd "$skipExp" \
     -j 4 -nc -repl_mk do_make_syntax.sh -obj -dd
   options="$options -q"
 
   echo ''
 #- 1) just compile ("-nr"), using "-j 4" to speed up
-  echo ./testreport $options -of $OPTFILE -skd \'$skipExp\' \
+  echo $TR_Script $options -of $OPTFILE -skd \'$skipExp\' \
     -j 4 -nr -odir ${dNam}-$sfx
-  ./testreport $options -of $OPTFILE -skd "$skipExp" \
+  $TR_Script $options -of $OPTFILE -skd "$skipExp" \
     -j 4 -nr -odir ${dNam}-$sfx
   nFc=`grep -c '^Y . N N ' tr_out.txt`
   echo " <= fail to compile $nFc experiments"
@@ -278,11 +283,11 @@ fi
 if [ $dblTr -ge 0 ] ; then
   echo ''
 #- 2) run and report results ; also finish to compile those who failed with "-j"
- #echo ./testreport $options -of $OPTFILE -command \'$mpiCMD\' -mf $MPI_MFile \
-  echo ./testreport $options -of $OPTFILE -skd \'$skipExp\' \
+ #echo $TR_Script $options -of $OPTFILE -command \'$mpiCMD\' -mf $MPI_mFile \
+  echo $TR_Script $options -of $OPTFILE -skd \'$skipExp\' \
     -odir ${dNam}-$sfx -send \'$SEND\' -sd $SavD -a jm_c@mitgcm.org
- #./testreport $options -of $OPTFILE -command "$mpiCMD" -mf $MPI_MFile \
-  ./testreport $options -of $OPTFILE -skd "$skipExp" \
+ #$TR_Script $options -of $OPTFILE -command "$mpiCMD" -mf $MPI_mFile \
+  $TR_Script $options -of $OPTFILE -skd "$skipExp" \
     -odir ${dNam}-$sfx -send "$SEND" -sd $SavD -a jm_c@mitgcm.org
   retVal=$?
 else retVal=0 ; fi
@@ -293,10 +298,10 @@ if test "x$retVal" != x0 ; then
 else
   echo ''
 #- 3) test restart and report results
- #echo ../tools/do_tst_2+2 -mpi -exe \'$mpiCMD\' -mf $MPI_MFile \
-  echo ../tools/do_tst_2+2 -mpi \
+ #echo $RS_Script -mpi -exe \'$mpiCMD\' -mf $MPI_mFile \
+  echo $RS_Script -mpi \
     -o ${dNam}-$sfx -send \'$SEND\' -sd $SavD -a jm_c@mitgcm.org
- #../tools/do_tst_2+2 -mpi -exe "$mpiCMD" -mf $MPI_MFile \
-  ../tools/do_tst_2+2 -mpi \
+ #$RS_Script -mpi -exe "$mpiCMD" -mf $MPI_mFile \
+  $RS_Script -mpi \
     -o ${dNam}-$sfx -send "$SEND" -sd $SavD -a jm_c@mitgcm.org
 fi

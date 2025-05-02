@@ -3,9 +3,11 @@
 #SBATCH -p sched_mit_hill
 #SBATCH -t 06:00:00
 #SBATCH --mem-per-cpu 4000
-#SBATCH -n 6
 #SBATCH -N 2
-#SBATCH -x node[122,175,176,235]
+#SBATCH --tasks-per-node 3
+# #SBATCH -n 6
+# #SBATCH -x node[073,122,124,235,335]
+#SBATCH -x node[173,235,335]
 #SBATCH -e /home/jm_c/test_engaging/output/o64Mpi_tst.stderr
 #SBATCH -o /home/jm_c/test_engaging/output/o64Mpi_tst.stdout
 #SBATCH --no-requeue
@@ -35,6 +37,7 @@ tmpFil="/tmp/"`basename $0`".$$"
  #git_repo="git://github.com/$git_repo"
  #git_repo="git@github.com:$git_repo"
 
+TR_Script='./testreport' ; RS_Script='../tools/do_tst_2+2'
 dblTr=0 ; typ='' ; addExp='' ; skipExp=''
 sfx='o64Mpi'; dblTr=1
 #- Pb when reading MIXED_LAYER_NML from "data.atm_gray", fail to skip Namelist to read the next one
@@ -62,6 +65,10 @@ checkOut=1 ; #options="$options -do"
 #options="$options -nc" ; checkOut=1
 #options="$options -q"  ; checkOut=0 ; dblTr=0
 # dblTr=-1 #- skip testreport completely (only run "do_tst_2+2")
+
+#- to use a local version:
+# TR_Script="$HERE/local/testreport"
+# RS_Script="$HERE/local/do_tst_2+2"
 
 if test -d $TST_DIR ; then
   echo "start from TST_DIR='$TST_DIR' at: "`date`
@@ -132,8 +139,8 @@ if [ $checkOut -eq 1 ] ; then
         fi
       done )
     echo "clean tst_2+2 + testreport output"
-    ( cd $gcmDIR/verification ; ../tools/do_tst_2+2 -clean )
-    ( cd $gcmDIR/verification ; ./testreport $typ -clean )
+    ( cd $gcmDIR/verification ; $RS_Script -clean )
+    ( cd $gcmDIR/verification ; $TR_Script $typ -clean )
     if test "x$addExp" != x ; then
       ( cd $gcmDIR/verification
         listD=`ls -o | grep '^l' | awk '{print $8}' 2> /dev/null`
@@ -217,22 +224,34 @@ else
   exit
 fi
 
+#-----------------------------------------------------------------------------------------
+# create "mf_file" with list of nodes to use:
+MPI_mFile="mpi_mfile.$$"
+echo '' ; echo "Using machine-file MPI_mFile='$MPI_mFile' :"
+ srun hostname | sort > $MPI_mFile
+ cat $MPI_mFile
+ echo " <-- end of MPI_mFile file"
+
 if [ $dblTr -eq 1 ] ; then
   echo ''
 #- 1) just compile ("-nr"), using "-j 2" to speed up
-  echo ./testreport $options -of $OPTFILE -skd \'$skipExp\' \
+  echo $TR_Script $options -of $OPTFILE -skd \'$skipExp\' \
     -j 2 -nr -odir ${dNam}-$sfx
-  ./testreport $options -of $OPTFILE -skd "$skipExp" \
+  $TR_Script $options -of $OPTFILE -skd "$skipExp" \
     -j 2 -nr -odir ${dNam}-$sfx
+  nFc=`grep -c '^Y . N N ' tr_out.txt`
+  echo " <= fail to compile $nFc experiments"
   options="$options -q"
 fi
 
 if [ $dblTr -ge 0 ] ; then
   echo ''
 #- 2) run and report results ; also finish to compile those who failed with "-j"
-  echo ./testreport $options -of $OPTFILE -skd \'$skipExp\' \
+  echo $TR_Script $options -of $OPTFILE -skd \'$skipExp\' \
+    -c \'mpirun -np TR_NPROC -hostfile TR_MFILE ./mitgcmuv\' -mf $MPI_mFile \
     -odir ${dNam}-$sfx -send \'$SEND\' -sd $SavD -a jm_c@mitgcm.org
-  ./testreport $options -of $OPTFILE -skd "$skipExp" \
+  $TR_Script $options -of $OPTFILE -skd "$skipExp" \
+    -c 'mpirun -np TR_NPROC -hostfile TR_MFILE ./mitgcmuv' -mf $MPI_mFile \
     -odir ${dNam}-$sfx -send "$SEND" -sd $SavD -a jm_c@mitgcm.org
   retVal=$?
 else retVal=0 ; fi
@@ -249,8 +268,14 @@ if test "x$retVal" != x0 ; then
 else
   echo ''
 #- 3) test restart and report results
-  echo ../tools/do_tst_2+2 -mpi \
+  echo $RS_Script -mpi \
+    -exe \'mpirun -np TR_NPROC -hostfile TR_MFILE ./mitgcmuv\' -mf $MPI_mFile \
     -o ${dNam}-$sfx -send \'$SEND\' -sd $SavD -a jm_c@mitgcm.org
-  ../tools/do_tst_2+2 -mpi \
+  $RS_Script -mpi \
+    -exe 'mpirun -np TR_NPROC -hostfile TR_MFILE ./mitgcmuv' -mf $MPI_mFile \
     -o ${dNam}-$sfx -send "$SEND" -sd $SavD -a jm_c@mitgcm.org
+#-----------------------------------------------------------------------------------------
+  echo -n "Remove machine-file MPI_mFile :"
+  rm -f $MPI_mFile
+  echo " rm -f $MPI_mFile : done"
 fi
