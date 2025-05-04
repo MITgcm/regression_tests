@@ -67,7 +67,7 @@ checkOut=1 ; #options="$options -do"
 # dblTr=-1 #- skip testreport completely (only run "do_tst_2+2")
 
 #- to use a local version:
-# TR_Script="$HERE/local/testreport"
+  TR_Script="$HERE/local/testreport"
 # RS_Script="$HERE/local/do_tst_2+2"
 
 if test -d $TST_DIR ; then
