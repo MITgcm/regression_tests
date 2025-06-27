@@ -44,6 +44,7 @@ dNam=`hostname -s | tr '[:upper:]' '[:lower:]'`
 #TESTDIR="/scratch/jmc/test_${dNam}"
 #MC=13 ; outDir="${dNam}-${tst_grp}"
  MC=11 ; outDir=$dNam
+#dNam='batsi' ; TESTDIR="$HOME/test_${dNam}"
 sepDir=1
 option=
 
@@ -330,6 +331,7 @@ do
     comm="$comm -md cyrus-makedepend"
   fi
   comm="$comm -odir $outDir -a jm_c@mitgcm.org"
+  comm="$comm -mpd $HOME/mitgcm/bin"
 #-- set the optfile (+ mpi & match-precision)
   MPI=0
   case $typ in
@@ -398,6 +400,7 @@ do
   then
     echo "testing restart using:"	| tee -a $tdir/output_$tt
     comm="../tools/do_tst_2+2 -o $outDir -a jm_c@mitgcm.org"
+    comm="$comm -send $HOME/mitgcm/bin/mpack"
     if test $MPI = 0 ; then
       echo "  \"$comm\""		| tee -a $tdir/output_$tt
       echo "======================"
