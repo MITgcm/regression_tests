@@ -55,12 +55,12 @@ if [ $updateTst -eq 2 ] ; then
   git clone $git_repo/${git_test}.git 2> $tmpFil
   retVal=$?
   if test $retVal = 0 ; then
-     echo ' --> done!'
-     rm -f $tmpFil
+    echo ' --> done!'
+    rm -f $tmpFil
   else echo ''
-     echo " Error: 'git clone' returned: $retVal"
-     cat $tmpFil ; rm -f $tmpFil
-     exit 2
+    echo " Error: 'git clone' returned: $retVal"
+    cat $tmpFil ; rm -f $tmpFil
+    exit 2
   fi
 fi
 if [ $updateTst -eq 1 ] ; then
@@ -71,14 +71,20 @@ if [ $updateTst -eq 1 ] ; then
     echo "  and checkout $test_branch :"
     ( cd $git_test ; git checkout $test_branch )
   fi
-  echo -n "Updating current clone ( $git_test ) ... "
-  #echo '' >> $LOG_FIL
-  ( cd $git_test ; git pull )
+  #-- updating current clone ( $git_test ):
+  ( cd $git_test ; git pull ) > $tmpFil 2>&1
   retVal=$?
-  if test "x$retVal" != x0 ; then echo ''
-       echo "'git pull' on '"`hostname`"' fail (return val=$retVal) => exit"
-       exit 3
-  else echo "  done"
+  touch $tmpFil ; nbl=`cat $tmpFil | wc -l`
+  if test "x$retVal" != x0 -o $nbl != 1 ; then
+    echo "Updating current clone ( $git_test ) ..."
+    cat $tmpFil
+  fi
+  rm -f $tmpFil
+  if test "x$retVal" != x0 ; then
+    echo "'git pull' on '"`hostname`"' fail (return val=$retVal) => exit"
+    exit 3
+  else
+    if [ $nbl -ne 1 ] ; then echo "  done" ; fi
     #-  checkout for missing files:
     ( cd $git_test ; git checkout -- . ) > /dev/null 2>&1
   fi
