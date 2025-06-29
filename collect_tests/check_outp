@@ -410,7 +410,7 @@ echo "     name     checked   comp    Diff    lines"  >> $OUTPSUM
 ( cd $INDIR ; ls -1 -t */summary.txt | sed 's/\/summary.txt//' ) > $TMP.dir_all
 
 if test "x$MACHINES" = "x_All_" ; then
-  MACHINES="villon batsi engaging1 engaging- svante glacier"
+  MACHINES="villon batsi baudelaire engaging1 engaging- svante"
   MACHINES="$MACHINES albedo pleiades archer"
 
   MALL=`cat $TMP.dir_all | sed -e 's|_| |g' | awk '{print $2}' | sort | uniq`
