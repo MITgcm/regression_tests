@@ -5,16 +5,14 @@ MAILTO=jmc@ocean.mit.edu
 
 57 23  * * * cd /home/jm_c/test_villon && ./update_scripts && cp -p villon/update_scripts .
 02 00 * * * /home/jm_c/test_villon/villon/test_villon a
-12 02 * * * /home/jm_c/test_villon/villon/test_villon b
+27 01 * * * /home/jm_c/test_villon/villon/test_villon b
 
 #-----------------------------------------------------------
 #-from: jm_c@batsi.mit.edu
 #  current output of "crontab -l":
 MAILTO=jmc@ocean.mit.edu
 
-55 23  * * * cd /home/jm_c/test_batsi && ./update_scripts && cp -p batsi/update_scripts .
-#10 00 * * * /home/jm_c/test_batsi/batsi/test_batsi a
-#- new ordering, start 5:45 h later:
-55 05 * * * /home/jm_c/test_batsi/batsi/test_batsi a
+55 23  * * * cd /home/jm_c/test_baudelaire && ./update_scripts && cp -p baudelaire/update_scripts .
+50 04 * * * /home/jm_c/test_baudelaire/baudelaire/test_baudelaire a
 
 #===========================================================
