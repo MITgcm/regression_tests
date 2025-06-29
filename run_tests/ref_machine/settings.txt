@@ -1,22 +1,19 @@
 Instructions for setting up testing dir on villon.mit.edu :
 
 0) villon.mit.edu has been currently installed by Scott Blomquist (mitgcm-admin at techsquare.com)
- as Ubuntu LTS 18 linux box with all needed Linux pkgs
+ as Ubuntu LTS 18 linux VM with all needed Linux pkgs
 
+1) testing scripts:
+ > cd ~/. ; mkdir test_villon
+ And in ~/test_villon/ add a copy of script "run_tests/ref_machine/update_scripts"
+ from GitHub repos: https://github.com/MITgcm/regression_tests.git
+
+2) Env. Setting:
   a) need to make sure we have "staf" in the path for TAF ADM tests
   b) no needs for any special MPI env setting to use OpenMPI with gfortran
    since std optfile will set MPI_INC_DIR using "pkg-config --cflags-only-I ompi"
 
-1) testing scripts:
- > sentenv CVSROOT ':pserver:cvsanon@mitgcm.org:/u/gcmpack'
- > cd ~/. ; mkdir testing
- > cd testing ; cvs co -P -d ref_machine MITgcm_contrib/test_scripts/ref_machine
-
- then edit crontab (crontab -e) as described in: ref_machine/crontab_jmc
-
-2) testing dirs:
- > cd ~/. ; mkdir test_villon ; cd test_villon
- > mkdir prev
+ then edit crontab (crontab -e) as described in: run_tests/ref_machine/crontab_jmc
 
 ------------------------------------------------------------------------------------------
 3) to get Gael's additional experiments (global_oce_cs32 global_oce_llc90) to run:
@@ -50,4 +47,34 @@ Instructions for setting up testing dir on villon.mit.edu :
 
  Note: This dir is to be linked inside "verification/global_oce_llc90/input_verifs/"
        and also inside "verification/global_oce_cs32/"
+------------------------------------------------------------------------------------------
+==========================================================================================
+Instructions for setting up testing dir on baudelaire.mit.edu :
+
+0) baudelaire.mit.edu has been currently installed by Scott Blomquist (mitgcm-admin at techsquare.com)
+ as Fedora 42 linux VM with all needed Linux pkgs
+
+1) testing scripts:
+ > cd ~/. ; mkdir test_baudelaire
+ And in ~/test_baudelaire/ add a copy of script "run_tests/ref_machine/update_scripts"
+ from GitHub repos: https://github.com/MITgcm/regression_tests.git
+
+2) Env. Setting:
+  a) need to make sure we have "staf" in the path for TAF ADM tests
+  b) need to have a copy of "openmpi.sh" (from: run_tests/ref_machine/) in $HOME/bin
+   for special MPI env setting to use OpenMPI with gfortran
+
+ then edit crontab (crontab -e) as described in: run_tests/ref_machine/crontab_jmc
+
+------------------------------------------------------------------------------------------
+3) to get Gael's additional experiments (global_oce_cs32) to run:
+ In test_baudelaire
+ > mkdir other_input
+
+#-- follow Gael instructions, but adjusted to:
+  wget ftp://mit.ecco-group.org/ecco_for_las/version_4/checkpoints/core2_cnyf.tar
+  tar -xf core2_cnyf.tar
+  \rm -f core2_cnyf.tar
+
+ Note: This dir is to be linked inside "verification/global_oce_cs32/"
 ------------------------------------------------------------------------------------------
