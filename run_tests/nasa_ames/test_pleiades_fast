@@ -1,6 +1,6 @@
 #PBS -S /bin/bash
 #PBS -N tst_fast
-#PBS -l select=1:ncpus=6:mpiprocs=6:model=san
+#PBS -l select=1:ncpus=6:model=sky_ele
 #PBS -l walltime=12:00:00
 #PBS -V
 #PBS -e /u/jcampin/test_pleiades/output/tst_fast.stderr
@@ -19,15 +19,59 @@ echo " running on: "`hostname`
 
 dNam='pleiades'
 HERE="$HOME/test_$dNam"
-SubD="$HERE/nasa_ames" ; OUTP="$HERE/output" ; SavD="$HERE/send"
-SEND="ssh pfe $SavD/mpack"
-ADDR='jm_c@mitgcm.org'
+SubD="$HERE/$dNam" ; OUTP="$HERE/output" ; SavD="$HERE/send"
+#SEND="ssh pfe $SavD/mpack" ; ADDR='jm_c@mitgcm.org'
+ SEND="ssh pfe scp" ; ADDR='jm_c@mitgcm.org:testing/MITgcm-test'
 TST_DISK="/nobackupp17/jcampin"
 TST_DIR="$TST_DISK/test_${dNam}"
 #- where local copy of code is (need to be consistent with "test_submit_pleiades"):
  srcDIR='.'
 #srcDIR=$HERE
 srcCode="MITgcm_today"
+
+checkOut=2 ; dblTr=0 ; typ='' ; addExp='' ; fewExp='' ; optExp='-skd'
+#sfx='ieee'; dblTr=1
+ sfx='fast'; dblTr=1
+#sfx='fast'; checkOut=2 ; dblTr=2  #- fast-1
+#sfx='fast'; checkOut=0 ; dblTr=1  #- fast-2
+#addExp='global_ocean.gm_k3d global_ocean.gm_res'
+#SubD="$HERE/temp"
+
+ module purge
+#- using older version of Intel Compiler:
+#module load comp-intel/2016.2.181
+#- using newer version of Intel Compiler:
+ module load comp-intel/2020.4.304
+#- for MPI: Ou Wang selection:
+ module load mpi-hpe/mpt.2.28_25Apr23_rhel87
+#module load mpi-hpe/mpt
+#- for MPI and NetCDF:
+#module load mpi-hpe/mpt.2.25
+ module load hdf4/4.2.12 hdf5/1.8.18_mpt netcdf/4.4.1.1_mpt
+#-
+ module list
+
+ OPTFILE="../tools/build_options/linux_amd64_ifort+mpi_ice_nas"
+ options="$typ -MPI 6"
+#options="-j 2 $options"
+#mpiCMD='mpiexec_mpt -np TR_NPROC ./mitgcmuv'
+#- need this to get "staf":
+#export PATH="$PATH:$HOME/bin"
+
+cmdCVS='cvs -d :pserver:cvsanon@mitgcm.org:/u/gcmpack -q'
+gcmDIR="MITgcm_$sfx"
+
+dInWeek=`date +%a`
+#if test "x$dInWeek" = xSun ; then options="$options -fast" ; fi
+ if test $sfx = 'fast' ; then options="$options -fast" ; fi
+
+#options="$options -nc" ; checkOut=1 ; dblTr=0
+#options="$options -q"  ; checkOut=0 ; dblTr=0
+# dblTr=-1 #- skip testreport completely (only run "do_tst_2+2")
+# optExp='-t' ; fewExp='global_ocean.cs32x15 lab_sea'
+
+#- keep a copy of MPI_MFILE:
+#cp -p $PBS_NODEFILE $OUTP"/mf_"$sfx
 
 echo "cd $TST_DISK ; pwd (x2)"
 cd $TST_DISK ; pwd
@@ -43,44 +87,6 @@ if test ! -d $TST_DIR ; then
 fi
 echo "start from TST_DIR='$TST_DIR' at: "`date`
 cd $TST_DIR ; pwd
-
-checkOut=2 ; dblTr=0 ; typ='' ; addExp='' ; skipExp=''
-#sfx='ifc'
-#sfx='ieee'; dblTr=1
- sfx='fast'; dblTr=1
-#sfx='fast'; checkOut=2 ; dblTr=2  #- fast-1
-#sfx='fast'; checkOut=0 ; dblTr=1  #- fast-2
-#addExp='global_ocean.gm_k3d global_ocean.gm_res'
-
- module purge
-#- using older version of Intel Compiler:
-#module load comp-intel/2016.2.181
-#- using newer version of Intel Compiler:
- module load comp-intel/2020.4.304
-#- for MPI and NetCDF:
- module load mpi-hpe/mpt.2.25
- module load hdf4/4.2.12 hdf5/1.8.18_mpt netcdf/4.4.1.1_mpt
- module list
-
- OPTFILE="../tools/build_options/linux_amd64_ifort+mpi_ice_nas"
- options="$typ -MPI 6"
-#options="-j 2 $options"
-#mpiCMD='mpiexec_mpt -np TR_NPROC ./mitgcmuv'
-#- need this to get "staf":
-#export PATH="$PATH:$HOME/bin"
-
-dInWeek=`date +%a`
-#if test "x$dInWeek" = xSun ; then options="$options -fast" ; fi
- if test $sfx = 'fast' ; then options="$options -fast" ; fi
-
-#options="$options -nc" ; checkOut=1 ; dblTr=0
-#options="$options -q"  ; checkOut=0 ; dblTr=0
-
-#- keep a copy of MPI_MFILE:
-#cp -p $PBS_NODEFILE $OUTP"/mf_"$sfx
-
-cmdCVS='cvs -d :pserver:cvsanon@mitgcm.org:/u/gcmpack -q'
-gcmDIR="MITgcm_$sfx"
 
 if [ $checkOut -eq 1 ] ; then
   if test -d $gcmDIR/CVS ; then
@@ -218,18 +224,20 @@ if [ $dblTr -ge 1 ] ; then
   echo " <= fail to compile $nFc experiments"
   options="$options -q"
   if [ $dblTr -eq 2 ] ; then
-    echo -n "Submit second job:" $SubD/test_${dNam}_${sfx}2
+    echo -n "Submit second job: $SubD/test_${dNam}_${sfx}2 , "
     qsub $SubD/test_${dNam}_${sfx}2
     exit 0
   fi
 fi
 
+if [ $dblTr -ge 0 ] ; then
   echo ''
   echo ./testreport $options -of $OPTFILE -odir ${dNam}-$sfx \
     -send \"$SEND\" -sd $SavD -a $ADDR
   ./testreport $options -of $OPTFILE -odir ${dNam}-$sfx \
     -send "$SEND" -sd $SavD -a $ADDR
   retVal=$?
+else retVal=0 ; fi
 
 if test "x$retVal" != x0 ; then
   echo "<== testreport returned retVal=${retVal}, expecting 0"

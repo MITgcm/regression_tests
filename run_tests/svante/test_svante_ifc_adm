@@ -44,7 +44,7 @@ srcCode="MITgcm_today"
  #git_repo="git://github.com/$git_repo"
  #git_repo="git@github.com:$git_repo"
 
-dblTr=0 ; typ='' ; addExp='' ; skipExp=''
+checkOut=2 ; dblTr=0 ; typ='' ; addExp='' ; fewExp='' ; optExp='-skd'
 sfx='ifcAdm'; typ='-adm' ; dblTr=1
  module add intel/2021.4.0
  module add openmpi
@@ -62,12 +62,14 @@ dAlt=`date +%d` ; dAlt=`expr $dAlt % 3`
 if [ $dAlt -eq 2 ] ; then options="$options -ur4" ; fi
 if [ $dAlt -eq 1 ] ; then options="$options -fast"
 else options="$options -devel" ; fi
-if test "x$skipExp" != x ; then skipExp=`echo $skipExp | sed 's/^ *//'` ; fi
 
-checkOut=2 ; #options="$options -do"
+#options="$options -do"
 #options="$options -nc" ; checkOut=1 ; dblTr=0
 #options="$options -q"  ; checkOut=0 ; dblTr=0
+# dblTr=-1 #- skip testreport completely (only run "do_tst_2+2")
+# optExp='-t' ; fewExp='global_ocean.cs32x15 lab_sea'
 
+if test "x$fewExp" != x ; then fewExp=`echo $fewExp | sed 's/^ *//'` ; fi
 echo "cd $TST_DISK ; pwd (x1)"
 cd $TST_DISK
 pwd ; ls -l
@@ -247,33 +249,35 @@ if [ $dblTr -eq 1 ] ; then
  if [ $dAlt -ne 1 ] ; then
   echo ''
 #- 0) just make all module header ( *__genmod.mod files) using modified Makefile
-  echo ./testreport $options -of $OPTFILE -skd \'$skipExp\' \
+  echo ./testreport $options -of $OPTFILE $optExp \'$fewExp\' \
     -j 4 -repl_mk do_make_syntax.sh -obj -dd
-  ./testreport $options -of $OPTFILE -skd "$skipExp" \
+  ./testreport $options -of $OPTFILE $optExp "$fewExp" \
     -j 4 -repl_mk do_make_syntax.sh -obj -dd 2>&1
   options="$options -q"
  fi
 
   echo ''
 #- 1) just compile ("-nr"), using "-j 4" to speed up
-  echo ./testreport $options -of $OPTFILE -skd \'$skipExp\' \
+  echo ./testreport $options -of $OPTFILE $optExp \'$fewExp\' \
     -j 4 -nr -odir ${dNam}-$sfx
-  ./testreport $options -of $OPTFILE -skd "$skipExp" \
+  ./testreport $options -of $OPTFILE $optExp "$fewExp" \
     -j 4 -nr -odir ${dNam}-$sfx
   nFc=`grep -c '^Y . N N ' tr_out.txt`
   echo " <= fail to compile $nFc experiments"
  if [ $dAlt -eq 1 ] ; then options="$options -q" ; fi
 fi
 
+if [ $dblTr -ge 0 ] ; then
   if [ $dAlt -eq 2 ] ; then options="$options -match 5" ; fi
   echo ''
 #- 2) run and report results ; also finish to compile those who failed with "-j"
-  echo ./testreport $options -of $OPTFILE -skd \'$skipExp\' \
+  echo ./testreport $options -of $OPTFILE $optExp \'$fewExp\' \
     -odir ${dNam}-$sfx -send \'$SEND\' -sd $SavD -a jm_c@mitgcm.org
-  ./testreport $options -of $OPTFILE -skd "$skipExp" \
+  ./testreport $options -of $OPTFILE $optExp "$fewExp" \
     -odir ${dNam}-$sfx -send "$SEND" -sd $SavD -a jm_c@mitgcm.org
   retVal=$?
   $HERE/${dNam}/backup_outp tr_${dNam}-${sfx} $OUTP/backup
+else retVal=0 ; fi
 
 if test "x$retVal" != x0 ; then
   echo "<== testreport returned retVal=${retVal}, expecting 0"

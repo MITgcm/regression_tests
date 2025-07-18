@@ -38,7 +38,7 @@ tmpFil="/tmp/"`basename $0`".$$"
  #git_repo="git@github.com:$git_repo"
 
 TR_Script='./testreport' ; RS_Script='../tools/do_tst_2+2'
-dblTr=0 ; typ='' ; addExp='' ; skipExp=''
+checkOut=1 ; dblTr=0 ; typ='' ; addExp='' ; fewExp='' ; optExp='-skd'
 sfx='gfoTlm'; typ='-tlm' ; dblTr=1
  module add slurm
  module add gcc
@@ -58,17 +58,18 @@ gcmDIR="MITgcm_$sfx"
 dAlt=`date +%d` ; dAlt=`expr $dAlt % 3`
 if [ $dAlt -eq 1 ] ; then options="$options -fast"
 else options="$options -devel" ; fi
-if test "x$skipExp" != x ; then skipExp=`echo $skipExp | sed 's/^ *//'` ; fi
 
-checkOut=1 ; #options="$options -do"
+#options="$options -do"
 #options="$options -nc" ; checkOut=1
 #options="$options -q"  ; checkOut=0 ; dblTr=0
 # dblTr=-1 #- skip testreport completely (only run "do_tst_2+2")
+# optExp='-t' ; fewExp='global_ocean.cs32x15 lab_sea'
 
 #- to use a local version:
 # TR_Script="$HERE/local/testreport"
 # RS_Script="$HERE/local/do_tst_2+2"
 
+if test "x$fewExp" != x ; then fewExp=`echo $fewExp | sed 's/^ *//'` ; fi
 if test -d $TST_DIR ; then
   echo "start from TST_DIR='$TST_DIR' at: "`date`
 else
@@ -235,9 +236,9 @@ echo '' ; echo "Using machine-file MPI_mFile='$MPI_mFile' :"
 if [ $dblTr -eq 1 ] ; then
   echo ''
 #- 1) just compile ("-nr"), using "-j 2" to speed up
-  echo $TR_Script $options -of $OPTFILE -skd \'$skipExp\' \
+  echo $TR_Script $options -of $OPTFILE $optExp \'$fewExp\' \
     -j 2 -nr -odir ${dNam}-$sfx
-  $TR_Script $options -of $OPTFILE -skd "$skipExp" \
+  $TR_Script $options -of $OPTFILE $optExp "$fewExp" \
     -j 2 -nr -odir ${dNam}-$sfx
   nFc=`grep -c '^Y . N N ' tr_out.txt`
   echo " <= fail to compile $nFc experiments"
@@ -247,10 +248,10 @@ fi
 if [ $dblTr -ge 0 ] ; then
   echo ''
 #- 2) run and report results ; also finish to compile those who failed with "-j"
-  echo $TR_Script $options -of $OPTFILE -skd \'$skipExp\' \
+  echo $TR_Script $options -of $OPTFILE $optExp \'$fewExp\' \
     -c \'mpirun -np TR_NPROC -hostfile TR_MFILE ./mitgcmuv_ftl\' -mf $MPI_mFile \
     -odir ${dNam}-$sfx -send \'$SEND\' -sd $SavD -a jm_c@mitgcm.org
-  $TR_Script $options -of $OPTFILE -skd "$skipExp" \
+  $TR_Script $options -of $OPTFILE $optExp "$fewExp" \
     -c 'mpirun -np TR_NPROC -hostfile TR_MFILE ./mitgcmuv_ftl' -mf $MPI_mFile \
     -odir ${dNam}-$sfx -send "$SEND" -sd $SavD -a jm_c@mitgcm.org
   retVal=$?
