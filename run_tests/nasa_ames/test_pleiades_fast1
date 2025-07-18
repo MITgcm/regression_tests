@@ -29,23 +29,7 @@ TST_DIR="$TST_DISK/test_${dNam}"
 #srcDIR=$HERE
 srcCode="MITgcm_today"
 
-echo "cd $TST_DISK ; pwd (x2)"
-cd $TST_DISK ; pwd
-if test ! -d $TST_DIR ; then
-   echo -n "Creating a working dir: $TST_DIR ..."
-  #/bin/rm -rf $TST_DIR
-   mkdir $TST_DIR
-   retVal=$?
-   if test "x$retVal" != x0 ; then
-      echo "Error: unable to make dir: $TST_DIR (err=$retVal ) --> Exit"
-      exit 1
-   fi
-fi
-echo "start from TST_DIR='$TST_DIR' at: "`date`
-cd $TST_DIR ; pwd
-
-checkOut=2 ; dblTr=0 ; typ='' ; addExp='' ; skipExp=''
-#sfx='ifc'
+checkOut=2 ; dblTr=0 ; typ='' ; addExp='' ; fewExp='' ; optExp='-skd'
 #sfx='ieee'; dblTr=1
 #sfx='fast'; dblTr=1
  sfx='fast'; checkOut=2 ; dblTr=2  #- fast-1
@@ -74,18 +58,35 @@ checkOut=2 ; dblTr=0 ; typ='' ; addExp='' ; skipExp=''
 #- need this to get "staf":
 #export PATH="$PATH:$HOME/bin"
 
+cmdCVS='cvs -d :pserver:cvsanon@mitgcm.org:/u/gcmpack -q'
+gcmDIR="MITgcm_$sfx"
+
 dInWeek=`date +%a`
 #if test "x$dInWeek" = xSun ; then options="$options -fast" ; fi
  if test $sfx = 'fast' ; then options="$options -fast" ; fi
 
 #options="$options -nc" ; checkOut=1 ; dblTr=0
 #options="$options -q"  ; checkOut=0 ; dblTr=0
+# dblTr=-1 #- skip testreport completely (only run "do_tst_2+2")
+# optExp='-t' ; fewExp='global_ocean.cs32x15 lab_sea'
 
 #- keep a copy of MPI_MFILE:
 #cp -p $PBS_NODEFILE $OUTP"/mf_"$sfx
 
-cmdCVS='cvs -d :pserver:cvsanon@mitgcm.org:/u/gcmpack -q'
-gcmDIR="MITgcm_$sfx"
+echo "cd $TST_DISK ; pwd (x2)"
+cd $TST_DISK ; pwd
+if test ! -d $TST_DIR ; then
+   echo -n "Creating a working dir: $TST_DIR ..."
+  #/bin/rm -rf $TST_DIR
+   mkdir $TST_DIR
+   retVal=$?
+   if test "x$retVal" != x0 ; then
+      echo "Error: unable to make dir: $TST_DIR (err=$retVal ) --> Exit"
+      exit 1
+   fi
+fi
+echo "start from TST_DIR='$TST_DIR' at: "`date`
+cd $TST_DIR ; pwd
 
 if [ $checkOut -eq 1 ] ; then
   if test -d $gcmDIR/CVS ; then
@@ -229,12 +230,14 @@ if [ $dblTr -ge 1 ] ; then
   fi
 fi
 
+if [ $dblTr -ge 0 ] ; then
   echo ''
   echo ./testreport $options -of $OPTFILE -odir ${dNam}-$sfx \
     -send \"$SEND\" -sd $SavD -a $ADDR
   ./testreport $options -of $OPTFILE -odir ${dNam}-$sfx \
     -send "$SEND" -sd $SavD -a $ADDR
   retVal=$?
+else retVal=0 ; fi
 
 if test "x$retVal" != x0 ; then
   echo "<== testreport returned retVal=${retVal}, expecting 0"
