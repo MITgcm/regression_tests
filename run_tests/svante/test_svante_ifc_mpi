@@ -59,6 +59,7 @@ sfx='ifcMpi'; dblTr=1
 
 gcmDIR="MITgcm_$sfx"
 dAlt=`date +%d` ; dAlt=`expr $dAlt % 3`
+if [ $dAlt -eq 2 ] ; then options="$options -ur4" ; fi
 if [ $dAlt -eq 1 ] ; then options="$options -fast"
 else options="$options -devel" ; fi
 
@@ -267,6 +268,7 @@ if [ $dblTr -eq 1 ] ; then
 fi
 
 if [ $dblTr -ge 0 ] ; then
+  if [ $dAlt -eq 2 ] ; then options="$options -match 5" ; fi
   echo ''
 #- 2) run and report results ; also finish to compile those who failed with "-j"
   echo ./testreport $options -of $OPTFILE $optExp \'$fewExp\' \
