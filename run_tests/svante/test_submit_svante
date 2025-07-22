@@ -71,7 +71,7 @@ logPfix='test_submit'
 #-- to get the updated testing scripts (with same "git_repo"):
   git_test='regression_tests'
   test_branch='master'
-  test_branch='setting_subset_of_tests'
+ #test_branch='setting_subset_of_tests'
 #--
   git_repo="https://github.com/$git_repo"
  #git_repo="git://github.com/$git_repo"
