@@ -43,7 +43,7 @@ dNam=`hostname -s | tr '[:upper:]' '[:lower:]'`
  TESTDIR="$HOME/test_${dNam}"
 #TESTDIR="/scratch/jmc/test_${dNam}"
 #MC=13 ; outDir="${dNam}-${tst_grp}"
- MC=11 ; outDir=$dNam
+ MC=13 ; outDir=$dNam
 #dNam='batsi' ; TESTDIR="$HOME/test_${dNam}"
 sepDir=1
 option=
@@ -52,6 +52,7 @@ if test $tst_grp = 'a' ; then
  checkOut=2
 #tst_list="mpa adm mpi mth+rs gfo+rs"
  tst_list="gfo+rs mth+rs mpi adm mpa"
+ tst_list="$tst_list tapAD tapTL"
 else
  checkOut=1
  tst_list='adm g77 gfo+rs ifc'
@@ -319,9 +320,9 @@ do
   if test $typ = 'g7a' -o  $typ = 'adm' -o  $typ = 'mpa' ; then
    #comm="$comm -adm"
     comm="$comm -adm -ncad"
-  elif test $typ = 'oad' ; then
-    comm="$comm -oad"
-  elif test $typ = 'tlm' ; then
+  elif test $typ = 'tapAD' ; then
+    comm="$comm -adm"
+  elif test $typ = 'tlm' -o $typ = 'tapTL' ; then
     comm="$comm -tlm"
   elif test $typ = 'mth' -o  $typ = 'mp2' ; then
     export GOMP_STACKSIZE=400m
@@ -331,13 +332,16 @@ do
     comm="$comm -md cyrus-makedepend"
   fi
   comm="$comm -odir $outDir -a jm_c@mitgcm.org"
-  comm="$comm -mpd $HOME/mitgcm/bin"
+ #comm="$comm -mpd $HOME/mitgcm/bin"
 #-- set the optfile (+ mpi & match-precision)
   MPI=0
   case $typ in
    'g77'|'g7a')		OPTFILE='../tools/build_options/linux_amd64_g77' ;;
-   'gfo'|'adm'|'oad'|'tlm'|'mth') comm="$comm -devel"
+   'gfo'|'adm'|'tlm'|'mth') comm="$comm -devel"
 			#comm="$comm -match $MC"
+			OPTFILE='../tools/build_options/linux_amd64_gfortran' ;;
+   'tapAD'|'tapTL')	comm="$comm -tap"
+			comm="$comm -match $MC"
 			OPTFILE='../tools/build_options/linux_amd64_gfortran' ;;
    'ifc')		comm="$comm -devel"
 			OPTFILE='../tools/build_options/linux_amd64_ifort11' ;;
@@ -354,11 +358,16 @@ do
   fi
 #-- set MPI command: Use default (Dec 2020) which is the same since testreport update on Sep 2013
 #-- set specific Env Vars:
-  if test $typ = 'oad' ; then
-    #- for some reasons, "source ScriptFile | tee -a LogFile"
-    #  does run the script but does not keep the env-var settings
-    source $HOME/mitgcm/bin/setenv_OpenAD.sh	>> $tdir/output_$tt
+  #- for Tapenade:
+  echo $typ | grep '\<tap' > /dev/null 2>&1 ; retv=$?
+  if test $retv = 0 ; then
+    which tapenade 1>> $tdir/output_$tt 2> /dev/null ; retv=$?
+    if test $retv != 0 ; then
+      source $HOME/bin/set_tapenade.sh		>> $tdir/output_$tt
+      which tapenade				>> $tdir/output_$tt
+    fi
   fi
+  #- for Specific compiler:
   if test $typ = 'ifc' ; then
     source /srv/software/intel/intel-11.1.073/bin/ifortvars.sh intel64
   fi
@@ -400,7 +409,7 @@ do
   then
     echo "testing restart using:"	| tee -a $tdir/output_$tt
     comm="../tools/do_tst_2+2 -o $outDir -a jm_c@mitgcm.org"
-    comm="$comm -send $HOME/mitgcm/bin/mpack"
+   #comm="$comm -send $HOME/mitgcm/bin/mpack"
     if test $MPI = 0 ; then
       echo "  \"$comm\""		| tee -a $tdir/output_$tt
       echo "======================"
