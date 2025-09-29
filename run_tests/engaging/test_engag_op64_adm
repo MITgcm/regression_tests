@@ -26,7 +26,7 @@ dNam='engaging'
 HERE="$HOME/test_${dNam}"
 OUTP="$HERE/output"; SavD="$HERE/send"
 SEND="ssh $headNode $SavD/mpack"
-TST_DIR="/pool001/jm_c/test_$dNam"
+TST_DIR="/orcd/pool/007/jm_c/test_$dNam"
 tmpFil="/tmp/"`basename $0`".$$"
   cmdCVS='cvs -d :pserver:cvsanon@mitgcm.org:/u/gcmpack -q'
 #- which GitHub repository to use and how to access it:
@@ -67,7 +67,7 @@ else options="$options -devel" ; fi
 # optExp='-t' ; fewExp='global_ocean.cs32x15 lab_sea'
 
 #- to use a local version:
-# TR_Script="$HERE/local/testreport"
+  TR_Script="$HERE/local/testreport"
 # RS_Script="$HERE/local/do_tst_2+2"
 
 if test "x$fewExp" != x ; then fewExp=`echo $fewExp | sed 's/^ *//'` ; fi
@@ -228,9 +228,9 @@ fi
 #-----------------------------------------------------------------------------------------
 # create "mf_file" with list of nodes to use:
 MPI_mFile="mpi_mfile.$$"
-echo '' ; echo "Using machine-file MPI_mFile='$MPI_mFile' :"
  srun hostname | sort > $MPI_mFile
- cat $MPI_mFile
+echo '' ; echo "Using machine-file MPI_mFile='$MPI_mFile' :"
+ cat $MPI_mFile | uniq -c | awk '{print $2,"(x",$1,")"}'
  echo " <-- end of MPI_mFile file"
 
 if [ $dblTr -eq 1 ] ; then
