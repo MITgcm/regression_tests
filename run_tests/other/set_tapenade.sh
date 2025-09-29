@@ -1,6 +1,7 @@
 #! /bin/bash
 
-#   PATH="/home/jmc/install/tapenade_3.16/bin:${PATH}";
-   #PATH="${PATH}:/home/jmc/install/tapenade_3.16/bin";
-    PATH="${PATH}:/home/jmc/install/tapenade_3.16.v2/bin";
+#- set environnement variables to use locally installed Tapenade
+
+    PATH="${PATH}:/home/jmc/install/tapenade_3.16/bin";
+   #PATH="${PATH}:/home/jmc/install/tapenade_3.16.v2/bin";
     export PATH
