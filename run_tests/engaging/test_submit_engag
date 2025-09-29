@@ -32,7 +32,8 @@ else
 fi
 #- default is to submit all of the bacth-scripts:
 if test $submitJob = 1 -a $TEST_LIST = 'unset' ; then
-  TEST_LIST='gfoAdm ifcMpi ifcMp2 o64Adm o64Mpi gfoTlm'
+ #TEST_LIST='gfoAdm ifcMpi ifcMp2 o64Adm o64Mpi gfoTlm'
+  TEST_LIST='gfoAdm o64Adm o64Mpi gfoTlm'
  #if test "x$dInWeek" = xSun ; then TEST_LIST="$TEST_LIST iad ifc oad" ; fi
 fi
 
@@ -43,7 +44,7 @@ headNode=`hostname -s`
 #dNam=$headNode
 dNam='engaging'
 HERE="$HOME/test_$dNam"
-TST_DIR="/pool001/jm_c/test_$dNam"
+TST_DIR="/orcd/pool/007/jm_c/test_$dNam"
 logPfix='test_submit'
 
 #- Batch related setting
