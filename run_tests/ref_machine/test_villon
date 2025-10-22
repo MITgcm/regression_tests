@@ -207,6 +207,7 @@ do
   if test $typ = 'gfo' ; then
     addExp="$addExp global_ocean.gm_k3d"
     addExp="$addExp global_ocean.gm_res"
+    addExp="$addExp small_toy"
   fi
   #- check day and time:
   curDay=`date +%d` ; curHour=`date +%H`
