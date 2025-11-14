@@ -225,9 +225,9 @@ do
   fi
   #- clean-up old output files
   if test -d $tdir/prev ; then
-    mv -f $tdir/output_${typ}* $tdir/prev
+    mv -f $tdir/output_$tt $tdir/prev
   else
-    rm -f $tdir/output_${typ}*
+    rm -f $tdir/output_$tt
   fi
   touch $tdir/output_$tt
   echo -n "-- Starting test: $tt at: "		>> $tdir/output_$tt

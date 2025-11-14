@@ -8,7 +8,7 @@ MAILTO=jmc@ocean.mit.edu
 27 01 * * * /home/jm_c/test_villon/villon/test_villon b
 
 #-----------------------------------------------------------
-#-from: jm_c@batsi.mit.edu
+#-from: jm_c@baudelaire.mit.edu
 #  current output of "crontab -l":
 MAILTO=jmc@ocean.mit.edu
 
