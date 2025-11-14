@@ -37,7 +37,8 @@ ulimit -s unlimited
 #   =2 : update (git pull) repo  and make a new copy code  (switch to 3 if no repo)
 #   =1 : skip update             but use a new copy  (if sepDir)
 #   =0 : use existing test code ( switch to 1 if missing test code )
-dInWeek=`date +%a`
+dInMonth=`date +%d`
+#dInWeek=`date +%a`
 
 dNam=`hostname -s | tr '[:upper:]' '[:lower:]'`
  TESTDIR="$HOME/test_${dNam}"
@@ -53,10 +54,17 @@ if test $tst_grp = 'a' ; then
 #tst_list="mpa adm mpi mth+rs gfo+rs"
  tst_list="gfo+rs mth+rs mpi adm mpa"
  tst_list="$tst_list tapAD tapTL"
+#tst_list="$tst_list tapADm tapTLm"
+ add2list="tapADm tapTLm"
+ if test "x$dInMonth" = x01 ; then
+   tst_list="$tst_list $add2list"
+   add2list=''
+ fi
 else
  checkOut=1
  tst_list='adm g77 gfo+rs ifc'
- if test "x$dInWeek" = xSun ; then tst_list="$tst_list tlm" ; fi
+ add2list=''
+#if test "x$dInWeek" = xSun ; then tst_list="$tst_list tlm" ; fi
 fi
 echo " test: $outDir ; list='$tst_list'"
 
@@ -158,6 +166,9 @@ if [ $checkOut -ge 2 ] ; then
     fi
     ( cd $git_other ; git checkout master -- . )
   fi
+  #---- updating "git_Hash" file:
+    if test -f git_Hash ; then mv git_Hash prevHash ; fi
+    ( cd $git_code ; git rev-parse HEAD > ../git_Hash )
   #---- making a new working copy: MITgcm_today
   rsync -a $git_code/ MITgcm_today --exclude '.git'
   if test $sepDir = 0 ; then
@@ -183,6 +194,30 @@ else
   cd $tdir
 fi
 
+#------------------------------------------------------------------------
+if test "x$add2list" != x ; then
+  if test -f git_Hash -a -f prevHash ; then
+   #ls -l prevHash  >> $logFile
+    diff -q git_Hash prevHash > /dev/null 2>&1
+    retv=$?
+    if test $retv = 0 ; then
+      echo " No update in repos since previous test ==> skip '$add2list' set of tests"
+    else
+      echo " Will run '$add2list' set of tests since repos has been updated"
+      echo -n ' prevHash: '
+      cat prevHash
+      echo -n ' git_Hash: '
+      cat git_Hash
+      tst_list="$tst_list $add2list"
+    fi
+  elif test -f git_Hash ; then
+    echo " No file 'prevHash' --> will run '$add2list' set of tests"
+    tst_list="$tst_list $add2list"
+  else
+    echo " Should never get here ==> skip '$add2list' set of tests"
+    ls -l prevHash git_Hash $git_code/.git/config
+  fi
+fi
 #------------------------------------------------------------------------
 
 firstTst=`echo $tst_list | awk '{print $1}'`
@@ -219,9 +254,9 @@ do
   fi
   #- clean-up old output files
   if test -d $tdir/prev ; then
-    mv -f $tdir/output_${typ}* $tdir/prev
+    mv -f $tdir/output_$tt $tdir/prev
   else
-    rm -f $tdir/output_${typ}*
+    rm -f $tdir/output_$tt
   fi
   touch $tdir/output_$tt
   echo -n "-- Starting test: $tt at: "		>> $tdir/output_$tt
@@ -317,11 +352,14 @@ do
 
 #-- set the testreport command:
   comm="./testreport"
-  if test $typ = 'g7a' -o  $typ = 'adm' -o  $typ = 'mpa' ; then
+  if [[ ${typ} = "tap"* ]] ; then comm="$comm -tap" ; fi
+  if test $typ = 'g7a' -o  $typ = 'adm' -o  $typ = 'mpa' -o  $typ = 'tapADm' ; then
    #comm="$comm -adm"
     comm="$comm -adm -ncad"
   elif test $typ = 'tapAD' ; then
     comm="$comm -adm"
+  elif test $typ = 'tapTLm' ; then
+    comm="$comm -tlm -ncad"
   elif test $typ = 'tlm' -o $typ = 'tapTL' ; then
     comm="$comm -tlm"
   elif test $typ = 'mth' -o  $typ = 'mp2' ; then
@@ -340,8 +378,9 @@ do
    'gfo'|'adm'|'tlm'|'mth') comm="$comm -devel"
 			#comm="$comm -match $MC"
 			OPTFILE='../tools/build_options/linux_amd64_gfortran' ;;
-   'tapAD'|'tapTL')	comm="$comm -tap"
-			comm="$comm -match $MC"
+   'tapAD'|'tapTL')	comm="$comm -match $MC"
+			OPTFILE='../tools/build_options/linux_amd64_gfortran' ;;
+   'tapADm'|'tapTLm')	MPI=8
 			OPTFILE='../tools/build_options/linux_amd64_gfortran' ;;
    'ifc')		comm="$comm -devel"
 			OPTFILE='../tools/build_options/linux_amd64_ifort11' ;;
@@ -359,8 +398,7 @@ do
 #-- set MPI command: Use default (Dec 2020) which is the same since testreport update on Sep 2013
 #-- set specific Env Vars:
   #- for Tapenade:
-  echo $typ | grep '\<tap' > /dev/null 2>&1 ; retv=$?
-  if test $retv = 0 ; then
+  if [[ "${typ}" = "tap"* ]] ; then
     which tapenade 1>> $tdir/output_$tt 2> /dev/null ; retv=$?
     if test $retv != 0 ; then
       source $HOME/bin/set_tapenade.sh		>> $tdir/output_$tt

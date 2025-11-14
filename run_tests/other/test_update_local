@@ -13,8 +13,10 @@ if test -e $gcmDIR/.git/config ; then
   else
     echo "== running: \""`basename $0`"\" on:" `date` >> $logFile
     echo "  'git pull' in $gcmDIR fail (return val=$retv) => no new 'git_Hash'" >> $logFile
+    exit 1
   fi
 fi
+#--------------------------
 
 cronStuff=`grep -v '^#' $CronTabFile | grep 'test_local .*>' | sed 's/^.*test_local //' | sed 's/>*\&//'`
 pp=0
@@ -42,24 +44,5 @@ for xx in $cronStuff ; do
   fi
 done
 
-exit
 #--------------------------
-sfx='test_local.outp'
-list='tap gfort'
-
-n=0
-for tt in $list
-do
-  namF=${sfx}'_'$n
-  savF=${sfx}'_'$tt
-  if test -e $namF ; then
-    #ls -l $namF
-    if test -s $namF ; then : else
-      #echo "mv $namF $savF"
-      mv -f $namF $savF
-    fi
-  #else echo " no file: $namF"
-  fi
-  n=`expr $n + 1`
-done
-#echo '<-- done' ; ls -l ${sfx}_*
+exit
