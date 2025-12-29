@@ -401,7 +401,7 @@ do
   if [[ "${typ}" = "tap"* ]] ; then
     which tapenade 1>> $tdir/output_$tt 2> /dev/null ; retv=$?
     if test $retv != 0 ; then
-      source $HOME/bin/set_tapenade.sh		>> $tdir/output_$tt
+      source $tdir/set_tapenade.sh		>> $tdir/output_$tt
       which tapenade				>> $tdir/output_$tt
     fi
   fi
