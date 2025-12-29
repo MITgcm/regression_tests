@@ -470,15 +470,15 @@ for pname in $MACHINES ; do
 	    num=`grep -c "^$key" $TMP.plist`
 	  fi
 	  #- discard unsafe test:
-	  dd=`echo $optf | grep -c 'gfortran+mth'`
+	  #dd=`echo $optf | grep -c 'gfortran+mth'`
 	  #if test $mname = 'lagoon' -a $dd = 1 ; then num=-1 ; fi
-	  #if test $mname = 'harbor' -a $dd = 1 ; then num=-1 ; fi
-	  #if test $mname = 'aces' -a $optf = 'linux_ia32_open64' ; then num=-1 ; fi
 	  #if test $mname = 'aces' -a $optf = 'linux_ia32_g95' ; then num=-1 ; fi
-	  dd=`echo $optf | grep -c 'bigred.*noieee'`
-	  #if test $mname = 'bigred' -a $dd = 1 ; then num=-1 ; fi
+	  # dd=`echo $optf | grep -c 'linux_amd64_ifort+impi_engaging.fast'`
+	  # if test $dd = 1 -a $mname = 'engaging1' -a $type = 'restart' ; then num=-1 ; fi
+	  dd=`echo $sdir | grep -v 'engaging1-darwin3' | grep -c 'rs_engaging1-'`
+	  # if test $dd = 1 ; then num=-1 ; fi
 	  if test $num -lt 0 ; then
-	    echo "  discard $sdir : $type , of='$optf'" | tee -a $OUTPFIL
+	    echo "-> discard: $sdir : $type , of='$optf'" | tee -a $OUTPFIL
 	    cmis=`expr $cmis + 1`
 	  elif test $num = '0' ; then
 	    echo "  dir='$sdir', type='$type', of='$optf':" | tee -a $OUTPFIL
