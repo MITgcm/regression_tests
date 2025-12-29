@@ -99,5 +99,52 @@ if test ! -e $dNam ; then
 fi
 
 #---+----1----+----2----+----3----+----4----+----5----+----6----+----7-|--+----|
+#- update Tapenade software:
+if test $thisComputer = 'baudelaire' ; then
+    tap_log='tapUpdate.log'
+    test -e $tap_log &&  mv -f $tap_log ${tap_log}_bak
+    date > $tap_log
+    # get latest tar file:
+    tapFile='tapenade_3.16'
+    rm -f $tapFile.tar
+    echo "- get latest '$tapFile.tar' file using:"	>> $tap_log
+    echo "  wget https://tapenade.gitlabpages.inria.fr/tapenade/distrib/$tapFile.tar" >> $tap_log
+    wget https://tapenade.gitlabpages.inria.fr/tapenade/distrib/$tapFile.tar >> $tap_log
+    retVal=$?
+    if test $retVal = 0 ; then
+      echo ' --> done!'					>> $tap_log
+    else echo ''
+      echo " Error: 'wget' returned: $retVal"		| tee -a $tap_log
+      exit 4
+    fi
+    if test -e $tapFile.inUse.tar ; then
+      diff -q $tapFile.tar $tapFile.inUse.tar > /dev/null 2>&1
+      retVal=$?
+      if test $retVal = 0 ; then
+        echo " no update to $tapFile.tar"		>> $tap_log
+      else
+        echo " will use updated version:"		>> $tap_log
+        mv -f $tapFile.inUse.tar $tapFile.prev.tar
+        mv    $tapFile.tar      $tapFile.inUse.tar
+        rm -rf $tapFile
+        ls -l $tapFile.inUse.tar $tapFile.prev.tar	>> $tap_log
+      fi
+    else
+      echo " no previous $tapFile.inUse.tar ; use new one" >> $tap_log
+      mv $tapFile.tar $tapFile.inUse.tar
+      rm -rf $tapFile
+    fi
+    if test ! -d $tapFile ; then
+      echo " un-tar file: $tapFile.inUse.tar"		>> $tap_log
+      tar -xf $tapFile.inUse.tar			>> $tap_log
+    fi
+    if test -x $dNam/set_tapenade.sh ; then
+      if test ! -e set_tapenade.sh ; then
+        echo " from '$dNam', link 'set_tapenade.sh':"	>> $tap_log
+        ln -s  $dNam/set_tapenade.sh .
+      fi
+    fi
+fi
+#---+----1----+----2----+----3----+----4----+----5----+----6----+----7-|--+----|
 #-- clean-up old log files:
 exit 0
