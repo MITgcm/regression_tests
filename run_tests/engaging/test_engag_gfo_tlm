@@ -6,7 +6,7 @@
 #SBATCH -N 2
 #SBATCH --tasks-per-node 3
 # #SBATCH -n 6
-# #SBATCH -x node[073,122,124,235,335]
+# #SBATCH -x node[158,173,235,333,335]
 #SBATCH -x node[173,235,335]
 #SBATCH -e /home/jm_c/test_engaging/output/gfoTlm_tst.stderr
 #SBATCH -o /home/jm_c/test_engaging/output/gfoTlm_tst.stdout
@@ -20,7 +20,7 @@ umask 0022
 #- to get case insensitive "ls" (and order of tested experiments)
 export LC_ALL="en_US.UTF-8"
 echo " running on: "`hostname`
-headNode='vlogin003'
+headNode='vlogin001'
 
 dNam='engaging'
 HERE="$HOME/test_${dNam}"
