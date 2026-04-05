@@ -2,8 +2,17 @@
 
 #  The purpose of this script is to print the testing score of all testreport results
 #  stored in the monthly archive dir, either from few selected platform or from all platform
+#
+#  usage: testing_score [+h,-rs,-tr] [List-of-Machines]
+#
+#  without List-of-Machines : report scores from all test-output dir
+#  List-of-Machines : only from { List-of-Machines } test-output dir
+#          +h  : report also the node/host where it was run
+#          -tr : only testreport output dir (no restart)
+#          -rs : only restart output dir (no testreport)
+#
 
-#INDIR="/net/orwell/export/export-9/mitgcm-testing/results/$PERIOD"
+#INDIR="/net/zany.mit.edu/data/ORWELL/export-9/mitgcm-testing/results/$PERIOD"
 INDIR="/u/u0/httpd/html/testing/results/$PERIOD"
 #INDIR="./2009_06"
 INDIR="."
@@ -12,13 +21,22 @@ YYMM=`( cd $INDIR ; pwd | sed 's/\// /g' | awk '{print $NF}' | sed 's/_//' )`
 xx=`echo $YYMM | sed 's/[0-9]*/x/'`
 #echo "YYMM='$YYMM' ; xx='$xx'"
 if test $xx != x ; then YYMM=`date +%Y%m` ; fi
-( cd $INDIR ; ls -1 *_${YYMM}??_*/summary.txt | sed 's/\/summary.txt//' ) > ./dir_all
-#( cd $INDIR ; ls -1 -t *_${YYMM}??_*/summary.txt | sed 's/\/summary.txt//' ) > ./dir_all
 
 addHost=0
-if [ $# -gt 0 ] ; then if test $1 = '+h' ; then
-  addHost=1 ; shift
-fi ; fi
+pFx=''
+if [ $# -gt 0 ] ; then 
+  for xx in $* ; do
+    if test $xx = '+h' ; then addHost=1 ; shift ; fi
+    if test $xx = '-tr' -a "x$pFx" = x ; then pFx='tr_' ; shift ; fi
+    if test $xx = '-rs' -a "x$pFx" = x ; then pFx='rs_' ; shift ; fi
+  done
+fi
+
+#( cd $INDIR ; ls -1 *_${YYMM}??_*/summary.txt | sed 's/\/summary.txt//' ) > ./dir_all
+( cd $INDIR ; ls -1 ${pFx}*_${YYMM}??_*/summary.txt | sed 's/\/summary.txt//' ) > ./dir_all
+#( cd $INDIR ; ls -1 -t *_${YYMM}??_*/summary.txt | sed 's/\/summary.txt//' ) > ./dir_all
+
+#---------
 if test $# = 0 ; then
   #-- local way of getting all platforms:
  #MALL=`cat ./dir_all | sed -e 's|_| |g' | sed -e 's|\-| |'  | sed -e 's|\+| |' \
@@ -42,6 +60,16 @@ if test $# = 0 ; then
 else
   MACHINES=$*
 fi
+#-- debug report:
+# echo "-- addHost=$addHost ; pFx='$pFx'"
+# echo "-- MACHINES='$MACHINES'"
+# echo "-- 'dir_all' content:"
+# head -n 5 dir_all
+# echo " ..."
+# tail -n 5 dir_all
+# rm -f ./dir_all
+# exit
+#--
 
 for mname in $MACHINES ; do
 
