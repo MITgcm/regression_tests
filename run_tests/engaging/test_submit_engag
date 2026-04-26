@@ -84,8 +84,7 @@ dd=$OUT_DIR
 if test ! -d $dd ; then
   # if test -e $dd ; then /bin/rm -rf $dd ; fi
   echo " create dir '$dd/' for output files:"
-  mkdir $dd
-  retVal=$?
+  mkdir $dd ; retVal=$?
   if test $retVal != 0 ; then
     echo " Error: 'mkdir $dd' returned: $retVal"
     exit 1
@@ -105,8 +104,7 @@ dd=prev
 if test ! -d $dd ; then
   # if test -e $dd ; then /bin/rm -rf $dd ; fi
   echo " create dir '$dd/' for previous output files:"	| tee -a $LOG_FIL
-  mkdir $dd
-  retVal=$?
+  mkdir $dd ; retVal=$?
   if test $retVal != 0 ; then
     echo " Error: 'mkdir $dd' returned: $retVal"
     exit 9
@@ -150,8 +148,7 @@ if [ $updateTst -ge 1 ] ; then
       echo "  done"						| tee -a $LOG_FIL
     fi
     echo -n "Make a clone of $git_test from repo: $git_repo ... " | tee -a $LOG_FIL
-    git clone $git_repo/${git_test}.git 2> $tmpFil
-    retVal=$?
+    git clone $git_repo/${git_test}.git 2> $tmpFil ; retVal=$?
     if test $retVal = 0 ; then
       echo ' --> done!'						| tee -a $LOG_FIL
       rm -f $tmpFil
@@ -231,8 +228,11 @@ if [ $submitJob -ge 1 ] ; then
         fi
         #-- submit job
           echo -n "--> $JOB : $BATCH_SCRIPT , "		| tee -a $LOG_FIL
-          $QSUB $SUB_DIR/$BATCH_SCRIPT			| tee -a $LOG_FIL
-          NB_SUB_JOBS=`expr $NB_SUB_JOBS + 1`
+          $QSUB $SUB_DIR/$BATCH_SCRIPT > $tmpFil 2>&1 ; retVal=$?
+          cat $tmpFil			| tee -a $LOG_FIL ; rm -f $tmpFil
+          if test $retVal != 0 ; then
+            echo "Error: $QSUB failed to submit job $JOB (retVal: $retVal )" >> $LOG_FIL
+          else NB_SUB_JOBS=`expr $NB_SUB_JOBS + 1` ; fi
       else
           echo "--> $JOB :"				| tee -a $LOG_FIL
           $QLIST | grep $sJob				| tee -a $LOG_FIL

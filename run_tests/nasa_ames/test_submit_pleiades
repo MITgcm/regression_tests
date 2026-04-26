@@ -83,8 +83,7 @@ dd=$OUT_DIR
 if test ! -d $dd ; then
   # if test -e $dd ; then /bin/rm -rf $dd ; fi
   echo " create dir '$dd/' for output files:"
-  mkdir $dd
-  retVal=$?
+  mkdir $dd ; retVal=$?
   if test $retVal != 0 ; then
     echo " Error: 'mkdir $dd' returned: $retVal"
     exit 1
@@ -104,8 +103,7 @@ dd=prev
 if test ! -d $dd ; then
   # if test -e $dd ; then /bin/rm -rf $dd ; fi
   echo " create dir '$dd/' for previous output files:"	| tee -a $LOG_FIL
-  mkdir $dd
-  retVal=$?
+  mkdir $dd ; retVal=$?
   if test $retVal != 0 ; then
     echo " Error: 'mkdir $dd' returned: $retVal"
     exit 9
@@ -155,8 +153,7 @@ if [ $updateTst -ge 1 ] ; then
       echo "  done"						| tee -a $LOG_FIL
     fi
     echo -n "Make a clone of $git_test from repo: $git_repo ... " | tee -a $LOG_FIL
-    git clone $git_repo/${git_test}.git 2> $tmpFil
-    retVal=$?
+    git clone $git_repo/${git_test}.git 2> $tmpFil ; retVal=$?
     if test $retVal = 0 ; then
       echo ' --> done!'						| tee -a $LOG_FIL
       rm -f $tmpFil
@@ -210,9 +207,8 @@ if [ $updateSrc -ge 1 ] ; then
   if test ! -d $srcDIR ; then
      echo -n "Creating a working dir: $srcDIR ..."	| tee -a $LOG_FIL
     #/bin/rm -rf $srcDIR
-     mkdir $srcDIR
-     retVal=$?
-     if test "x$retVal" != x0 ; then
+     mkdir $srcDIR ; retVal=$?
+     if test $retVal != 0 ; then
        echo "Error: unable to make dir: $srcDIR (err=$retVal ) --> Exit" | tee -a $LOG_FIL
        exit 4
      fi
@@ -237,8 +233,7 @@ if [ $updateSrc -ge 1 ] ; then
        echo "  done"					| tee -a $LOG_FIL
     fi
     echo -n "Make a clone of $git_code from repo: $git_repo ..."	| tee -a $LOG_FIL
-    git clone $git_repo/${git_code}.git 2> $tmpFil
-    retVal=$?
+    git clone $git_repo/${git_code}.git 2> $tmpFil ; retVal=$?
     if test $retVal = 0 ; then
        echo ' --> done!'				| tee -a $LOG_FIL
        rm -f $tmpFil
@@ -254,7 +249,7 @@ if [ $updateSrc -ge 1 ] ; then
     echo '' >> $LOG_FIL
     ( cd $git_code ; git pull )				>> $LOG_FIL 2>&1
     retVal=$?
-    if test "x$retVal" != x0 ; then echo ''
+    if test $retVal != 0 ; then echo ''
        echo "'git pull' on '"`hostname`"' fail (return val=$retVal) => exit" | tee -a $LOG_FIL
        exit 7
     else echo "  done"					| tee -a $LOG_FIL
@@ -317,18 +312,11 @@ if [ $submitJob -ge 1 ] ; then
         #-- submit job
         if test $sfx != 'fast2' ; then
           echo -n "--> $JOB : $BATCH_SCRIPT , "		| tee -a $LOG_FIL
-          # $QSUB $SUB_DIR/$BATCH_SCRIPT 2>&1		| tee -a $LOG_FIL
-          ( $QSUB $SUB_DIR/$BATCH_SCRIPT 2>&1 ; retVal=$?
-            #echo "[dBug 1 --> retVal= $retVal <-- dBug]"
-            if test "x$retVal" != x0 ; then
-              echo "Error: $QSUB failed to submit job $JOB (retVal: $retVal )"
-            fi
-          )						| tee -a $LOG_FIL
-          retVal=`tail -n 1 $LOG_FIL | grep -c '^Error'`
-          #echo "[dBug 2 --> retVal= $retVal <-- dBug]"	| tee -a $LOG_FIL
-          if test "x$retVal" = x0 ; then
-            NB_SUB_JOBS=`expr $NB_SUB_JOBS + 1`
-          fi
+          $QSUB $SUB_DIR/$BATCH_SCRIPT > $tmpFil 2>&1 ; retVal=$?
+          cat $tmpFil			| tee -a $LOG_FIL ; rm -f $tmpFil
+          if test $retVal != 0 ; then
+            echo "Error: $QSUB failed to submit job $JOB (retVal: $retVal )" >> $LOG_FIL
+          else NB_SUB_JOBS=`expr $NB_SUB_JOBS + 1` ; fi
         fi
       else
           echo "--> $JOB :"				| tee -a $LOG_FIL
