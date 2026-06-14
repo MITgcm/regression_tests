@@ -1,7 +1,7 @@
 #-----------------------------------------------------------
 #-from: jm_c@villon.mit.edu
 #  current output of "crontab -l":
-MAILTO=jmc@ocean.mit.edu
+MAILTO=jm_c@mit.edu
 
 57 23  * * * cd /home/jm_c/test_villon && ./update_scripts && cp -p villon/update_scripts .
 02 00 * * * /home/jm_c/test_villon/villon/test_villon a
@@ -10,7 +10,7 @@ MAILTO=jmc@ocean.mit.edu
 #-----------------------------------------------------------
 #-from: jm_c@baudelaire.mit.edu
 #  current output of "crontab -l":
-MAILTO=jmc@ocean.mit.edu
+MAILTO=jm_c@mit.edu
 
 55 23  * * * cd /home/jm_c/test_baudelaire && ./update_scripts && cp -p baudelaire/update_scripts .
 50 04 * * * /home/jm_c/test_baudelaire/baudelaire/test_baudelaire a

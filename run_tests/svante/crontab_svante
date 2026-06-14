@@ -5,7 +5,7 @@
 #   ( echo '' ; crontab -l ) >> crontab_svante
 #-
 
-MAILTO=jmc@ocean.mit.edu
+MAILTO=jm_c@mit.edu
 
 20 00 * * *  cd /home/jm_c/test_svante && ./test_submit_svante && cp -p svante/test_submit_svante .
 #50 00 * * *  /home/jm_c/test_svante/svante/test_comp_pgiAdm.sh
