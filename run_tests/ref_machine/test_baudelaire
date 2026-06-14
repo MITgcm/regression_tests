@@ -43,6 +43,8 @@ dInMonth=`date +%d`
 dNam=`hostname -s | tr '[:upper:]' '[:lower:]'`
  TESTDIR="$HOME/test_${dNam}"
 #TESTDIR="/scratch/jmc/test_${dNam}"
+#sendCmd='-a jm_c@mitgcm.org'
+ sendCmd='-send scp -a jm_c@mitgcm.org:testing/MITgcm-test'
 #MC=13 ; outDir="${dNam}-${tst_grp}"
  MC=13 ; outDir=$dNam
 #dNam='batsi' ; TESTDIR="$HOME/test_${dNam}"
@@ -369,7 +371,7 @@ do
   else
     comm="$comm -md cyrus-makedepend"
   fi
-  comm="$comm -odir $outDir -a jm_c@mitgcm.org"
+  comm="$comm -odir $outDir $sendCmd"
  #comm="$comm -mpd $HOME/mitgcm/bin"
 #-- set the optfile (+ mpi & match-precision)
   MPI=0
@@ -446,7 +448,7 @@ do
   if test $tt != $typ
   then
     echo "testing restart using:"	| tee -a $tdir/output_$tt
-    comm="../tools/do_tst_2+2 -o $outDir -a jm_c@mitgcm.org"
+    comm="../tools/do_tst_2+2 -o $outDir $sendCmd"
    #comm="$comm -send $HOME/mitgcm/bin/mpack"
     if test $MPI = 0 ; then
       echo "  \"$comm\""		| tee -a $tdir/output_$tt
