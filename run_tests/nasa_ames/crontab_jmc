@@ -5,7 +5,7 @@
 #   ( echo '' ; crontab -l ) >> crontab_jmc
 #-
 
-MAILTO=jmc@ocean.mit.edu
+MAILTO=jm_c@mit.edu
 
 11 00 1,16 * * cd /u/jcampin/test_pleiades && ./test_submit_pleiades && cp -p pleiades/test_submit_pleiades .
 #11 00 1,16 * * cd /u/jcampin/test_pleiades && ./test_submit_pleiades

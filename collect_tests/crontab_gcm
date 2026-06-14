@@ -1,7 +1,7 @@
 #---------------------------------------------------------
 #-from: jm_c@mitgcmcvs.mit.edu
 #  current output of "crontab -l":
-MAILTO=jmc@ocean.mit.edu
+MAILTO=jm_c@mit.edu
 
 15,45 * * * * /home/jm_c/testing/bin_sh/prc_tr_emails
 55  * * * * /home/jm_c/testing/bin_sh/build_mitgcm_front
