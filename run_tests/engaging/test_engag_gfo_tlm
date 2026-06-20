@@ -25,7 +25,10 @@ headNode='vlogin001'
 dNam='engaging'
 HERE="$HOME/test_${dNam}"
 OUTP="$HERE/output"; SavD="$HERE/send"
-SEND="ssh $headNode $SavD/mpack"
+#SEND="ssh $headNode $SavD/mpack"
+#sendCmd="-sd $SavD -a jm_c@mitgcm.org"
+SEND="scp" ; sendCmd='-a jm_c@mitgcm.org:testing/MITgcm-test'
+#----------
 TST_DIR="/orcd/pool/007/jm_c/test_$dNam"
 tmpFil="/tmp/"`basename $0`".$$"
   cmdCVS='cvs -d :pserver:cvsanon@mitgcm.org:/u/gcmpack -q'
@@ -250,10 +253,10 @@ if [ $dblTr -ge 0 ] ; then
 #- 2) run and report results ; also finish to compile those who failed with "-j"
   echo $TR_Script $options -of $OPTFILE $optExp \'$fewExp\' \
     -c \'mpirun -np TR_NPROC -hostfile TR_MFILE ./mitgcmuv_ftl\' -mf $MPI_mFile \
-    -odir ${dNam}-$sfx -send \'$SEND\' -sd $SavD -a jm_c@mitgcm.org
+    -odir ${dNam}-$sfx -send \'$SEND\' $sendCmd
   $TR_Script $options -of $OPTFILE $optExp "$fewExp" \
     -c 'mpirun -np TR_NPROC -hostfile TR_MFILE ./mitgcmuv_ftl' -mf $MPI_mFile \
-    -odir ${dNam}-$sfx -send "$SEND" -sd $SavD -a jm_c@mitgcm.org
+    -odir ${dNam}-$sfx -send "$SEND" $sendCmd
   retVal=$?
 else retVal=0 ; fi
 
@@ -265,10 +268,10 @@ else
 #- 3) test restart and report results
 # echo $RS_Script -mpi \
 #   -exe \'mpirun -np TR_NPROC -hostfile TR_MFILE ./mitgcmuv\' -mf $MPI_mFile \
-#   -o ${dNam}-$sfx -send \'$SEND\' -sd $SavD -a jm_c@mitgcm.org
+#   -o ${dNam}-$sfx -send \'$SEND\' $sendCmd
 # $RS_Script -mpi \
 #   -exe 'mpirun -np TR_NPROC -hostfile TR_MFILE ./mitgcmuv' -mf $MPI_mFile \
-#   -o ${dNam}-$sfx -send "$SEND" -sd $SavD -a jm_c@mitgcm.org
+#   -o ${dNam}-$sfx -send "$SEND" $sendCmd
 #-----------------------------------------------------------------------------------------
   echo -n "Remove machine-file MPI_mFile :"
   rm -f $MPI_mFile
