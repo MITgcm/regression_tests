@@ -30,6 +30,7 @@ OUTP="$HERE/output"; SavD="$HERE/send"
 SEND="scp" ; sendCmd='-a jm_c@mitgcm.org:testing/MITgcm-test'
 #----------
 TST_DIR="/orcd/pool/007/jm_c/test_$dNam"
+TST_DIR=$HERE
 tmpFil="/tmp/"`basename $0`".$$"
   cmdCVS='cvs -d :pserver:cvsanon@mitgcm.org:/u/gcmpack -q'
 #- which GitHub repository to use and how to access it:
