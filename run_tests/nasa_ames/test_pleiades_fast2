@@ -21,7 +21,8 @@ dNam='pleiades'
 HERE="$HOME/test_$dNam"
 SubD="$HERE/$dNam" ; OUTP="$HERE/output" ; SavD="$HERE/send"
 #SEND="ssh pfe $SavD/mpack" ; ADDR='jm_c@mitgcm.org'
- SEND="ssh pfe scp" ; ADDR='jm_c@mitgcm.org:testing/MITgcm-test'
+#SEND="ssh pfe scp" ; ADDR='jm_c@mitgcm.org:testing/MITgcm-test'
+ SEND="ssh pfe scp" ; ADDR='jm_c@svante.mit.edu:testing/MITgcm-test'
 TST_DISK="/nobackupp17/jcampin"
 TST_DIR="$TST_DISK/test_${dNam}"
 #- where local copy of code is (need to be consistent with "test_submit_pleiades"):
