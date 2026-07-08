@@ -17,11 +17,11 @@ Instructions for setting up testing dir on villon.mit.edu :
 
 ------------------------------------------------------------------------------------------
 3) to get Gael's additional experiments (global_oce_cs32 global_oce_llc90) to run:
- > cd ~/. ; mkdir test_villon ; cd test_villon
+ In ~/test_villon:
  > mkdir other_input
+ > cd ~/test_villon/other_input
 
 #-- follow Gael instructions, but adjusted to:
- > cd ~/test_villon/other_input
  > setenv CVSROOT ':pserver:cvsanon@mitgcm.org:/u/gcmpack'
  > cvs co -P -d gael_oce_llc90_gzip MITgcm_contrib/gael/verification/ECCO_v4_r2/input_fields
  > mkdir gael_oce_llc90_input
@@ -68,8 +68,9 @@ Instructions for setting up testing dir on baudelaire.mit.edu :
 
 ------------------------------------------------------------------------------------------
 3) to get Gael's additional experiments (global_oce_cs32) to run:
- In test_baudelaire
+ In ~/test_baudelaire:
  > mkdir other_input
+ > cd ~/test_baudelaire/other_input
 
 #-- follow Gael instructions, but adjusted to:
   wget ftp://mit.ecco-group.org/ecco_for_las/version_4/checkpoints/core2_cnyf.tar
