@@ -15,15 +15,15 @@ usage()
     echo "  (-h|-help)           print usage"
     echo "  (-s|-silent)         silent mode"
     echo "  (-v|-verbose)        verbose mode"
-    echo "  (-i |-ind )DIR       get mpack-created emails from DIR"
+    echo "  (-i|-ind)    DIR     get mpack-created emails from DIR"
     echo "                         [def=\"$INDIR\"]"
-    echo "  (-o |-outd )DIR      write the data to DIR"
+    echo "  (-o|-outd)   DIR     write the data to DIR"
     echo "                         [def=\"$BASEDIR/$monthDir\"]"
-    echo "  (-t |-tempd )DIR     use temporary directory DIR"
+    echo "  (-t|-tempd)  DIR     use temporary directory DIR"
     echo "                         [def=\"$TEMPDIR\"]"
-    echo "  (-u |-unpack )EXE    use executable EXE to unpack e-mails"
+    echo "  (-u|-unpack) EXE     use executable EXE to unpack e-mails"
     echo "                         [def=\"$MUNPACK\"]"
-    echo "  (-a |-addr )ADDR     send e-mail to ADDR if Error"
+    echo "  (-a|-addr)  ADDR     send e-mail to ADDR if Error"
     echo "                         [def='"$ADDRERR"']"
     echo
     exit 1
@@ -34,6 +34,7 @@ HERE=`pwd`
 sufx=$$
 #INDIR="/u/u2/jmc/Mail/MITgcm-test"
 #BASEDIR="/u/u0/httpd/html/testing/results"
+SHOST="sftp_shared@svante8.mit.edu" ; S_DIR="/uploads"
 RHOST="jm_c@mitgcm-mm.mit.edu" ; M_DIR="Mail/MITgcm-test"
 INDIR="/home/jm_c/testing/MITgcm-test"
 BASEDIR="/net/zany.mit.edu/data/ORWELL/export-9/mitgcm-testing/results"
@@ -158,18 +159,92 @@ fi
 #---+----1----+----2----+----3----+----4----+----5----+----6----+----7-|--+----|
 if test $oldMsg = 0 ; then
 
-#- 1) check that $INDIR is empty (except .tar.gz files)
+#---------------------------------------------------------------------
+#-- add this block to also get tar files from SHOST (into INDIR):
+
+    cd $HERE
+#- 0) check that current dir (i.e., HERE) has no *.tar.gz file
+    nbTar=`ls -1 | grep '\.tar\.gz$' | wc -l`
+    if test $nbTar != 0 ; then
+        date
+        echo "ERROR: '$HERE' is not empty ! --> exit"
+        ls -l *.tar.gz
+        exit 7
+    fi
+
+#- 1) sftp all tar files from ${SHOST}:$S_DIR to HERE
+    sftp $SHOST <<EOF > $STDOUT 2>&1
+    cd $S_DIR
+    ls -l
+    get -p *.tar.gz
+    bye
+EOF
+    retVal=$?
+    if test "x$retVal" != x0 ; then
+        date
+        cat $STDOUT
+        echo "ERROR: when trying to sftp tar-file from $SHOST"
+       #rm -f $STDOUT
+        exit 5
+    fi
+    if test $PRT = 2 ; then cat $STDOUT ; fi
+    RETVAL=`grep -l '^File .* not found' $STDOUT | wc -l`
+    if test $RETVAL = 1 ; then
+      rm -f $STDOUT
+    else
+      listTar='' ; nbTar=`ls -1 *.tar.gz 2>/dev/null | wc -l`
+      if test $nbTar = 0 ; then
+      #-- this is unexpected: sftp did find tar file to get but none are found HERE
+        echo 'WARNING: no *.tar.gz file here despite successful sftp:'
+        cat $STDOUT
+        rm -f $STDOUT
+      else
+        echo "> sftp $nbTar tar files from '$SHOST' to '$HERE'"
+        listTar=`ls *.tar.gz`
+        #- And move tar file to INDIR
+        for xx in $listTar ; do
+          if test -f $INDIR/$xx ; then
+            yy=`echo $xx | sed 's/\.tar\.gz$/b/'`
+            mv $xx $INDIR/$yy.tar.gz
+          else
+            mv $xx $INDIR
+          fi
+        done
+        rm -f $STDOUT
+#- 2) remove from SHOST all tar files that we got here (this way it should be safe)
+        sftp $SHOST <<EOF > $STDOUT 2>&1
+        cd $S_DIR
+        rm $listTar
+        bye
+EOF
+        retVal=$?
+        if test "x$retVal" != x0 ; then
+            date
+            cat $STDOUT
+            echo "ERROR: when trying to sftp tar-file from $SHOST"
+           #rm -f $STDOUT
+            exit 6
+        fi
+        if test $PRT = 2 ; then cat $STDOUT ; fi
+        rm -f $STDOUT
+      fi
+    fi
+    #echo " nbTar='$nbTar' ; listTar='$listTar'"
+
+#---------------------------------------------------------------------
+
+#- 3) check that $INDIR is empty (except .tar.gz files)
   nbMsg=`ls -1 $INDIR | grep -v '\.tar\.gz$' | wc -l`
   if test $nbMsg != 0 ; then
     date
     echo "ERROR: '$INDIR' is not empty ! --> exit"
-    exit 5
+    exit 7
   fi
 
   nbMsg=0; ORIG=${RHOST}:$M_DIR
-#- 2) scp all msg from ORIG to INDIR
+#- 4) scp all msg from ORIG to INDIR
   cd $INDIR
-    scp -p ${RHOST}:$M_DIR/msg.\* . > $STDOUT 2>&1
+    scp -p ${RHOST}:$M_DIR/msg.\* . >> $STDOUT 2>&1
     RETVAL=$?
     if test "x$RETVAL" != x0 ; then
      #echo " RETVAL='$RETVAL'"
@@ -180,14 +255,14 @@ if test $oldMsg = 0 ; then
         cat $STDOUT
         echo "ERROR: when trying to scp msg from $ORIG to $INDIR"
        #rm -f $STDOUT
-        exit 6
+        exit 8
     fi
     listMsg='' ; nbMsg=`ls -1 msg.* 2>/dev/null | wc -l`
     if test $nbMsg != 0 ; then
         echo "> scp $nbMsg msg from '$ORIG' to '$INDIR'"
         listMsg=`ls -1 msg.*`
-	#- And rename msg by adding unique suffix
-	for xx in $listMsg ; do
+        #- And rename msg by adding unique suffix
+        for xx in $listMsg ; do
           mv $xx $xx.$sufx
         done
     fi
@@ -195,7 +270,7 @@ if test $oldMsg = 0 ; then
   cd $HERE
   #echo " nbMsg='$nbMsg' ; listMsg='$listMsg'"
 
-#- 3) remove from ORIG all msg that we got here (this way it should be safe)
+#- 5) remove from ORIG all msg that we got here (this way it should be safe)
   if test $nbMsg != 0 ; then
    #echo "ssh $RHOST cd $M_DIR \; /bin/rm -f $listMsg"
     ssh $RHOST cd $M_DIR \; /bin/rm -f $listMsg
@@ -204,7 +279,7 @@ if test $oldMsg = 0 ; then
         echo "ERROR ( $RETVAL ) when trying to ssh+rm $nbMsg msg from $ORIG"
     #- note: Checking for return-value from ssh command is not good enough,
     #        therefore we do not terminate if non-zero
-      # exit 7
+      # exit 9
     fi
   #- This is the log file that "check_outp" (run on baudelaire) was checking:
   # logpfx="prc_emails_" ; sfx=`date +%m%d`
@@ -222,18 +297,19 @@ all_msg=`ls -tr1 $INDIR`
 nb_msg=`echo "$all_msg" | grep -c '^msg\.'`
 nb_tar=`echo "$all_msg" | grep -c '\.tar\.gz$'`
 nb_files=`expr $nb_msg + $nb_tar`
+nb_loc=`expr $nb_tar - $nbTar`
 
 if test $PRT = 2 ; then
   echo "Using OUTDIR=\"$OUTDIR\""
   echo "Using INDIR=\"$INDIR\""
-  echo -n "Unpacking $nb_msg msg + $nb_tar tar-file ("`date`
+  echo -n "Unpacking $nb_msg msg & $nbTar + $nb_loc tar-file ("`date`
   echo -n ", sfx=$sufx"
   if test "x$ADDRERR" != x ; then
      echo -n ", err: $ADDRERR"
   fi
   echo ")"
 elif test $nb_files != 0 ; then
-  echo -n "Unpacking $nb_msg msg + $nb_tar tar-file ("`date`
+  echo -n "Unpacking $nb_msg msg & $nbTar + $nb_loc tar-file ("`date`
   echo -n ", sfx=$sufx"
   if test "x$ADDRERR" != x ; then
      echo -n ", err: $ADDRERR"
