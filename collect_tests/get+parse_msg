@@ -145,15 +145,19 @@ if test ! -e $OUTDIR ; then
     fi
 fi
 
-#-- check that $TEMPDIR exist (needed for STDOUT)
+#-- check that $TEMPDIR exist (needed for STDOUT) and remove old files
 if test ! -d $TEMPDIR ; then
     mkdir $TEMPDIR
     RETVAL=$?
-    if test "x$RETVAL" != x0 ; then
-        date
-        echo "ERROR: directory \"$TEMPDIR\" doesn't exist and can't be created"
-        exit 4
-    fi
+else RETVAL=0 ; fi
+if test "x$RETVAL" = x0 ; then
+    ( cd  $TEMPDIR ; rm -rf * )
+    RETVAL=$?
+fi
+if test "x$RETVAL" != x0 ; then
+    date
+    echo "ERROR: directory \"$TEMPDIR\" doesn't exist and/or can't be created/cleaned"
+    exit 4
 fi
 
 #---+----1----+----2----+----3----+----4----+----5----+----6----+----7-|--+----|
@@ -187,12 +191,12 @@ EOF
        #rm -f $STDOUT
         exit 5
     fi
-    if test $PRT = 2 ; then cat $STDOUT ; fi
+    if test $PRT = 2 ; then echo " -- getting *.tar.gz files from $SHOST :" ; cat $STDOUT ; fi
     RETVAL=`grep -l '^File .* not found' $STDOUT | wc -l`
     if test $RETVAL = 1 ; then
       rm -f $STDOUT
     else
-      listTar='' ; nbTar=`ls -1 *.tar.gz 2>/dev/null | wc -l`
+      nbTar=`ls -1 *.tar.gz 2>/dev/null | wc -l`
       if test $nbTar = 0 ; then
       #-- this is unexpected: sftp did find tar file to get but none are found HERE
         echo 'WARNING: no *.tar.gz file here despite successful sftp:'
@@ -200,8 +204,12 @@ EOF
         rm -f $STDOUT
       else
         echo "> sftp $nbTar tar files from '$SHOST' to '$HERE'"
-        listTar=`ls *.tar.gz`
-        #- And move tar file to INDIR
+#- 2) move tar file to $INDIR and set instructions to remove them from SHOST
+        listTar=`echo *.tar.gz`
+        if test $PRT = 2 ; then echo " listTar='$listTar'" ; fi
+        TMP_RM="$TEMPDIR/clean_sftp.$sufx"
+        echo "cd $S_DIR" > $TMP_RM
+   # a) move tar file to INDIR
         for xx in $listTar ; do
           if test -f $INDIR/$xx ; then
             yy=`echo $xx | sed 's/\.tar\.gz$/b/'`
@@ -209,14 +217,16 @@ EOF
           else
             mv $xx $INDIR
           fi
+          echo "rm $xx" >> $TMP_RM
         done
+        echo "bye" >> $TMP_RM
         rm -f $STDOUT
-#- 2) remove from SHOST all tar files that we got here (this way it should be safe)
-        sftp $SHOST <<EOF > $STDOUT 2>&1
-        cd $S_DIR
-        rm $listTar
-        bye
-EOF
+   # b) remove from SHOST all tar files that we got here (this way it should be safe)
+        if test $PRT = 2 ; then
+          echo ' -- removing *.tar.gz files with:'
+          echo " > sftp $SHOST < $TMP_RM" ; cat $TMP_RM
+        fi
+        sftp $SHOST < $TMP_RM > $STDOUT 2>&1
         retVal=$?
         if test "x$retVal" != x0 ; then
             date
@@ -225,8 +235,8 @@ EOF
            #rm -f $STDOUT
             exit 6
         fi
-        if test $PRT = 2 ; then cat $STDOUT ; fi
-        rm -f $STDOUT
+        if test $PRT = 2 ; then echo ' -- gives:' ; cat $STDOUT ; fi
+        rm -f $TMP_RM $STDOUT
       fi
     fi
     #echo " nbTar='$nbTar' ; listTar='$listTar'"
@@ -266,7 +276,7 @@ EOF
           mv $xx $xx.$sufx
         done
     fi
-   #rm -f $STDOUT
+    rm -f $STDOUT
   cd $HERE
   #echo " nbMsg='$nbMsg' ; listMsg='$listMsg'"
 
@@ -369,8 +379,9 @@ while [ $n -lt $Nbl ] ; do
     nm=`sed -n "$n p" $TR_LIST | wc -w | cut -d ' ' -f 1`
 
 #-  create local copy
-    test -e $TEMPDIR  &&  rm -rf $TEMPDIR
-    mkdir $TEMPDIR
+#   test -e $TEMPDIR  &&  rm -rf $TEMPDIR
+#   mkdir $TEMPDIR
+    ( cd $TEMPDIR ; rm -rf * )
     RETVAL=$?
     if test "x$RETVAL" = x0 ; then
       ( cd $INDIR ; cp $grpM $TEMPDIR )
@@ -379,7 +390,8 @@ while [ $n -lt $Nbl ] ; do
     if test "x$RETVAL" != x0 ; then
       if test "x$ADDRERR" != x ; then
         echo "error parsing email '$grpM' :" > $ERRMSG
-        echo -n "'mkdir $TEMPDIR' or 'cp $INDIR/$grpM $TEMPDIR'" | tee -a $ERRMSG
+       #echo -n "'mkdir $TEMPDIR' or 'cp $INDIR/$grpM $TEMPDIR'" | tee -a $ERRMSG
+        echo -n "cleaning '$TEMPDIR' or 'cp $INDIR/$grpM $TEMPDIR'" | tee -a $ERRMSG
         echo " returns error $RETVAL" | tee -a $ERRMSG
         mail -s 'parse_emails err_0' $ADDRERR < $ERRMSG
         rm -f $ERRMSG
