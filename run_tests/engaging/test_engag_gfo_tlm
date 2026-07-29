@@ -7,7 +7,7 @@
 #SBATCH --tasks-per-node 3
 # #SBATCH -n 6
 # #SBATCH -x node[158,173,235,333,335]
-#SBATCH -x node[173,235,335]
+#SBATCH -x node[173,235,335,967,968]
 #SBATCH -e /home/jm_c/test_engaging/output/gfoTlm_tst.stderr
 #SBATCH -o /home/jm_c/test_engaging/output/gfoTlm_tst.stdout
 #SBATCH --no-requeue
@@ -25,10 +25,19 @@ headNode='vlogin001'
 dNam='engaging'
 HERE="$HOME/test_${dNam}"
 OUTP="$HERE/output"; SavD="$HERE/send"
-#SEND="ssh $headNode $SavD/mpack"
-#sendCmd="-sd $SavD -a jm_c@mitgcm.org"
-SEND="scp" ; sendCmd='-a jm_c@mitgcm.org:testing/MITgcm-test'
-#----------
+#--- To send output: ---
+#- using mpack from head-node:
+# SEND="ssh $headNode $SavD/mpack"
+# DESTIN="-sd $SavD -a jm_c@mitgcm.org"
+#- using scp from compute-node:
+# SEND="scp" ; DESTIN='-a jm_c@mitgcm.org:testing/MITgcm-test'
+#- using sftp from compute-node:
+  SEND="upload_sftp"
+  DESTIN="-a sftp_shared@svante8.mit.edu"
+#- using sftp from head-node:
+# SEND="ssh $headNode $SavD/upload_sftp"
+# DESTIN="-sd $SavD $DESTIN"
+#-----------------------
 TST_DIR="/orcd/pool/007/jm_c/test_$dNam"
 TST_DIR=$HERE
 tmpFil="/tmp/"`basename $0`".$$"
@@ -254,10 +263,10 @@ if [ $dblTr -ge 0 ] ; then
 #- 2) run and report results ; also finish to compile those who failed with "-j"
   echo $TR_Script $options -of $OPTFILE $optExp \'$fewExp\' \
     -c \'mpirun -np TR_NPROC -hostfile TR_MFILE ./mitgcmuv_ftl\' -mf $MPI_mFile \
-    -odir ${dNam}-$sfx -send \'$SEND\' $sendCmd
+    -odir ${dNam}-$sfx -send \'$SEND\' $DESTIN
   $TR_Script $options -of $OPTFILE $optExp "$fewExp" \
     -c 'mpirun -np TR_NPROC -hostfile TR_MFILE ./mitgcmuv_ftl' -mf $MPI_mFile \
-    -odir ${dNam}-$sfx -send "$SEND" $sendCmd
+    -odir ${dNam}-$sfx -send "$SEND" $DESTIN
   retVal=$?
 else retVal=0 ; fi
 
@@ -269,10 +278,10 @@ else
 #- 3) test restart and report results
 # echo $RS_Script -mpi \
 #   -exe \'mpirun -np TR_NPROC -hostfile TR_MFILE ./mitgcmuv\' -mf $MPI_mFile \
-#   -o ${dNam}-$sfx -send \'$SEND\' $sendCmd
+#   -o ${dNam}-$sfx -send \'$SEND\' $DESTIN
 # $RS_Script -mpi \
 #   -exe 'mpirun -np TR_NPROC -hostfile TR_MFILE ./mitgcmuv' -mf $MPI_mFile \
-#   -o ${dNam}-$sfx -send "$SEND" $sendCmd
+#   -o ${dNam}-$sfx -send "$SEND" $DESTIN
 #-----------------------------------------------------------------------------------------
   echo -n "Remove machine-file MPI_mFile :"
   rm -f $MPI_mFile
