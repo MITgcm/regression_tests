@@ -897,25 +897,6 @@ runmodel()
 	    ( eval $COMMAND ) >> $RUNLOG 2>&1
 	    RETVAL=$?
 	    ENDVAL=`tail $OUTPUTFILE | grep -c 'PROGRAM MAIN: Execution ended Normally'`
-	#- try to add this double checking: --------
-	    if [ $ENDVAL -le 0 ] ; then ls -l $OUTPUTFILE $RUNLOG 1>&2 ; fi
-	    nDone=`sed 's/NORMAL END/&\n/' $RUNLOG | sed 's/ABNORMAL / /g' | grep -c 'NORMAL END$'`
-	    toRun=`expr $LOC_NPROC \* \( 1 + $add_DIVA_runs \)`
-	    echo -n " -- Normal-end count: $nDone , expected: $toRun , EndVal= $ENDVAL" 1>&2
-	    if [ $ENDVAL -le 0 ] ; then
-		echo -n "-- Normal-end count: $nDone , expected: $toRun" >> $CDIR"/summary.txt"
-		if [ $nDone -eq $toRun ] ; then ENDVAL=1
-		     echo ' <-- Seems OK' 1>&2
-		     echo ' <-- Seems OK' >> $CDIR"/summary.txt"
-		else
-		     echo ' <-- FAILED' 1>&2
-		     echo ' <-- FAILED' >> $CDIR"/summary.txt"
-		fi
-	    else
-		if [ $nDone -eq $toRun ] ; then echo ' <-- successful' 1>&2
-		else echo ' <-- failed counting' 1>&2 ; fi
-	    fi
-	#----------------- double checking ends here
 	    if [ $POSTCLEAN -eq 1 -a $ENDVAL -gt 0 ] ; then
 		find . -name "*.meta" -exec rm {} \;
 		find . -name "*.data" -exec rm {} \;
