@@ -40,8 +40,9 @@ ulimit -s unlimited
  #git_repo='altMITgcm'; #git_code='MITgcm66h'
 #- other settings:
 tmpFil="/tmp/"`basename $0`".$$"
-sendCmd='-a jm_c@mitgcm.org'
-sendCmd='-send scp -a jm_c@mitgcm.org:testing/MITgcm-test'
+# sendCmd='-a jm_c@mitgcm.org'
+# sendCmd='-send scp -a jm_c@mitgcm.org:testing/MITgcm-test'
+  sendCmd='-send upload_sftp -a sftp_shared@svante8.mit.edu'
 #- expect higher precision if test is run on reference platform+compiler:
 MC=13
 
