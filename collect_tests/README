@@ -1,28 +1,68 @@
-On mitgcmcvs.mit.edu , as jm_c :
-1) in /home/jm_c/testing :
- with: CVS_RSH=ssh
-       CVSROOT=:ext:jmc@mitgcm.org:/u/gcmpack
- downloaded those 2 dir:
+Contains scripts used for:
+ 1) collecting and processing regression-tests output (tar files or emails)
+ 2) front_page building (this include making the testing page)
+ 3) making a daily tar file of source code
 
-  > cvs co -P -d front_content mitgcm.org/front_content
-  > cvs co -P -d scripts       mitgcm.org/scripts
-  > cp -p scripts/daily_update .
+.--- Setting-up: -----------------------
+On mitgcmcvs.mit.edu , as jm_c , in /home/jm_c/testing :
 
-2) since we are not able to configure & compile stuff here to
- generate executables "mpack" and "munpack", take dir "tools/mpack-1.6"
- (already compiled) from villon (or batsi):
+ Just need to put, in /home/jm_c/testing/, a copy of script "daily_update"
+ https://github.com/MITgcm/regression_tests/blob/master/collect_tests/daily_update
+
+ and to set-up the crontab according to "crontab_gcm"
+ https://github.com/MITgcm/regression_tests/blob/master/collect_tests/crontab_gcm
+
+---- Getting a working "munpack" : ------
+ Since we are not able to configure & compile stuff here to generate executables
+ "mpack" and "munpack", take dir "tools/mpack-1.6" (already compiled)
+ from villon.mit.edu (or baudelaire.mit.edu):
  a) make a tar file of:
    jm_c@villon.mit.edu:/home/jm_c/mitgcm/gcm_current/tools/mpack-1.6/
  b) copy it here (in /home/jm_c/testing) as: "tools_mpack"
   > tar -xf tools_mpack.tar
   > mv mpack-1.6 tools_mpack"
- c) and finaly:
+ c) and finally:
   > ln -s tools_mpack/munpack munpack.x86_64
 
-3) created empty dirs in /home/jm_c/testing:
-  > mkdir logs MITgcm-test fail2process postponed
+----------------------------------------
+---- Other email settings : ------------
+ Note: testreport output emails sent to: "jm_c@mitgcm.org"
+       are put in ~/Mail/MITgcm-test on: jm_c@mitgcm-mm.mit.edu
+       by procmail, using:
+#  1) file: ~/.forward :
+-----> File starts here:
+"| /usr/bin/procmail"
+<----- File Ends here.
+#  2) file: ~/.procmailrc :
+-----> File starts here:
 
-4) dir & scripts used:
- more scripts/crontab_gcm
+PATH=/bin:/usr/bin
+MAILDIR=$HOME/Mail      #you'd better make sure it exists
+DEFAULT=$MAILDIR/default
+LOGFILE=$MAILDIR/log    #recommended
 
------------------------------------------------------------------------------------
+#  :0 c
+:0
+* ^Subject:.*MITgcm-test
+MITgcm-test
+
+:0
+! jmc@mit.edu
+
+<----- File Ends here.
+
+----------------------------------------
+---- Notice on sftp server : -----------
+  Content of file "README" that is kept on: sftp_shared@svante8.mit.edu:/uploads/
+  as this location is used to upload some regression-test output
+   (e.g., using: ./testreport -send upload_sftp -a sftp_shared@svante8.mit.edu )
+-----> File starts here:
+Location to upload testreport output tar-files (*.tar.gz), that will be downloaded
+ (every 1/2 h) by script "prc_tr_emails" (calling: get+parse_msg) and put in place.
+
+IMPORTANT: Should not put any "*.tar.gz" file here other than test output ones
+ (from "testreport" or "do_tst_2+2") as they will be wrongly assumed to be an
+ output to process, resulting in failure down the road.
+------------------------------------------------------------------------------------
+<----- File Ends here.
+----------------------------------------
