@@ -18,7 +18,14 @@ if test -e $gcmDIR/.git/config ; then
 fi
 #--------------------------
 
-cronStuff=`grep -v '^#' $CronTabFile | grep 'test_local .*>' | sed 's/^.*test_local //' | sed 's/>*\&//'`
+if test -r $CronTabFile ; then
+  #-- get it from file
+  cronStuff=`grep -v '^#' $CronTabFile | grep 'test_local .*>' | sed -e 's/^.*test_local //' -e 's/>*\&//'`
+else
+  #-- get it from command
+  cronStuff=`crontab -l | grep -v '^#' | grep 'test_local .*>' | sed -e 's/^.*test_local //' -e 's/>*\&//'`
+fi
+
 pp=0
 for xx in $cronStuff ; do
   #echo " xx='${xx}'"
@@ -33,7 +40,7 @@ for xx in $cronStuff ; do
     #echo " ; savF='${savF}'"
     if test -e $namF ; then
       #ls -l $namF
-      if test -s $namF ; then : else
+      if test ! -s $namF ; then
         #echo "mv $namF $savF"
         mv -f $namF $savF
       fi
