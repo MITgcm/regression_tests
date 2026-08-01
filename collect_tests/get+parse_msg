@@ -114,12 +114,12 @@ if test ! -x $MUNPACK ; then
 fi
 
 #-- set OUTDIR (if not yet set) and create it (if not already there)
+oldMsg=0 ; nbTar=0
 if test "x$OUTDIR" = x ; then
   OUTDIR="$BASEDIR/$monthDir"
 else
   monthDir=0
 fi
-oldMsg=0
 if test ! -e $OUTDIR ; then
     mkdir $OUTDIR
     RETVAL=$?
@@ -140,7 +140,7 @@ if test ! -e $OUTDIR ; then
     if test $oldMsg != 0 ; then
       newInD=`dirname $INDIR`
       INDIR="$newInD/postponed"
-      echo " Change INDIR to '$INDIR' ($oldMsg old messages)"
+      echo " Change INDIR to '$INDIR' ($oldMsg old files)"
       oldMsg=1
     fi
 fi
@@ -239,7 +239,6 @@ EOF
         rm -f $TMP_RM $STDOUT
       fi
     fi
-    #echo " nbTar='$nbTar' ; listTar='$listTar'"
 
 #---------------------------------------------------------------------
 
