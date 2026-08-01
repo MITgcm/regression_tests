@@ -4,6 +4,26 @@ gcmDIR="MITgcm"
 logFile='check_update.log'
 CronTabFile='crontab_jmc'
 
+#- to print debug info, set "dB" to something (e.g.: dB=0 );
+#                       otherwise set it to nothing ( dB= ):
+dB=
+
+#--------------------------
+dayInMonth=`date +%d`
+if test $dayInMonth = '01' ; then
+  tail -n 1 $logFile | grep -q '^==*$'
+  retVal=$?
+  if test $retVal != 0 ; then
+    echo "- first day of the month: add separation line to log-file: '$logFile'"
+    echo \
+    '================================================================================' \
+         >> $logFile
+  fi
+fi
+
+#--------------------------
+# after saving previous git-hash to "prevHash",
+# update $gcmDIR clone master branch and get the corresponding git-hash
 if test -f git_Hash ; then mv git_Hash prevHash ; fi
 if test -e $gcmDIR/.git/config ; then
   ( cd $gcmDIR ; git checkout master > /dev/null 2>&1 )
@@ -15,36 +35,44 @@ if test -e $gcmDIR/.git/config ; then
     echo "  'git pull' in $gcmDIR fail (return val=$retv) => no new 'git_Hash'" >> $logFile
     exit 1
   fi
+else
+  echo "Warning: no git clone '$gcmDIR' ==> no 'git_Hash' generated"
 fi
+
 #--------------------------
+#- rename previous non-empty "test_local" output : get list from crontab
 
 if test -r $CronTabFile ; then
   #-- get it from file
+  [ $dB ] && echo "- getting 'cronStuff' from file '$CronTabFile' :"
   cronStuff=`grep -v '^#' $CronTabFile | grep 'test_local .*>' | sed -e 's/^.*test_local //' -e 's/>*\&//'`
 else
   #-- get it from command
+  [ $dB ] && echo "- getting 'cronStuff' from command 'crontab -l' :"
   cronStuff=`crontab -l | grep -v '^#' | grep 'test_local .*>' | sed -e 's/^.*test_local //' -e 's/>*\&//'`
 fi
 
 pp=0
 for xx in $cronStuff ; do
-  #echo " xx='${xx}'"
+  # [ $dB ] && echo " xx='${xx}'"
   if test $pp = 0 ; then
     #-- set pair firt param:
     pp=$xx
   else
     #-- set pair second param:
-    #echo -n " pair of arg: pp='${pp}' & xx='${xx}'"
+    [ $dB ] && echo -n " pair of arg: pp='${pp}' & xx='${xx}'"
     namF=${xx}
     savF=`echo $namF | sed 's/_[0-9]*$/_/'`$pp
-    #echo " ; savF='${savF}'"
-    if test -e $namF ; then
-      #ls -l $namF
-      if test ! -s $namF ; then
-        #echo "mv $namF $savF"
+    [ $dB ] && echo " ; savF='${savF}'"
+    if test -f $namF ; then
+      [ $dB ] && ls -l $namF
+      if test -s $namF ; then
+        echo "mv $namF $savF"
         mv -f $namF $savF
+      else
+        [ $dB ] && echo " <-- empty file, do nothing"
       fi
-    #else echo " no file: $namF"
+     else [ $dB ] && echo " <-- no file: $namF"
     fi
     #-- reset pair firt param:
     pp=0
