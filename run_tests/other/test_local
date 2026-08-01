@@ -57,7 +57,7 @@ if test $1 = tap ; then
 
   if test ! -e $gcmDIR/.git/config ; then
     echo " No current clone '${gcmDIR}' ==> get a fresh clone" >> $logFile
-    #rm -f git_Hash prevHash
+    rm -f git_Hash
     if test -d $gcmDIR ; then /bin/rm -rf $gcmDIR ; fi
     git clone https://github.com/$git_repo/${git_code}.git $gcmDIR ; retv=$?
     if test $retv != 0 ; then
@@ -223,7 +223,7 @@ do
   fi
  fi
   echo ""
-  echo "=========================================================================="
+  echo "--------------------------------------------------------------------------"
 
  if test -d $gcmDIR/verification ; then
   if test -e tr_run_$tt.log ; then mv -f tr_run_$tt.log tr_run_$tt.log_bak ; fi
@@ -440,6 +440,7 @@ esac
  fi
 
 done
+  echo "=========================================================================="
 
 if test $1 = gfort ; then
   day=`date +%d`
