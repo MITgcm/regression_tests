@@ -20,9 +20,9 @@ echo " running on: "`hostname`
 dNam='pleiades'
 HERE="$HOME/test_$dNam"
 SubD="$HERE/$dNam" ; OUTP="$HERE/output" ; SavD="$HERE/send"
-#SEND="ssh pfe $SavD/mpack" ;       DESTIN="-sd $SavD -a jm_c@mitgcm.org"
-#SEND="ssh pfe scp" ;               DESTIN="-sd $SavD -a jm_c@mitgcm.org:testing/MITgcm-test"
- SEND="ssh pfe $SavD/upload_sftp" ; DESTIN="-sd $SavD -a sftp_shared@svante8.mit.edu"
+#SEND="ssh pfe20 $SavD/mpack" ;       DESTIN="-sd $SavD -a jm_c@mitgcm.org"
+#SEND="ssh pfe20 scp" ;               DESTIN="-sd $SavD -a jm_c@mitgcm.org:testing/MITgcm-test"
+ SEND="ssh pfe20 $SavD/upload_sftp" ; DESTIN="-sd $SavD -a sftp_shared@svante8.mit.edu"
 TST_DISK="/nobackupp17/jcampin"
 TST_DIR="$TST_DISK/test_${dNam}"
 #- where local copy of code is (need to be consistent with "test_submit_pleiades"):
