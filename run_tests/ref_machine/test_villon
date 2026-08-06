@@ -42,8 +42,9 @@ dInWeek=`date +%a`
 dNam=`hostname -s | tr '[:upper:]' '[:lower:]'`
  TESTDIR="$HOME/test_${dNam}"
 #TESTDIR="/scratch/jmc/test_${dNam}"
-#sendCmd='-a jm_c@mitgcm.org'
- sendCmd='-send scp -a jm_c@mitgcm.org:testing/MITgcm-test'
+# sendCmd='-a jm_c@mitgcm.org'
+# sendCmd='-send scp -a jm_c@mitgcm.org:testing/MITgcm-test'
+  sendCmd='-send upload_sftp -a sftp_shared@svante8.mit.edu'
  MC=13 ; outDir="${dNam}-${tst_grp}"
 #MC=11 ;#outDir=$dNam
 sepDir=1
