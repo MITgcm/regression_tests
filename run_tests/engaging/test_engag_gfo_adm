@@ -1,13 +1,14 @@
 #!/bin/bash
 #SBATCH -J gfoAdm_tst
-#SBATCH -p sched_mit_hill
+#SBATCH -p mit_normal
+# #SBATCH --account=mit_amf_advanced_cpu
+# #SBATCH --qos=mit_amf_advanced_cpu
 #SBATCH -t 11:50:00
 #SBATCH --mem-per-cpu 4000
 #SBATCH -N 2
 # #SBATCH --exclusive
 #SBATCH --tasks-per-node 16
-# #SBATCH -x node[158,173,235,333,335]
-#SBATCH -x node[173,235,335,967,968]
+# #SBATCH -x node[173,235,335,967,968]
 #SBATCH -e /home/jm_c/test_engaging/output/gfoAdm_tst.stderr
 #SBATCH -o /home/jm_c/test_engaging/output/gfoAdm_tst.stdout
 #SBATCH --no-requeue
@@ -20,7 +21,7 @@ umask 0022
 #- to get case insensitive "ls" (and order of tested experiments)
 export LC_ALL="en_US.UTF-8"
 echo " running on: "`hostname`
-headNode='vlogin001'
+headNode='login006'
 
 dNam='engaging'
 HERE="$HOME/test_${dNam}"
@@ -54,15 +55,26 @@ TR_Script='./testreport' ; RS_Script='../tools/do_tst_2+2'
 checkOut=1 ; dblTr=0 ; typ='' ; addExp='' ; fewExp='' ; optExp='-skd'
 sfx='gfoAdm'; typ='-adm' ; dblTr=1
 addExp="$addExp global_oce_cs32 global_oce_llc90"
- module add slurm
- module add gcc
- module add mvapich2/gcc/64/2.0b
-#module add openmpi/gcc
- export MPI_INC_DIR="$MPI_HOME/include"
+#-- old Centos-7:
+# module add slurm
+# module add gcc
+# module add mvapich2/gcc/64/2.0b
+##module add openmpi/gcc
+# export MPI_INC_DIR="$MPI_HOME/include"
 #- for NetCDF:
- module add harvard/centos6/hdf5-1.8.11_gcc-4.4.7
- module add harvard/centos6/netcdf-4.3.0_gcc-4.4.7
- OPTFILE="../tools/build_options/linux_amd64_gfortran"
+# module add harvard/centos6/hdf5-1.8.11_gcc-4.4.7
+# module add harvard/centos6/netcdf-4.3.0_gcc-4.4.7
+# OPTFILE="../tools/build_options/linux_amd64_gfortran"
+#--- new Rocky-8:
+  module load gcc/12.2.0
+  module load openmpi/4.1.4
+  module load community-modules
+  module load netcdf-fortran/4.6.1
+  module load netcdf-c/4.9.2
+  export LD_LIBRARY_PATH="$(nf-config --prefix)/lib:$(nc-config --libdir):$LD_LIBRARY_PATH"
+ #export MPI_INC_DIR=`echo $MPIF77 | sed 's/bin\/mpif77/include/'`
+  OPTFILE="$HOME/linux_amd64_gfortran_rocky8"
+#-----
  options="$typ -MPI 32"
  ulimit -s unlimited
 #- need this to get "staf":
