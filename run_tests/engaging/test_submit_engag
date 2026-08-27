@@ -33,7 +33,7 @@ fi
 #- default is to submit all of the bacth-scripts:
 if test $submitJob = 1 -a $TEST_LIST = 'unset' ; then
  #TEST_LIST='gfoAdm ifcMpi ifcMp2 o64Adm o64Mpi gfoTlm'
-  TEST_LIST='gfoAdm o64Adm o64Mpi gfoTlm'
+  TEST_LIST='gfoAdm gfoTlm'
  #if test "x$dInWeek" = xSun ; then TEST_LIST="$TEST_LIST iad ifc oad" ; fi
 fi
 
