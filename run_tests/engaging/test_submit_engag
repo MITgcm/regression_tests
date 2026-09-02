@@ -33,7 +33,7 @@ fi
 #- default is to submit all of the bacth-scripts:
 if test $submitJob = 1 -a $TEST_LIST = 'unset' ; then
  #TEST_LIST='gfoAdm ifcMpi ifcMp2 o64Adm o64Mpi gfoTlm'
-  TEST_LIST='gfoAdm o64Adm o64Mpi gfoTlm'
+  TEST_LIST='gfoAdm gfoTlm'
  #if test "x$dInWeek" = xSun ; then TEST_LIST="$TEST_LIST iad ifc oad" ; fi
 fi
 
@@ -73,6 +73,7 @@ logPfix='test_submit'
 #-- to get the updated testing scripts (with same "git_repo"):
   git_test='regression_tests'
   test_branch='master'
+ #test_branch='trying_to_catch_up'
 #--
   git_repo="https://github.com/$git_repo"
  #git_repo="git://github.com/$git_repo"
@@ -96,6 +97,8 @@ rm -f $logPfix.*.log_bak
 if test -f $LOG_FIL ; then mv -f $LOG_FIL ${LOG_FIL}_bak ; fi
 echo -n '-- Starting: '					| tee -a $LOG_FIL
 date							| tee -a $LOG_FIL
+echo -n " - run from: "					| tee -a $LOG_FIL
+hostname -f						| tee -a $LOG_FIL
 echo -n " cleanLog='$cleanLog' ; updateSrc='$updateSrc' ;"	| tee -a $LOG_FIL
 echo -n " updateTst='$updateTst' ; submitJob='$submitJob' ;"	| tee -a $LOG_FIL
 echo    " TEST_LIST='$TEST_LIST' ; sfxTyp='$sfxTyp'"		| tee -a $LOG_FIL
