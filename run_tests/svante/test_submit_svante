@@ -95,6 +95,8 @@ rm -f $logPfix.*.log_bak
 if test -f $LOG_FIL ; then mv -f $LOG_FIL ${LOG_FIL}_bak ; fi
 echo -n '-- Starting: '					| tee -a $LOG_FIL
 date							| tee -a $LOG_FIL
+echo -n " - run from: "					| tee -a $LOG_FIL
+hostname -f						| tee -a $LOG_FIL
 echo -n " cleanLog='$cleanLog' ; updateSrc='$updateSrc' ;"	| tee -a $LOG_FIL
 echo -n " updateTst='$updateTst' ; submitJob='$submitJob' ;"	| tee -a $LOG_FIL
 echo    " TEST_LIST='$TEST_LIST' ; sfxTyp='$sfxTyp'"		| tee -a $LOG_FIL
