@@ -71,7 +71,7 @@ sfx='gfoTlm'; typ='-tlm' ; dblTr=1
   module load netcdf-c/4.9.2
   export LD_LIBRARY_PATH="$(nf-config --prefix)/lib:$(nc-config --libdir):$LD_LIBRARY_PATH"
  #export MPI_INC_DIR=`echo $MPIF77 | sed 's/bin\/mpif77/include/'`
-  OPTFILE="$HOME/linux_amd64_gfortran_rocky8"
+  OPTFILE="$HERE/local/linux_amd64_gfortran_rocky8"
 #-----
  options="$typ -MPI 6"
  ulimit -s unlimited
