@@ -1,12 +1,13 @@
 #!/bin/bash
 #SBATCH -J ifcMpi_tst
-#SBATCH -p sched_mit_hill
+#SBATCH -p mit_normal
+# #SBATCH --account=mit_amf_advanced_cpu
+# #SBATCH --qos=mit_amf_advanced_cpu
 #SBATCH -t 10:00:00
 #SBATCH --mem-per-cpu 4000
 #SBATCH -N 2
 #SBATCH --tasks-per-node 4
-# #SBATCH -x node[073,122,124,235,335]
-#SBATCH -x node[169,173,235,335]
+# #SBATCH -x node[169,173,235,335]
 #SBATCH -e /home/jm_c/test_engaging/output/ifcMpi_tst.stderr
 #SBATCH -o /home/jm_c/test_engaging/output/ifcMpi_tst.stdout
 #SBATCH --no-requeue
@@ -19,7 +20,7 @@ umask 0022
 #- to get case insensitive "ls" (and order of tested experiments)
 export LC_ALL="en_US.UTF-8"
 echo " running on: "`hostname`
-headNode='vlogin001'
+headNode='login006'
 
 dNam='engaging'
 HERE="$HOME/test_${dNam}"
@@ -29,15 +30,16 @@ OUTP="$HERE/output"; SavD="$HERE/send"
 # SEND="ssh $headNode $SavD/mpack"
 # DESTIN="-sd $SavD -a jm_c@mitgcm.org"
 #- using scp from compute-node:
-  SEND="scp" ; DESTIN='-a jm_c@mitgcm.org:testing/MITgcm-test'
+# SEND="scp" ; DESTIN='-a jm_c@mitgcm.org:testing/MITgcm-test'
 #- using sftp from compute-node:
-# SEND="upload_sftp"
-# DESTIN="-a sftp_shared@svante8.mit.edu"
+  SEND="upload_sftp"
+  DESTIN="-a sftp_shared@svante8.mit.edu"
 #- using sftp from head-node:
 # SEND="ssh $headNode $SavD/upload_sftp"
 # DESTIN="-sd $SavD $DESTIN"
 #-----------------------
 TST_DIR="/orcd/pool/007/jm_c/test_$dNam"
+TST_DIR=$HERE
 tmpFil="/tmp/"`basename $0`".$$"
   cmdCVS='cvs -d :pserver:cvsanon@mitgcm.org:/u/gcmpack -q'
 #- which GitHub repository to use and how to access it:
@@ -52,12 +54,18 @@ TR_Script='./testreport' ; RS_Script='../tools/do_tst_2+2'
 checkOut=1 ; dblTr=0 ; typ='' ; addExp='' ; fewExp='' ; optExp='-skd'
 sfx='ifcMpi'; dblTr=1
 addExp='global_oce_cs32 global_oce_llc90'
- module add slurm
- module add gcc
- module add engaging/intel/2013.1.046
-#export MPI_INC_DIR="$MPI_HOME/include"
- OPTFILE="../tools/build_options/linux_amd64_ifort+impi"
- mpiCMD="mpirun -env I_MPI_DEBUG 2 -n TR_NPROC ./mitgcmuv" #- currently not used
+#-- old Centos-7:
+# module add slurm
+# module add gcc
+# module add engaging/intel/2013.1.046
+##export MPI_INC_DIR="$MPI_HOME/include"
+# OPTFILE="../tools/build_options/linux_amd64_ifort+impi"
+#--- new Rocky-8:
+  module use /home/jahn/software/modulefiles
+  module load intel/2024.2.1
+  module load jahn/netcdf-fortran/4.6.2_intel-2024.2.1
+  OPTFILE="$HERE/local/linux_amd64_ifx+impi_amd_avx2"
+#-----
  options="$typ -MPI 8"
 #options="-j 4 $options"
 #export OMP_NUM_THREADS=2
@@ -113,21 +121,6 @@ env | grep SLURM
 echo '======= modules ================================================================'
 module list 2>&1
 echo '================================================================================'
-
-#-
- MPI_mFile="${OUTP}/mf_${sfx}"   #- currently not used
-#mpiCMD="mpirun -hostfile TR_MFILE -n TR_NPROC ./mitgcmuv"
-#- make the testreport MPI_MFILE:
- listNODES=`echo $SLURM_NODELIST | sed -e 's/\[/ /' -e 's/\]//' -e 's/,/ /' -e 's/-/ /'`
-# duplicate the 2 listed nodes into a 6 list file:
- /bin/rm -f $MPI_mFile ; touch $MPI_mFile
- for nc in `seq 1 4` ; do pfx=''
-  for nd in $listNODES ; do
-   if test "x$pfx" = x ; then pfx=$nd ; else
-     echo "${pfx}${nd}" >> $MPI_mFile
-   fi
-  done
- done
 
 #- check for disk space: relative space (99%) or absolute (10.G):
 dsp=`df -P . | tail -1 | awk '{print $5}' | sed 's/%$//'`
@@ -274,6 +267,29 @@ else
   exit
 fi
 
+#-----------------------------------------------------------------------------------------
+ mpiCMD="mpirun -env I_MPI_DEBUG 2 -np TR_NPROC ./mitgcmuv" #- currently not used
+#mpiCMD="mpirun -hostfile TR_MFILE -np TR_NPROC ./mitgcmuv"
+
+#- make the testreport MPI_MFILE with list of nodes to use:
+ MPI_mFile="${OUTP}/mf_${sfx}"   #- currently not used
+#MPI_mFile="mpi_mfile.$$"
+ listNODES=`echo $SLURM_NODELIST | sed -e 's/\[/ /' -e 's/\]//' -e 's/,/ /' -e 's/-/ /'`
+# duplicate the 2 listed nodes into a 6 list file:
+ /bin/rm -f $MPI_mFile ; touch $MPI_mFile
+ for nc in `seq 1 4` ; do pfx=''
+  for nd in $listNODES ; do
+   if test "x$pfx" = x ; then pfx=$nd ; else
+     echo "${pfx}${nd}" >> $MPI_mFile
+   fi
+  done
+ done
+# srun hostname | sort > $MPI_mFile
+# echo '' ; echo "Using machine-file MPI_mFile='$MPI_mFile' :"
+# cat $MPI_mFile | uniq -c | awk '{print $2,"(x",$1,")"}'
+# echo " <-- end of MPI_mFile file"
+#-
+
 if [ $dblTr -eq 1 ] ; then
   echo ''
 #- 0) just make all module header ( *__genmod.mod files) using modified Makefile
@@ -296,12 +312,12 @@ fi
 if [ $dblTr -ge 0 ] ; then
   echo ''
 #- 2) run and report results ; also finish to compile those who failed with "-j"
- #echo $TR_Script $options -of $OPTFILE -command \'$mpiCMD\' -mf $MPI_mFile \
   echo $TR_Script $options -of $OPTFILE $optExp \'$fewExp\' \
     -odir ${dNam}-$sfx -send \'$SEND\' $DESTIN
- #$TR_Script $options -of $OPTFILE -command "$mpiCMD" -mf $MPI_mFile \
+  # -command \'$mpiCMD\' -mf $MPI_mFile \
   $TR_Script $options -of $OPTFILE $optExp "$fewExp" \
     -odir ${dNam}-$sfx -send "$SEND" $DESTIN
+  # -command "$mpiCMD" -mf $MPI_mFile \
   retVal=$?
 else retVal=0 ; fi
 
