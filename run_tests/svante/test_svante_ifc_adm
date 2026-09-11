@@ -24,7 +24,19 @@ headNode='svante-login'
 dNam='svante'
 HERE="$HOME/test_${dNam}"
 OUTP="$HERE/output"; SavD="$HERE/send"
-SEND="ssh $headNode $SavD/mpack"
+#--- To send output: ---
+#- using mpack from head-node:
+  SEND="ssh $headNode $SavD/mpack"
+  DESTIN="-sd $SavD -a jm_c@mitgcm.org"
+#- using scp from compute-node:
+# SEND="scp" ; DESTIN='-a jm_c@mitgcm.org:testing/MITgcm-test'
+#- using sftp from compute-node:
+# SEND="upload_sftp"
+# DESTIN="-a sftp_shared@svante8.mit.edu"
+#- using sftp from head-node:
+# SEND="ssh $headNode $SavD/upload_sftp"
+# DESTIN="-sd $SavD $DESTIN"
+#-----------------------
 #TST_DISK="/net/fs09/d1/jm_c"
 TST_DISK="/scratch/jm_c"
 #TST_DIR="$TST_DISK/test_${dNam}"
@@ -58,9 +70,9 @@ sfx='ifcAdm'; typ='-adm' ; dblTr=1
  export PATH="$PATH:$HOME/bin"
 
 gcmDIR="MITgcm_$sfx"
-dAlt=`date +%d` ; dAlt=`expr $dAlt % 3`
-if [ $dAlt -eq 2 ] ; then options="$options -ur4" ; fi
-if [ $dAlt -eq 1 ] ; then options="$options -fast"
+dAlt=`date +%d` ; dAlt=`expr $dAlt % 3` ; Opt='dev'
+if [ $dAlt -eq 2 ] ; then Opt='ur4' ; options="$options -$Opt" ; fi
+if [ $dAlt -eq 1 ] ; then Opt='fast' ; options="$options -$Opt"
 else options="$options -devel" ; fi
 
 #options="$options -do"
@@ -246,7 +258,7 @@ else
 fi
 
 if [ $dblTr -eq 1 ] ; then
- if [ $dAlt -ne 1 ] ; then
+ if test $Opt != 'fast' ; then
   echo ''
 #- 0) just make all module header ( *__genmod.mod files) using modified Makefile
   echo ./testreport $options -of $OPTFILE $optExp \'$fewExp\' \
@@ -264,17 +276,17 @@ if [ $dblTr -eq 1 ] ; then
     -j 4 -nr -odir ${dNam}-$sfx
   nFc=`grep -c '^Y . N N ' tr_out.txt`
   echo " <= fail to compile $nFc experiments"
- if [ $dAlt -eq 1 ] ; then options="$options -q" ; fi
+ if test $Opt = 'fast' ; then options="$options -q" ; fi
 fi
 
 if [ $dblTr -ge 0 ] ; then
-  if [ $dAlt -eq 2 ] ; then options="$options -match 5" ; fi
+  if test $Opt = 'ur4' ; then options="$options -match 5" ; fi
   echo ''
 #- 2) run and report results ; also finish to compile those who failed with "-j"
   echo ./testreport $options -of $OPTFILE $optExp \'$fewExp\' \
-    -odir ${dNam}-$sfx -send \'$SEND\' -sd $SavD -a jm_c@mitgcm.org
+    -odir ${dNam}-$sfx -send \'$SEND\' $DESTIN
   ./testreport $options -of $OPTFILE $optExp "$fewExp" \
-    -odir ${dNam}-$sfx -send "$SEND" -sd $SavD -a jm_c@mitgcm.org
+    -odir ${dNam}-$sfx -send "$SEND" $DESTIN
   retVal=$?
   $HERE/${dNam}/backup_outp tr_${dNam}-${sfx} $OUTP/backup
 else retVal=0 ; fi
@@ -286,7 +298,7 @@ if test "x$retVal" != x0 ; then
 # echo ''
 #- 3) test restart and report results
 # echo ../tools/do_tst_2+2 -mpi \
-#   -o ${dNam}-$sfx -send \'$SEND\' -sd $SavD -a jm_c@mitgcm.org
+#   -o ${dNam}-$sfx -send \'$SEND\' $DESTIN
 # ../tools/do_tst_2+2 -mpi \
-#   -o ${dNam}-$sfx -send "$SEND" -sd $SavD -a jm_c@mitgcm.org
+#   -o ${dNam}-$sfx -send "$SEND" $DESTIN
 fi
