@@ -71,7 +71,7 @@ sfx='gfoTlm'; typ='-tlm' ; dblTr=1
   module load netcdf-c/4.9.2
   export LD_LIBRARY_PATH="$(nf-config --prefix)/lib:$(nc-config --libdir):$LD_LIBRARY_PATH"
  #export MPI_INC_DIR=`echo $MPIF77 | sed 's/bin\/mpif77/include/'`
-  OPTFILE="$HOME/linux_amd64_gfortran_rocky8"
+  OPTFILE="$HERE/local/linux_amd64_gfortran_rocky8"
 #-----
  options="$typ -MPI 6"
  ulimit -s unlimited
@@ -250,10 +250,14 @@ else
 fi
 
 #-----------------------------------------------------------------------------------------
-# create "mf_file" with list of nodes to use:
-MPI_mFile="mpi_mfile.$$"
+#mpiCMD="mpirun -env I_MPI_DEBUG 2 -np TR_NPROC ./mitgcmuv_ftl" #- currently not used
+ mpiCMD="mpirun -hostfile TR_MFILE -np TR_NPROC ./mitgcmuv_ftl"
+
+#- make the testreport MPI_MFILE with list of nodes to use:
+#MPI_mFile="${OUTP}/mf_${sfx}"
+ MPI_mFile="mpi_mfile.$$"
  srun hostname | sort > $MPI_mFile
-echo '' ; echo "Using machine-file MPI_mFile='$MPI_mFile' :"
+ echo '' ; echo "Using machine-file MPI_mFile='$MPI_mFile' :"
  cat $MPI_mFile | uniq -c | awk '{print $2,"(x",$1,")"}'
  echo " <-- end of MPI_mFile file"
 
@@ -273,10 +277,10 @@ if [ $dblTr -ge 0 ] ; then
   echo ''
 #- 2) run and report results ; also finish to compile those who failed with "-j"
   echo $TR_Script $options -of $OPTFILE $optExp \'$fewExp\' \
-    -c \'mpirun -np TR_NPROC -hostfile TR_MFILE ./mitgcmuv_ftl\' -mf $MPI_mFile \
+    -command \'$mpiCMD\' -mf $MPI_mFile \
     -odir ${dNam}-$sfx -send \'$SEND\' $DESTIN
   $TR_Script $options -of $OPTFILE $optExp "$fewExp" \
-    -c 'mpirun -np TR_NPROC -hostfile TR_MFILE ./mitgcmuv_ftl' -mf $MPI_mFile \
+    -command "$mpiCMD" -mf $MPI_mFile \
     -odir ${dNam}-$sfx -send "$SEND" $DESTIN
   retVal=$?
 else retVal=0 ; fi
@@ -287,11 +291,9 @@ if test "x$retVal" != x0 ; then
 else
 # echo ''
 #- 3) test restart and report results
-# echo $RS_Script -mpi \
-#   -exe \'mpirun -np TR_NPROC -hostfile TR_MFILE ./mitgcmuv\' -mf $MPI_mFile \
+# echo $RS_Script -mpi -exe \'$mpiCMD\' -mf $MPI_mFile \
 #   -o ${dNam}-$sfx -send \'$SEND\' $DESTIN
-# $RS_Script -mpi \
-#   -exe 'mpirun -np TR_NPROC -hostfile TR_MFILE ./mitgcmuv' -mf $MPI_mFile \
+# $RS_Script -mpi -exe "$mpiCMD" -mf $MPI_mFile \
 #   -o ${dNam}-$sfx -send "$SEND" $DESTIN
 #-----------------------------------------------------------------------------------------
   echo -n "Remove machine-file MPI_mFile :"
