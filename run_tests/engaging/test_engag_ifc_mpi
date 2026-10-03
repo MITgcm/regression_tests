@@ -64,7 +64,7 @@ addExp='global_oce_cs32 global_oce_llc90'
   module use /home/jahn/software/modulefiles
   module load intel/2024.2.1
   module load jahn/netcdf-fortran/4.6.2_intel-2024.2.1
-  OPTFILE="$HERE/local/linux_amd64_ifx+impi_amd_avx2"
+  OPTFILE="../tools/build_options/linux_amd64_ifx+impi_avx2"
 #-----
  options="$typ -MPI 8"
 #options="-j 4 $options"
@@ -89,7 +89,7 @@ options="$options -devel"
 
 #- to use a local version:
   TR_Script="$HERE/local/testreport"
-# RS_Script="$HERE/local/do_tst_2+2"
+  RS_Script="$HERE/local/do_tst_2+2"
 
 if test "x$fewExp" != x ; then fewExp=`echo $fewExp | sed 's/^ *//'` ; fi
 if test -d $TST_DIR ; then
