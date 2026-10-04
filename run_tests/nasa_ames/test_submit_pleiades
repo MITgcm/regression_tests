@@ -162,7 +162,7 @@ if [ $updateTst -ge 1 ] ; then
       rm -f $tmpFil
     else echo ''						| tee -a $LOG_FIL
       echo " Error: 'git clone' returned: $retVal"		| tee -a $LOG_FIL
-      cat $tmpFil ; rm -f $tmpFil
+      cat $tmpFil >> $LOG_FIL ; rm -f $tmpFil
       exit 2
     fi
   fi
@@ -172,7 +172,7 @@ if [ $updateTst -ge 1 ] ; then
     if test $test_branch != $loc_branch ; then
       echo "In clone ( $git_test ), switching from '$loc_branch' to '$test_branch' :" | tee -a $LOG_FIL
       ( cd $git_test ; git fetch )				| tee -a $LOG_FIL
-      echo "  and checkout $test_branch :"			| tee -a $LOG_FIL
+      echo "  and checkout branch '$test_branch' :"		| tee -a $LOG_FIL
       ( cd $git_test ; git checkout $test_branch )		| tee -a $LOG_FIL
     fi
     echo -n "Updating current clone ( $git_test ) ..."		| tee -a $LOG_FIL
@@ -242,7 +242,7 @@ if [ $updateSrc -ge 1 ] ; then
        rm -f $tmpFil
     else echo ''					| tee -a $LOG_FIL
        echo " Error: 'git clone' returned: $retVal"	| tee -a $LOG_FIL
-       cat $tmpFil ; rm -f $tmpFil
+       cat $tmpFil >> $LOG_FIL ; rm -f $tmpFil
        exit 5
     fi
   fi
@@ -316,7 +316,7 @@ if [ $submitJob -ge 1 ] ; then
         if test $sfx != 'fast2' ; then
           echo -n "--> $JOB : $BATCH_SCRIPT , "		| tee -a $LOG_FIL
           $QSUB $SUB_DIR/$BATCH_SCRIPT > $tmpFil 2>&1 ; retVal=$?
-          cat $tmpFil			| tee -a $LOG_FIL ; rm -f $tmpFil
+          cat $tmpFil >> $LOG_FIL ; rm -f $tmpFil
           if test $retVal != 0 ; then
             echo "Error: $QSUB failed to submit job $JOB (retVal: $retVal )" >> $LOG_FIL
           else NB_SUB_JOBS=`expr $NB_SUB_JOBS + 1` ; fi
