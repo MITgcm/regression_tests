@@ -1,13 +1,10 @@
 #!/bin/bash
 #SBATCH -J ifcMth_tst
 #SBATCH -p mit_normal
-# #SBATCH --account=mit_amf_advanced_cpu
-# #SBATCH --qos=mit_amf_advanced_cpu
 #SBATCH -t 06:00:00
 #SBATCH --mem-per-cpu 4000
 #SBATCH -N 1
 #SBATCH --tasks-per-node 3
-# #SBATCH -x node[169,173,235,335]
 #SBATCH -e /home/jm_c/test_engaging/output/ifcMth_tst.stderr
 #SBATCH -o /home/jm_c/test_engaging/output/ifcMth_tst.stdout
 #SBATCH --no-requeue
@@ -41,7 +38,6 @@ OUTP="$HERE/output"; SavD="$HERE/send"
 TST_DIR="/orcd/pool/007/jm_c/test_$dNam"
 TST_DIR=$HERE
 tmpFil="/tmp/"`basename $0`".$$"
-  cmdCVS='cvs -d :pserver:cvsanon@mitgcm.org:/u/gcmpack -q'
 #- which GitHub repository to use and how to access it:
   git_repo='MITgcm'; git_code='MITgcm' ; git_other='verification_other'
  #git_repo='altMITgcm'; #git_code='MITgcm66h'
@@ -54,13 +50,6 @@ TR_Script='./testreport' ; RS_Script='../tools/do_tst_2+2'
 checkOut=1 ; dblTr=0 ; typ='' ; addExp='' ; fewExp='' ; optExp='-skd'
 sfx='ifcMth'; dblTr=1
 addExp='atm_gray_ll atm_strato offline_cheapaml'
-#-- old Centos-7:
-# module add slurm
-# module add gcc
-# module add engaging/intel/2013.1.046
-##export MPI_INC_DIR="$MPI_HOME/include"
-# OPTFILE="../tools/build_options/linux_amd64_ifort+impi"
-# export GENERIC='on' # <-- to prevent the use of "-xHost" option
 #--- new Rocky-8:
   module use /home/jahn/software/modulefiles
   module load intel/2024.2.1
