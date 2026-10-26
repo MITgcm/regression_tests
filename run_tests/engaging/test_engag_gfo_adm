@@ -68,8 +68,16 @@ addExp="$addExp global_oce_cs32 global_oce_llc90"
  export PATH="$PATH:$HOME/bin"
 
 gcmDIR="MITgcm_$sfx"
-dAlt=`date +%d` ; dAlt=`expr $dAlt % 3`
-if [ $dAlt -eq 1 ] ; then options="$options -fast"
+#- alternate sequence: base on day in the month:
+ dAlt=`date +%d`
+#- alternate sequence: base on previous tests, as recorded in file "seq_${sfx}":
+ SEQ_recFile="${OUTP}/seq_${sfx}" ; dAlt=1
+ if test -f $SEQ_recFile ; then
+   dAlt=`cat $SEQ_refFile | sed 's/ : .*$//'`; dAlt=`expr $dAlt + 1`
+ fi
+#---
+dAlt=`expr $dAlt % 3` ; Opt='dev'
+if [ $dAlt -eq 1 ] ; then Opt='fast' ; options="$options -$Opt"
 else options="$options -devel" ; fi
 
 #options="$options -do"
@@ -102,7 +110,9 @@ df .
 NSLOTS=$SLURM_NTASKS
 THEDATE=`date`
 echo '********************************************************************************'
-echo 'Start job '$THEDATE
+echo "Start $sfx job on: $THEDATE ; typ='${typ}' ; checkOut=$checkOut ; dblTr=$dblTr"
+echo " dAlt,Opt= $dAlt , $Opt ; addExp= '$addExp' ; fewExp= '$fewExp' ; optExp='$optExp'"
+echo " using TR_Script= $TR_Script , RS_Script= $RS_Script"
 echo 'NSLOTS = '$NSLOTS
 echo '======= NODELIST ==============================================================='
 echo $SLURM_NODELIST
@@ -261,7 +271,6 @@ fi
  mpiCMD="mpirun -hostfile TR_MFILE -np TR_NPROC ./mitgcmuv_ad"
 
 #- make the testreport MPI_MFILE with list of nodes to use:
-#MPI_mFile="${OUTP}/mf_${sfx}"
  MPI_mFile="mpi_mfile.$$"
  srun hostname | sort > $MPI_mFile
  echo '' ; echo "Using machine-file MPI_mFile='$MPI_mFile' :"
@@ -303,7 +312,10 @@ else
  #$RS_Script -mpi -exe "$mpiCMD" -mf $MPI_mFile \
 #   -o ${dNam}-$sfx -send "$SEND" $DESTIN
 #-----------------------------------------------------------------------------------------
-  echo -n "Remove machine-file MPI_mFile :"
+  echo -n "Remove machine-file MPI_mFile : rm -f $MPI_mFile"
   rm -f $MPI_mFile
-  echo " rm -f $MPI_mFile : done"
+  echo -n " ; and update SEQ_recFile"
+  rm -f $SEQ_recFile
+  echo "$dAlt : "`date` > $SEQ_recFile
+  echo " : done"
 fi
