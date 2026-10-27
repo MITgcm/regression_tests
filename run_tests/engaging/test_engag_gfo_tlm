@@ -67,10 +67,11 @@ sfx='gfoTlm'; typ='-tlm' ; dblTr=1
 
 gcmDIR="MITgcm_$sfx"
 #- alternate sequence: base on day in the month:
- dAlt=`date +%d`
+ dAlt=`date +%d` ; SEQ_recFile='None'
 #- alternate sequence: base on previous tests, as recorded in file "seq_${sfx}":
- SEQ_recFile="${OUTP}/seq_${sfx}" ; dAlt=1
+ dAlt=1 ; SEQ_recFile="${OUTP}/seq_${sfx}"
  if test -f $SEQ_recFile ; then
+   echo "-- content of file: $SEQ_recFile :" ; cat $SEQ_recFile ; echo "-------------------"
    dAlt=`cat $SEQ_recFile | sed 's/ : .*$//'`; dAlt=`expr $dAlt + 1`
  fi
 #---
@@ -291,11 +292,17 @@ else
 #   -o ${dNam}-$sfx -send \'$SEND\' $DESTIN
 # $RS_Script -mpi -exe "$mpiCMD" -mf $MPI_mFile \
 #   -o ${dNam}-$sfx -send "$SEND" $DESTIN
-#-----------------------------------------------------------------------------------------
-  echo -n "Remove machine-file MPI_mFile : rm -f $MPI_mFile"
-  rm -f $MPI_mFile
-  echo -n " ; and update SEQ_recFile"
-  rm -f $SEQ_recFile
-  echo "$dAlt : "`date` > $SEQ_recFile
-  echo " : done"
+ #-------------------------------------------------
+  if test $SEQ_recFile != 'None' ; then
+    echo -n "Update SEQ_recFile"
+    rm -f $SEQ_recFile
+    echo "$dAlt : "`date` > $SEQ_recFile
+    echo " : done"
+    echo "-- content of file: $SEQ_recFile :" ; cat $SEQ_recFile ; echo "-------------------"
+  fi
+  if test -f $MPI_mFile ; then
+    echo -n "Remove machine-file MPI_mFile : rm -f $MPI_mFile"
+    rm -f $MPI_mFile
+    echo " : done"
+  fi
 fi
