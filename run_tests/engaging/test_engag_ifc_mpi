@@ -67,9 +67,19 @@ addExp='global_oce_cs32 global_oce_llc90'
  export PATH="$PATH:$HOME/bin"
 
 gcmDIR="MITgcm_$sfx"
-dAlt=`date +%d` ; dAlt=`expr $dAlt % 3`
-if [ $dAlt -eq 1 ] ; then options="$options -ur4 -match 5" ; fi
-options="$options -devel"
+#- alternate sequence: base on day in the month:
+ dAlt=`date +%d` ; SEQ_recFile='None'
+#- alternate sequence: base on previous tests, as recorded in file "seq_${sfx}":
+ dAlt=1 ; SEQ_recFile="${OUTP}/seq_${sfx}"
+ if test -f $SEQ_recFile ; then
+   echo "-- content of file: $SEQ_recFile :" ; cat $SEQ_recFile ; echo "-------------------"
+   dAlt=`cat $SEQ_recFile | sed 's/ : .*$//'`; dAlt=`expr $dAlt + 1`
+ fi
+#---
+dAlt=`expr $dAlt % 3` ; Opt='dev'
+if [ $dAlt -eq 1 ] ; then Opt='ur4' ; options="$options -$Opt" ; fi
+if [ $dAlt -eq 4 ] ; then Opt='fast' ; options="$options -$Opt"
+else options="$options -devel" ; fi
 
 #options="$options -do"
 #options="$options -nc" ; checkOut=1 ; dblTr=0
@@ -101,7 +111,9 @@ df .
 NSLOTS=$SLURM_NTASKS
 THEDATE=`date`
 echo '********************************************************************************'
-echo 'Start job '$THEDATE
+echo "Start $sfx job on: $THEDATE ; typ='${typ}' ; checkOut=$checkOut ; dblTr=$dblTr"
+echo " dAlt,Opt= $dAlt , $Opt ; addExp= '$addExp' ; fewExp= '$fewExp' ; optExp='$optExp'"
+echo " using TR_Script= $TR_Script , RS_Script= $RS_Script"
 echo 'NSLOTS = '$NSLOTS
 echo '======= NODELIST ==============================================================='
 echo $SLURM_NODELIST
@@ -262,8 +274,8 @@ fi
 #mpiCMD="mpirun -hostfile TR_MFILE -np TR_NPROC ./mitgcmuv"
 
 #- make the testreport MPI_MFILE with list of nodes to use:
- MPI_mFile="${OUTP}/mf_${sfx}"   #- currently not used
 #MPI_mFile="mpi_mfile.$$"
+ MPI_mFile="${OUTP}/mf_${sfx}"   #- currently not used
  listNODES=`echo $SLURM_NODELIST | sed -e 's/\[/ /' -e 's/\]//' -e 's/,/ /' -e 's/-/ /'`
 # duplicate the 2 listed nodes into a 6 list file:
  /bin/rm -f $MPI_mFile ; touch $MPI_mFile
@@ -300,6 +312,7 @@ if [ $dblTr -eq 1 ] ; then
 fi
 
 if [ $dblTr -ge 0 ] ; then
+  if test $Opt = 'ur4' ; then options="$options -match 5" ; fi
   echo ''
 #- 2) run and report results ; also finish to compile those who failed with "-j"
   echo $TR_Script $options -of $OPTFILE $optExp \'$fewExp\' \
@@ -323,4 +336,18 @@ else
  #$RS_Script -mpi -exe "$mpiCMD" -mf $MPI_mFile \
   $RS_Script -mpi \
     -o ${dNam}-$sfx -send "$SEND" $DESTIN
+ #-------------------------------------------------
+  if test $SEQ_recFile != 'None' ; then
+    echo -n "Update SEQ_recFile"
+    rm -f $SEQ_recFile
+    echo "$dAlt : "`date` > $SEQ_recFile
+    echo " : done"
+    echo "-- content of file: $SEQ_recFile :" ; cat $SEQ_recFile ; echo "-------------------"
+  fi
+ #if test -f $MPI_mFile ; then
+  if false ; then
+    echo -n "Remove machine-file MPI_mFile : rm -f $MPI_mFile"
+    rm -f $MPI_mFile
+    echo " : done"
+  fi
 fi
