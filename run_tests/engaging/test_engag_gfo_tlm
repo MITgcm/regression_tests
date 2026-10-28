@@ -109,8 +109,9 @@ df .
 NSLOTS=$SLURM_NTASKS
 THEDATE=`date`
 echo '********************************************************************************'
-echo "Start $sfx job on: $THEDATE ; typ='${typ}' ; checkOut=$checkOut ; dblTr=$dblTr"
-echo " dAlt,Opt= $dAlt , $Opt ; addExp= '$addExp' ; fewExp= '$fewExp' ; optExp='$optExp'"
+echo "Start $sfx job on: $THEDATE ; checkOut=$checkOut ; dblTr=$dblTr ; typ='${typ}'"
+echo -n " dAlt=${dAlt}, Opt= $Opt ; addExp='$addExp' ; fewExp"
+if test "x$fewExp" = x ; then echo "='$fewExp'" ; else echo "(${optExp})='$fewExp'" ; fi
 echo " using TR_Script= $TR_Script , RS_Script= $RS_Script"
 echo 'NSLOTS = '$NSLOTS
 echo '======= NODELIST ==============================================================='
