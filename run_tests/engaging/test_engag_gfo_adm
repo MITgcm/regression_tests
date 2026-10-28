@@ -74,7 +74,7 @@ gcmDIR="MITgcm_$sfx"
  dAlt=1 ; SEQ_recFile="${OUTP}/seq_${sfx}"
  if test -f $SEQ_recFile ; then
    echo "-- content of file: $SEQ_recFile :" ; cat $SEQ_recFile ; echo "-------------------"
-   dAlt=`cat $SEQ_refFile | sed 's/ : .*$//'`; dAlt=`expr $dAlt + 1`
+   dAlt=`cat $SEQ_recFile | sed 's/ : .*$//'`; dAlt=`expr $dAlt + 1`
  fi
 #---
 dAlt=`expr $dAlt % 3` ; Opt='dev'
