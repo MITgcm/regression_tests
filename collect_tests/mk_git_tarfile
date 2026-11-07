@@ -62,6 +62,7 @@ fi
 # chgrp gcmpack $git_code
   chmod 775 $git_code
 
+dayInM=`date +%d`
 arName='MITgcm_ss_'`date +%Y%m%d`'.tar'
 fixName=MITgcm_today_snapshot.tar.gz
 rm -rf MITgcm_ss_* $fixName
@@ -73,6 +74,7 @@ echo -n 'Creating the archive file ... '
 if test -e ${arName}.gz ; then
    echo 'Done!'
   #chmod 664 ${arName}.gz
+   if test $dayInM = '01' ; then echo '' >> $HOME/testing/logs/tar_file_list ; fi
    ls -l ${arName}* | tee -a $HOME/testing/logs/tar_file_list
 #- make a link to a fixed name:
    ln -s ${arName}.gz $fixName
