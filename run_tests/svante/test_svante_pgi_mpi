@@ -69,8 +69,17 @@ sfx='pgiMpi'
 #export PATH="$PATH:$HOME/bin"
 
 gcmDIR="MITgcm_$sfx"
-dAlt=`date +%d` ; dAlt=`expr $dAlt % 3`
-if [ $dAlt -eq 1 ] ; then options="$options -fast"
+#- alternate sequence: base on day in the month:
+ dAlt=`date +%d` ; SEQ_recFile='None'
+#- alternate sequence: base on previous tests, as recorded in file "seq_${sfx}":
+#dAlt=1 ; SEQ_recFile="${OUTP}/seq_${sfx}"
+ if test -f $SEQ_recFile ; then
+   echo "-- content of file: $SEQ_recFile :" ; cat $SEQ_recFile ; echo "-------------------"
+   dAlt=`cat $SEQ_recFile | sed 's/ : .*$//'`; dAlt=`expr $dAlt + 1`
+ fi
+#---
+dAlt=`expr $dAlt % 3` ; Opt='dev'
+if [ $dAlt -eq 1 ] ; then Opt='fast' ; options="$options -$Opt"
 else options="$options -devel" ; fi
 
 #options="$options -do"
@@ -103,7 +112,10 @@ pwd
 NSLOTS=$SLURM_NTASKS
 THEDATE=`date`
 echo '********************************************************************************'
-echo 'Start job '$THEDATE
+echo "Start $sfx job on: $THEDATE ; checkOut=$checkOut ; dblTr=$dblTr ; typ='${typ}'"
+echo -n " dAlt=${dAlt}, Opt= $Opt ; addExp='$addExp' ; fewExp"
+if test "x$fewExp" = x ; then echo "='$fewExp'" ; else echo "(${optExp})='$fewExp'" ; fi
+#echo " using TR_Script= $TR_Script , RS_Script= $RS_Script"
 echo 'NSLOTS = '$NSLOTS
 echo '======= NODELIST ==============================================================='
 echo $SLURM_NODELIST
@@ -285,4 +297,12 @@ else
   ../tools/do_tst_2+2 -mpi \
     -o ${dNam}-$sfx -send "$SEND" $DESTIN
   $HERE/${dNam}/backup_outp rs_${dNam}-${sfx} $OUTP/backup
+ #-------------------------------------------------
+  if test $SEQ_recFile != 'None' ; then
+    echo -n "Update SEQ_recFile"
+    rm -f $SEQ_recFile
+    echo "$dAlt : $Opt : "`date` > $SEQ_recFile
+    echo " : done"
+    echo "-- content of file: $SEQ_recFile :" ; cat $SEQ_recFile ; echo "-------------------"
+  fi
 fi
